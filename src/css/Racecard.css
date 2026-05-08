@@ -1,0 +1,95 @@
+/* RaceCard Styles */
+.race-card {
+  margin-bottom: 40px;
+  border-bottom: 2px solid var(--accent);
+}
+
+.race-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.race-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.race-card h2 {
+  margin: 0;
+  text-align: left;
+}
+
+.race-title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.race-detail {
+  height: 45px;
+  overflow: auto;
+  margin: 0;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.race-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-left: 5px;
+}
+
+.race-controls label {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.race-sort-select, .race-analytics-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  background-color: lightslategray;
+  color: var(--text-h);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+
+.race-sort-select:hover {
+  border-color: var(--accent);
+  background-color: var(--accent);
+}
+
+.race-analytics-btn:hover {
+  border-color: var(--accent);
+  background-color: var(--accent);
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+}
+
+.race-anchor-link {
+  margin-left: 8px;
+  text-decoration: none;
+  color: var(--border);
+  font-size: 0.7em;
+  opacity: 0.5;
+}
+
+.race-anchor-link:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+

@@ -1,0 +1,232 @@
+.cell-no {
+  font-weight: bold;
+  width: 15px;
+  color: var(--text-h);
+  flex-shrink: 0;
+}
+
+.cell-draw {
+  width: 20px;
+  color: var(--text);
+  font-size: 0.9em;
+  flex-shrink: 0;
+}
+
+.cell-form {
+  width: 100px;
+  color: var(--text);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.odds {
+  color: var(--text-h);
+  font-size: 1.1em;
+}
+
+.cell-name {
+  flex: 1;
+  color: var(--text-h);
+  font-size: 1.1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-lastrun {
+  width: 30px;
+  color: var(--text);
+  font-size: 0.85em;
+  text-align: center;
+}
+
+.cell-age {
+  width: 30px;
+  color: var(--text);
+  text-align: center;
+}
+
+.cell-weight {
+  width: 50px;
+  color: var(--text-h);
+  font-weight: 500;
+  text-align: center;
+}
+
+.cell-jockey {
+  flex: 1;
+  text-align: right;
+  color: var(--text);
+  font-size: 0.95em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-trainer {
+  flex: 1;
+  min-width: 150px;
+  text-align: right;
+  color: var(--text);
+  font-size: 0.95em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-owner {
+  min-width: 50px;
+  color: var(--text);
+  font-size: 0.65em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 175px;
+}
+
+.cell-breeding {
+  min-width: 50px;
+  color: var(--text);
+  font-size: 0.65em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: none;
+}
+
+.avg-rating {
+  font-weight: bold;
+  color: var(--accent);
+  margin: 0 25px;
+  font-size: 1.1em;
+  min-width: 40px;
+  text-align: right;
+}
+
+.trainer-row {
+  display:flex;
+  gap: 15px;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+.horse-row {
+  padding: 5px 0px;
+  transition: background-color 0.2s ease;
+}
+
+.horse-row:nth-child(even) {
+  background-color: var(--zebra);
+}
+
+.horse-row:hover {
+  background-color: var(--accent-bg) !important;
+}
+
+.fiddle-highlight {
+  background-color: rgba(255, 215, 0, 0.15) !important; /* Subtle gold background */
+  border-left: 4px solid gold !important; /* Gold border on the left */
+}
+
+.select-highlight {
+  background-color: rgba(241, 5, 5, 0.15) !important; /* Subtle red background */
+  border-left: 4px solid red !important; /* Blue border on the left */
+}
+
+.horse-row.non-runner {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+}
+
+.non-runner .cell-name {
+  text-decoration: line-through;
+}
+
+.odds-value {
+  font-weight: bold;
+  color: var(--text-h);
+  min-width: 60px;
+  display: inline-block;
+  padding-right: 13px;
+  text-align: center;
+}
+
+.horse-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.horse-info-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.horse-details-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.horse-name-row {
+  display: flex;                /* Lines everything up in a row */
+  gap: 15px;                    /* Consistent spacing between 'columns' */
+  flex-wrap: wrap;              /* Allows content to drop down on small screens */
+  line-height: 23px;
+}
+
+.past-button {
+  background-color: transparent;
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+}
+
+.past-button:hover {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .horse-name-row {
+    gap: 8px;
+    white-space: normal;        /* Ensure text can wrap */
+  }
+  
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Shrink the silks and their container */
+  .horse-silks {
+    height: 20px; /* Reduced from default size */
+    width: auto;
+  }
+
+  .horse-silks-wrapper {
+    width: 24px; /* Matches the smaller image width */
+    min-width: 24px;
+    margin-right: 4px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .avg-rating {
+        font-weight: bold;
+        color: var(--accent);
+        margin: 0 0px;
+        font-size: 1.1em;
+        min-width: 2px;
+        text-align: right;
+    }
+
+  .cell-jockey { display: block; width: 100%; text-align: left; margin-top: 4px; }
+}

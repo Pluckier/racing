@@ -1,0 +1,134 @@
+.form-chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg);
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.recharts-default-tooltip {
+  background-color: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+}
+
+.recharts-tooltip-item {
+  color: var(--text) !important;
+}
+
+.recharts-tooltip-label {
+  color: var(--text-h) !important;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.chart-controls {
+    background-color: var(--bg);
+    margin-bottom: -5px !important;
+    opacity: 1;
+    position: relative;
+    z-index: 10;
+}
+
+.chart-dot-label {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.chart-tooltip-item {
+  display: block;
+}
+
+.chart-tooltip-title {
+  font-weight: bold;
+  display: block;
+}
+
+.chart-tooltip-race {
+  display: block;
+}
+
+.chart-tooltip-performance {
+  display: block;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.chart-detail-panel {
+  position: absolute;
+  top: 70px;
+  right: 20px;
+  width: 320px;
+  max-width: calc(100% - 40px);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  animation: chartPanelFadeIn 0.2s ease-out;
+}
+
+@keyframes chartPanelFadeIn {
+  from { transform: translateX(10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.panel-header {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--accent-bg);
+  border-radius: 8px 8px 0 0;
+}
+
+.panel-header h4 {
+  margin: 0;
+  color: var(--text-h);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-h);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.panel-content {
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.panel-content p {
+  margin: 0 0 8px 0;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .modal-header h3 {
+    font-size: 0.75em;
+  }
+
+  .modal-header {
+    padding: 0px;
+    padding-top: 0px;
+    width: 85%;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+}

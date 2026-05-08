@@ -1,0 +1,53 @@
+.odds-summary-container {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.odds-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+.odds-summary-table th {
+    position: sticky;
+    top: 0;
+    background-color: #333;
+    padding: 10px;
+    text-align: left;
+    border-bottom: 2px solid #444;
+}
+
+.odds-summary-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.odds-summary-table th.sortable:hover {
+    background-color: #444;
+}
+
+.odds-summary-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #444;
+}
+
+.venue-cell {
+    color: var(--text-h);
+    font-size: 0.8rem;
+}
+
+.move-down {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #4ade80; /* Green for shortening odds */
+}
+
+.move-up {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #f87171; /* Red for drifting odds */
+}

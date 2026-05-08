@@ -1,0 +1,70 @@
+.past-race-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+  font-size: 14px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--bg);
+  font-family: var(--sans);
+}
+
+.past-race-date {
+  font-weight: bold;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.past-race-time {
+  width: 45px;
+  flex-shrink: 0;
+}
+
+.past-race-course {
+  width: 275px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.past-race-position-col {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.past-race-weight-rtg-col {
+  width: 125px;
+  flex-shrink: 0;
+}
+
+.past-race-pos {
+  color: #d32f2f;
+  font-weight: bold;
+  width: 30px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.past-race-details {
+  flex: 1;
+  padding: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.past-race-meta {
+  color: var(--text);
+}
+.past-race-rtg {
+  width: 80px;
+  flex-shrink: 0;
+  text-align: right;
+}
+.past-race-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: bold;
+  flex-shrink: 0;
+}

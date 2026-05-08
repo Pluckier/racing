@@ -1,0 +1,40 @@
+.favorite-selections-container {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.favorite-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+.favorite-table th {
+    position: sticky;
+    top: 0;
+    background-color: #333;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #444;
+}
+
+.favorite-table th.sortable {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.favorite-table th.sortable:hover {
+    background-color: #444;
+}
+
+.favorite-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #444;
+}
+
+.odds-cell {
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 1.05rem;
+}

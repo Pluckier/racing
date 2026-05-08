@@ -1,0 +1,54 @@
+.skeleton-timeline {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 20px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow: hidden;
+}
+
+.skeleton-timeline-header {
+  height: 20px;
+  width: 150px;
+  background: var(--border);
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+.skeleton-timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.skeleton-timeline-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.skeleton-timeline-label {
+  width: 80px;
+  height: 15px;
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.skeleton-timeline-bar {
+  flex: 1;
+  height: 25px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--code-bg) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
