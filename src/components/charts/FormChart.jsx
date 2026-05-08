@@ -256,10 +256,9 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         </div>
 
 
-        <div className="hide-mobile">
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {/* Horse Selector */}
-            <div style={{ 
+            <div className="hide-mobile" style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px',
@@ -312,7 +311,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             </div>
 
             {/* Position Filter Slider */}
-            <div style={{ 
+            <div className="hide-mobile" style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px',
@@ -336,7 +335,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             </div>
 
             {/* Distance Beaten Filter Slider */}
-            <div style={{ 
+            <div className="hide-mobile" style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px',
@@ -360,7 +359,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             </div>
 
             {/* Existing Distance Margin Slider */}
-            <div style={{ 
+            <div className="hide-mobile" style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px',
@@ -402,7 +401,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             </div>
 
             {/* NEW: Months Filter Slider */}
-            <div style={{ 
+            <div className="hide-mobile" style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px',
@@ -425,7 +424,6 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
               />
             </div>
           </div>
-        </div>
 
         <div style={{ flex: 1, textAlign: 'right' }}>
           {hasNext && (
