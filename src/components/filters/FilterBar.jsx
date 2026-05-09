@@ -2,31 +2,36 @@ import React from 'react';
 
 const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowFavorites }) => {
   return (
-    <div className="filter-section">
-      <div className="place-filters">
-        <button
-          onClick={() => setFilters(f => ({ ...f, tricast: !f.tricast }))}
-          className={`filter-btn handicap-btn ${filters.tricast ? 'active' : ''}`}
-        >
-          Tricasts
-        </button>
-
-        {uniquePlaces.map(place => {
-          const isActive = filters.places.includes(place);
-          return (
+    <>
+      <details className="timeline-details" open>
+        <summary className="timeline-summary">📌</summary>
+        <div className="filter-section">
+          <div className="place-filters">
             <button
-              key={place}
-              onClick={() => setFilters(f => ({
-                ...f,
-                places: isActive ? f.places.filter(p => p !== place) : [...f.places, place]
-              }))}
-              className={`filter-btn ${isActive ? 'active' : ''}`}
+              onClick={() => setFilters(f => ({ ...f, tricast: !f.tricast }))}
+              className={`filter-btn handicap-btn ${filters.tricast ? 'active' : ''}`}
             >
-              {place}
+              Tricasts
             </button>
-          );
-        })}
-      </div>
+
+            {uniquePlaces.map(place => {
+              const isActive = filters.places.includes(place);
+              return (
+                <button
+                  key={place}
+                  onClick={() => setFilters(f => ({
+                    ...f,
+                    places: isActive ? f.places.filter(p => p !== place) : [...f.places, place]
+                  }))}
+                  className={`filter-btn ${isActive ? 'active' : ''}`}
+                >
+                  {place}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </details>
 
       <div className="summary-controls">
         <button className={`filter-btn follow-btn ${filters.follow ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, follow: !f.follow }))} title="Only show races that haven't run yet">⏱️ Follow</button>
@@ -36,7 +41,7 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowFa
         <button className={`filter-btn fiddle-btn ${filters.fiddle ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, fiddle: !f.fiddle }))} title="Highlight well connected horses">🎻 Fiddles</button>
         <button className={`filter-btn follow-btn ${filters.select ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, select: !f.select }))} title="Highlight top rated favorites">🎯 Select</button>
       </div>
-    </div>
+    </>
   );
 };
 

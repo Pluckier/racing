@@ -92,7 +92,7 @@ function App() {
             onShowFavorites={() => s.setActiveModal('favorites')} 
           />
 
-          <div className="view-toggle-container" style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
+          <div className="view-toggle-container" style={{ display: 'flex', justifyContent: 'center', margin: '5px 0' }}>
             <div style={{ 
               display: 'flex', 
               backgroundColor: 'var(--bg-card)', 
