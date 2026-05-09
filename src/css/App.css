@@ -8,6 +8,7 @@
   --accent-bg: #e3ddec;
   --accent-border: #cccccc;
   --zebra: #fafafa;
+  --bg-card: #ffffff;
   --modal-bg: #ffffff;
 }
 
@@ -19,6 +20,7 @@
   --accent-bg: #281c34;
   --accent-border: #444444;
   --zebra: #222222;
+  --bg-card: #2a2a2a;
   --modal-bg: #2a2a2a;
 }
 

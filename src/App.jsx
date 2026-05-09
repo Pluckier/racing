@@ -13,7 +13,7 @@ import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
 import RaceCard from './components/race/Racecard';
 import Chatter from './components/chat/Chatter';
-import NonRunnerNotifications from './hooks/NonRunnerNotifications';
+import NonRunnerNotifications from './components/layout/NonRunnerNotifications';
 import './css/App.css';
 import './css/Notifications.css';
 function App() {
