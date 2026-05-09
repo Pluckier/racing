@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AuthGuard from './components/security/AuthGuard';
 import { useAppState } from './hooks/useAppState';
+import { useNonRunnerNotifications } from './hooks/useNonRunnerNotifications';
 import SkeletonRaceCard from './components/skeletons/SkeletonRaceCard';
 import SkeletonRaceTimeline from './components/skeletons/SkeletonRaceTimeline';
 import RaceTimeline from './components/race/RaceTimeline';
@@ -12,11 +13,14 @@ import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
 import RaceCard from './components/race/Racecard';
 import Chatter from './components/chat/Chatter';
+import NonRunnerNotifications from './hooks/NonRunnerNotifications';
 import './css/App.css';
+import './css/Notifications.css';
 function App() {
   const s = useAppState(); 
   const [viewMode, setViewMode] = useState('all'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
+  const { notifications, removeNotification } = useNonRunnerNotifications(s.races, s.displayDate);
 
   // Synchronize activeRaceIndex with URL hash (from Timeline, Search, or navigation)
   useEffect(() => {
@@ -182,6 +186,11 @@ function App() {
       )}
 
       {s.showChat && <Chatter onClose={() => s.setShowChat(false)} />}
+
+      <NonRunnerNotifications 
+        notifications={notifications} 
+        onRemove={removeNotification} 
+      />
     </Layout>
   );
 

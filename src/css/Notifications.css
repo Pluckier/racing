@@ -1,0 +1,63 @@
+.nr-notifications-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 90%;
+  max-width: 450px;
+  pointer-events: none;
+}
+
+.nr-notification-item {
+  pointer-events: auto;
+  background: var(--bg-card, #ffffff);
+  color: var(--text, #333);
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-left: 4px solid #ff4444;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: nr-slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.3s ease;
+}
+
+.nr-notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nr-icon {
+  font-size: 1.2rem;
+}
+
+.nr-message {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.nr-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-h, #888);
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 0 5px;
+  line-height: 1;
+}
+
+.nr-close-btn:hover {
+  color: var(--text, #333);
+}
+
+@keyframes nr-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
