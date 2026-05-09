@@ -49,6 +49,16 @@ function App() {
     }
   }, [s.filteredRaces.length, activeRaceIndex]);
 
+  // Automatically jump to the first available race when 'Follow' mode is enabled
+  useEffect(() => {
+    if (s.filters.follow && s.filteredRaces.length > 0) {
+      setActiveRaceIndex(0);
+      const firstRace = s.filteredRaces[0];
+      // Update hash to ensure the "Single" view and background scroll stay in sync
+      window.location.hash = `${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
+    }
+  }, [s.filters.follow]);
+
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
 
