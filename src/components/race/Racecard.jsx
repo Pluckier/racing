@@ -146,10 +146,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             <a href="#home" className="home-link" title="Return to top">
               🏠
             </a>
-            <a href={`#${raceId}`} className="race-title-link">
-              {race.time} {race.place}
-            </a>
-           <button 
+            <button 
               onClick={() => setAudioEnabled(!audioEnabled)}
               title={audioEnabled ? "Alarm active (2 mins before start)" : "Click to set alarm for this race"}
               style={{
@@ -167,8 +164,12 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             >
               🔔
             </button>
+            <a href={`#${raceId}`} className="race-title-link">
+              {race.time} {race.place}
+            </a>
+           
           </h2>
-          <h5 className="race-detail hide-on-mobile">{race.detail} {race.going}</h5>
+          <h5 className="race-detail">{race.detail} {race.going}</h5>
         </div>
         <div className="race-controls">
           <div style={{ 
