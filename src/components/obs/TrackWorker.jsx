@@ -35,7 +35,7 @@ const TrackWorker = () => {
 
   return (
     <div className="live-tracker" title="People here now">
-      {liveCount} 👀
+      {liveCount} 🧍
     </div>
   );
 };

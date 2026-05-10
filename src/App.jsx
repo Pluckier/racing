@@ -103,39 +103,31 @@ function App() {
           />
           
           <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '5px 0 15px' }}>
-            <div style={{
-              display: 'flex', 
-              backgroundColor: 'var(--bg-card)', 
-              borderRadius: '25px', 
-              padding: '4px',
-              border: '1px solid var(--border)'
-            }}>
-              <button
-                className={`filter-btn ${viewMode === 'all' ? 'active' : ''}`}
-                onClick={() => setViewMode('all')}
-                style={{ border: 'none', margin: 0, padding: '6px 15px' }}
-              >
-                List
-              </button>
-              <button
-                className={`filter-btn ${viewMode === 'single' ? 'active' : ''}`}
-                onClick={() => setViewMode('single')}
-                style={{ border: 'none', margin: 0, padding: '6px 15px' }}
-              >
-                Single
-              </button>
-            </div>
-
             {viewMode === 'single' && s.filteredRaces.length > 0 && (
-              <>
-                <button
+              <button
                 className="race-analytics-btn" 
                 disabled={activeRaceIndex === 0}
                 onClick={() => {
                   const race = s.filteredRaces[activeRaceIndex - 1];
                   window.location.hash = `${race.time}${race.place.replace(/\s+/g, '')}`;
                 }}
-                >← Prev</button>
+              >← Prev</button>
+            )}
+
+            <button
+              className="filter-btn active"
+              onClick={() => setViewMode(prev => prev === 'all' ? 'single' : 'all')}
+              style={{ 
+                borderRadius: '25px', 
+                padding: '6px 18px', 
+                minWidth: '100px' 
+              }}
+            >
+              {viewMode === 'all' ? 'All 👀' : 'One 👀'}
+            </button>
+
+            {viewMode === 'single' && s.filteredRaces.length > 0 && (
+              <>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-h)', fontWeight: 'bold' }}>
                   {activeRaceIndex + 1} / {s.filteredRaces.length}
                 </span>
