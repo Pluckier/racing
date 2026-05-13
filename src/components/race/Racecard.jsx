@@ -14,37 +14,11 @@ const SORT_LABELS = {
   all: 'All'
 };
 
-const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects }) => {
+const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
-
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const [hasPlayed, setHasPlayed] = useState(false);
-
-  // Logic to play music 2 minutes before the race time
-  useEffect(() => {
-    if (!audioEnabled || hasPlayed || !race.time || !race.time.includes(':')) return;
-
-    const checkTime = () => {
-      const now = new Date();
-      const [hours, minutes] = race.time.split(':').map(Number);
-      const raceTime = new Date();
-      raceTime.setHours(hours, minutes, 0, 0);
-
-      const triggerTime = raceTime.getTime() - 120000; // 120,000ms = 2 minutes
-
-      if (now.getTime() >= triggerTime && now.getTime() < raceTime.getTime()) {
-        const audio = new Audio('music.mp3'); // References public/music.mp3
-        audio.play().catch(err => console.error("Audio playback blocked or failed:", err));
-        setHasPlayed(true);
-      }
-    };
-
-    const timer = setInterval(checkTime, 10000); // Check every 10 seconds
-    return () => clearInterval(timer);
-  }, [audioEnabled, hasPlayed, race.time]);
 
   const getAvg = (h) => {
     const past = h.past || [];
@@ -147,8 +121,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               🏠
             </a>
             <button 
-              onClick={() => setAudioEnabled(!audioEnabled)}
-              title={audioEnabled ? "Alarm active (2 mins before start)" : "Click to set alarm for this race"}
+              onClick={onToggleAlarm}
+              title={isAlarmEnabled ? "Alarm active (2 mins before start)" : "Click to set alarm for this race"}
               style={{
                 background: 'none',
                 border: 'none',
@@ -158,8 +132,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
                 padding: 0,
                 verticalAlign: 'middle',
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                filter: audioEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.3)',
-                transform: audioEnabled ? 'scale(1.15)' : 'scale(1)'
+                filter: isAlarmEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.3)',
+                transform: isAlarmEnabled ? 'scale(1.15)' : 'scale(1)'
               }}
             >
               🔔

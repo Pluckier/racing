@@ -21,6 +21,46 @@ function App() {
   const [viewMode, setViewMode] = useState('all'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const { notifications, removeNotification } = useNonRunnerNotifications(s.races, s.displayDate);
+  
+  const [enabledAlarms, setEnabledAlarms] = useState(new Set());
+  const [playedAlarms, setPlayedAlarms] = useState(new Set());
+
+  const toggleAlarm = (raceId) => {
+    setEnabledAlarms(prev => {
+      const next = new Set(prev);
+      if (next.has(raceId)) next.delete(raceId);
+      else next.add(raceId);
+      return next;
+    });
+  };
+
+  // Reset played tracking when the date changes
+  useEffect(() => {
+    setPlayedAlarms(new Set());
+  }, [s.displayDate]);
+
+  // Global timer to check for upcoming races with enabled alarms
+  useEffect(() => {
+    if (enabledAlarms.size === 0) return;
+    const interval = setInterval(() => {
+      const now = new Date();
+      s.races.forEach(race => {
+        const id = `${race.time}${race.place.replace(/\s+/g, '')}`;
+        if (enabledAlarms.has(id) && !playedAlarms.has(id)) {
+          const [hours, minutes] = race.time.split(':').map(Number);
+          const raceDate = new Date();
+          raceDate.setHours(hours, minutes, 0, 0);
+
+          const triggerTime = raceDate.getTime() - 120000; // 2 minutes before
+          if (now.getTime() >= triggerTime && now.getTime() < raceDate.getTime()) {
+            new Audio('music.mp3').play().catch(() => {});
+            setPlayedAlarms(prev => new Set(prev).add(id));
+          }
+        }
+      });
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [enabledAlarms, playedAlarms, s.races]);
 
   // Synchronize activeRaceIndex with URL hash (from Timeline, Search, or navigation)
   useEffect(() => {
@@ -63,7 +103,11 @@ function App() {
   const AUTH_ACTIVE = false;
 
   // 1. Define your UI in a single block
-  const content = (auth = {}) => (
+  const content = (auth = {}) => {
+    const activeRace = s.filteredRaces[activeRaceIndex] || s.filteredRaces[0];
+    const activeRaceId = activeRace ? `${activeRace.time}${activeRace.place.replace(/\s+/g, '')}` : null;
+
+    return (
     <Layout 
       navProps={{
         theme: s.theme, 
@@ -175,6 +219,8 @@ function App() {
                 highlightFiddles={s.filters.fiddle}
                 highlightValues={s.filters.value}
                 highlightSelects={s.filters.select}
+                isAlarmEnabled={enabledAlarms.has(activeRaceId)}
+                onToggleAlarm={() => toggleAlarm(activeRaceId)}
               />
             ) : (
               <div className="no-data" style={{ textAlign: 'center', padding: '20px' }}>No races match filters.</div>
@@ -182,7 +228,12 @@ function App() {
           </div>
 
           <div style={{ display: viewMode === 'all' ? 'block' : 'none' }}>
-            <RaceGrid races={s.filteredRaces} filters={s.filters} />
+            <RaceGrid 
+              races={s.filteredRaces} 
+              filters={s.filters} 
+              enabledAlarms={enabledAlarms}
+              toggleAlarm={toggleAlarm}
+            />
           </div>
         </>
       )}
@@ -194,7 +245,8 @@ function App() {
         onRemove={removeNotification} 
       />
     </Layout>
-  );
+    );
+  };
 
   // 2. Return the UI wrapped ONLY if auth is active
   if (!AUTH_ACTIVE) return content();
