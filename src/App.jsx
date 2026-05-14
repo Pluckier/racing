@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AuthGuard from './components/security/AuthGuard';
 import { useAppState } from './hooks/useAppState';
 import { useNonRunnerNotifications } from './hooks/useNonRunnerNotifications';
@@ -25,6 +25,10 @@ function App() {
   const [enabledAlarms, setEnabledAlarms] = useState(new Set());
   const [playedAlarms, setPlayedAlarms] = useState(new Set());
 
+  // Ref to track played alarms to avoid stale closures in the timer interval
+  const playedAlarmsRef = useRef(playedAlarms);
+  playedAlarmsRef.current = playedAlarms;
+
   const toggleAlarm = (raceId) => {
     setEnabledAlarms(prev => {
       const next = new Set(prev);
@@ -46,7 +50,8 @@ function App() {
       const now = new Date();
       s.races.forEach(race => {
         const id = `${race.time}${race.place.replace(/\s+/g, '')}`;
-        if (enabledAlarms.has(id) && !playedAlarms.has(id)) {
+        // Access the latest `playedAlarms` from the ref
+        if (enabledAlarms.has(id) && !playedAlarmsRef.current.has(id)) {
           const [hours, minutes] = race.time.split(':').map(Number);
           const raceDate = new Date();
           raceDate.setHours(hours, minutes, 0, 0);
@@ -54,18 +59,26 @@ function App() {
           const triggerTime = raceDate.getTime() - 120000; // 2 minutes before
           if (now.getTime() >= triggerTime && now.getTime() < raceDate.getTime()) {
             new Audio('music.mp3').play().catch(() => {});
-            setPlayedAlarms(prev => new Set(prev).add(id));
+            // Update state AND ref immediately to ensure the next 10s tick sees it as "played"
+            setPlayedAlarms(prev => {
+              const next = new Set(prev).add(id);
+              playedAlarmsRef.current = next;
+              return next;
+            });
           }
         }
       });
     }, 10000);
     return () => clearInterval(interval);
-  }, [enabledAlarms, playedAlarms, s.races]);
+  }, [enabledAlarms, s.races]); 
 
   // Synchronize activeRaceIndex with URL hash (from Timeline, Search, or navigation)
   useEffect(() => {
+    // If we're still loading, wait for the data to arrive and DOM to render
+    if (s.loading) return;
+
     const handleHashSync = () => {
-      const hash = window.location.hash.substring(1);
+      const hash = decodeURIComponent(window.location.hash.substring(1));
       if (!hash) return;
       
       const index = s.filteredRaces.findIndex(r => 
@@ -74,13 +87,27 @@ function App() {
       
       if (index !== -1) {
         setActiveRaceIndex(index);
+        // Jump to the race element once it has been rendered in the DOM
+        if (viewMode === 'all') {
+          let retries = 0;
+          const tryScroll = () => {
+            const element = document.getElementById(hash);
+            if (element) {
+              element.scrollIntoView({ behavior: 'auto', block: 'start' });
+            } else if (retries < 10) { // Retry for up to 1 second if DOM is still updating
+              retries++;
+              setTimeout(tryScroll, 100);
+            }
+          };
+          tryScroll();
+        }
       }
     };
 
     window.addEventListener('hashchange', handleHashSync);
     handleHashSync(); // Sync on mount or when filteredRaces changes
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [s.filteredRaces]);
+  }, [s.filteredRaces, viewMode, s.loading]);
 
   // Ensure index stays in bounds if filters reduce the number of races
   useEffect(() => {
