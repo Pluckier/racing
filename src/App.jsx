@@ -22,6 +22,11 @@ function App() {
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const { notifications, removeNotification } = useNonRunnerNotifications(s.races, s.displayDate);
   
+  // Centralized date string for consistent URL hash generation
+  const currentDateStr = s.displayDate instanceof Date 
+    ? s.displayDate.toISOString().split('T')[0] 
+    : s.displayDate;
+
   const [enabledAlarms, setEnabledAlarms] = useState(new Set());
   const [playedAlarms, setPlayedAlarms] = useState(new Set());
 
@@ -107,7 +112,7 @@ function App() {
     window.addEventListener('hashchange', handleHashSync);
     handleHashSync(); // Sync on mount or when filteredRaces changes
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [s.filteredRaces, viewMode, s.loading]);
+  }, [s.filteredRaces, viewMode, s.loading, s.displayDate, s.setDisplayDate]);
 
   // Ensure index stays in bounds if filters reduce the number of races
   useEffect(() => {
@@ -121,10 +126,15 @@ function App() {
     if (s.filters.follow && s.filteredRaces.length > 0) {
       setActiveRaceIndex(0);
       const firstRace = s.filteredRaces[0];
+
+      const currentDateStr = s.displayDate instanceof Date 
+        ? s.displayDate.toISOString().split('T')[0] 
+        : s.displayDate;
+
       // Update hash to ensure the "Single" view and background scroll stay in sync
-      window.location.hash = `${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
+      window.location.hash = `${currentDateStr}@${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
     }
-  }, [s.filters.follow]);
+  }, [s.filters.follow, s.filteredRaces, s.displayDate]);
 
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
@@ -180,7 +190,7 @@ function App() {
                 disabled={activeRaceIndex === 0}
                 onClick={() => {
                   const race = s.filteredRaces[activeRaceIndex - 1];
-                  window.location.hash = `${race.time}${race.place.replace(/\s+/g, '')}`;
+                  window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
                 }}
               >← Prev</button>
             )}
@@ -207,7 +217,7 @@ function App() {
                 disabled={activeRaceIndex === s.filteredRaces.length - 1}
                 onClick={() => {
                   const race = s.filteredRaces[activeRaceIndex + 1];
-                  window.location.hash = `${race.time}${race.place.replace(/\s+/g, '')}`;
+                  window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
                 }}
                 >Next →</button>
               </>

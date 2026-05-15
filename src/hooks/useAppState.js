@@ -8,7 +8,15 @@ import { useAutoScroll } from './useAutoScroll';
 import { formatDisplayDateTime } from '../utils/dateUtils';
 
 export function useAppState() {
-  const [displayDate, setDisplayDate] = useState(() => new Date());
+  const [displayDate, setDisplayDate] = useState(() => {
+    const hash = decodeURIComponent(window.location.hash.substring(1));
+    if (hash.includes('@')) {
+      const datePart = hash.split('@')[0];
+      const parsed = new Date(datePart);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  });
   const currentTime = useClock();
   const [showChat, setShowChat] = useState(false);
   const { races, loading, error, refreshCooldown, handleManualRefresh } = useRaces(displayDate);
