@@ -86,8 +86,22 @@ function App() {
       const hash = decodeURIComponent(window.location.hash.substring(1));
       if (!hash) return;
       
+      let raceId = hash;
+      if (hash.includes('@')) {
+        const [datePart, idPart] = hash.split('@');
+        raceId = idPart;
+
+        // If the date in the URL is different from the app's current date, switch it.
+        if (datePart && datePart !== currentDateStr) {
+          s.setDisplayDate(new Date(datePart));
+          // Return early. Once the new date's data is fetched and loading is false,
+          // this useEffect will re-run and find the raceId in the new race list.
+          return;
+        }
+      }
+
       const index = s.filteredRaces.findIndex(r => 
-        `${r.time}${r.place.replace(/\s+/g, '')}` === hash
+        `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
       );
       
       if (index !== -1) {
@@ -96,7 +110,7 @@ function App() {
         if (viewMode === 'all') {
           let retries = 0;
           const tryScroll = () => {
-            const element = document.getElementById(hash);
+            const element = document.getElementById(raceId);
             if (element) {
               element.scrollIntoView({ behavior: 'auto', block: 'start' });
             } else if (retries < 10) { // Retry for up to 1 second if DOM is still updating
