@@ -1,11 +1,14 @@
 export const HOT_OWNERS = [
   "John P McManus", "Mrs J Donnelly"
 ];
+
 export const HOT_TRAINERS = [
   "A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
   "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell",
   "G & J Moore", "R A Fahey", "Ian Williams", "A W Carroll",
-  "K R Burke", "E Bolger", "James Owen", "J P O'Brien", "P Twomey"
+  "K R Burke", "E Bolger", "James Owen", "J P O'Brien", "P Twomey",
+  "D Skelton", "P F Nicholls", "A M Balding", "W J Haggas", "N P Mulholland",
+  "J & T Gosden", "C Appleby", "R M Beckett", "C Johnston", "H De Bromhead"
 ];
 
 /**
@@ -22,10 +25,10 @@ export const isFiddleHorse = (horse) => {
   const currentOdds = parseFloat(latestOddRaw);
   if (isNaN(currentOdds) || currentOdds <= 1) return false;
 
-  const owner = (horse.owner || "").toLowerCase();
-  const trainer = (horse.trainer || "").toLowerCase();
-  return HOT_OWNERS.some(o => owner.includes(o.toLowerCase())) ||
-         HOT_TRAINERS.some(t => trainer.includes(t.toLowerCase()));
+  const owner = (horse.owner || "");
+  const trainer = (horse.trainer || "");
+  return HOT_OWNERS.some(o => owner.includes(o)) ||
+         HOT_TRAINERS.some(t => trainer.includes(t));
 };
 
 /**
