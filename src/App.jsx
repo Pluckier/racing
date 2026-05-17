@@ -171,9 +171,9 @@ function App() {
         onShowChat: () => s.setShowChat(!s.showChat),
         isChatOpen: s.showChat
       }}
-      searchRaces={s.loading || s.error ? [] : s.races}
+      searchRaces={s.error ? [] : s.races}
     >
-      {s.loading ? (
+      {s.loading && s.races.length === 0 ? (
         <>
           <SkeletonRaceTimeline />
           <SkeletonRaceCard />

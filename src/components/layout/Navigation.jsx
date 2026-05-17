@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import TrackWorker from '../obs/TrackWorker';
 
-const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen }) => {
+const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen, lastRefreshTime, currentTime }) => {
   const dateInputRef = useRef(null);
 
   const handleOpenDatePicker = () => {
@@ -15,6 +15,11 @@ const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, dis
   };
 
   const dateInputValue = `${displayDate.getFullYear()}-${String(displayDate.getMonth() + 1).padStart(2, '0')}-${String(displayDate.getDate()).padStart(2, '0')}`;
+
+  // Calculate minutes remaining for the tooltip
+  const COOLDOWN_MS = 10 * 60 * 1000;
+  const timeSinceRefresh = currentTime ? currentTime.getTime() - lastRefreshTime : 0;
+  const minutesRemaining = Math.ceil((COOLDOWN_MS - timeSinceRefresh) / 60000);
 
   return (
     <div className="navigation-section">
@@ -35,7 +40,7 @@ const Navigation = ({ children, theme, setTheme, onRefresh, refreshCooldown, dis
             className={`filter-btn refresh-btn ${refreshCooldown ? 'disabled' : ''}`}
             onClick={onRefresh}
             disabled={refreshCooldown}
-            title={refreshCooldown ? "Cooldown active" : "Refresh data"}
+            title={refreshCooldown ? `Refresh available in ${minutesRemaining}m` : "Refresh data"}
           >
             ↻
           </button>

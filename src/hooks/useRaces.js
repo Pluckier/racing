@@ -1,51 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export const useRaces = (displayDate) => {
   const [races, setRaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [refreshCooldown, setRefreshCooldown] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [lastRefreshTime, setLastRefreshTime] = useState(0);
+  const lastDateRef = useRef(displayDate);
 
-  const fetchRaces = useCallback(
-    (showSkeleton = true) => {
-      if (showSkeleton) setLoading(true);
+  const handleManualRefresh = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
+
+  useEffect(() => {
+    const fetchRaces = async () => {
+      setLoading(true);
       setError(null);
+
+      // Seamless logic: only clear data if the date has actually changed.
+      if (lastDateRef.current?.toDateString() !== displayDate?.toDateString()) {
+        setRaces([]);
+        lastDateRef.current = displayDate;
+      }
+
       const day = String(displayDate.getDate()).padStart(2, '0');
       const month = String(displayDate.getMonth() + 1).padStart(2, '0');
       const year = displayDate.getFullYear();
       const dateString = `${day}-${month}-${year}`;
 
-      fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' })
-        .then((response) => {
-          if (!response.ok) throw new Error('Races for this date are not available');
-          return response.json();
-        })
-        .then((data) => {
-          if (Array.isArray(data)) setRaces(data);
-          else throw new Error('Unexpected data format from server');
-        })
-        .catch((err) => {
-          setError(err.message);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    },
-    [displayDate]
-  );
+      try {
+        const response = await fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('Races for this date are not available');
+        
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setRaces(data);
+          setLastRefreshTime(Date.now());
+        } else {
+          throw new Error('Unexpected data format from server');
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    fetchRaces(true);
-  }, [fetchRaces]);
+    fetchRaces();
+  }, [displayDate, refreshKey]);
 
-  const handleManualRefresh = useCallback(() => {
-    if (refreshCooldown) return;
-
-    fetchRaces(false);
-    setRefreshCooldown(true);
-    // Re-enable the button after 600 seconds
-    setTimeout(() => setRefreshCooldown(false), 600000);
-  }, [refreshCooldown, fetchRaces]);
-
-  return { races, loading, error, refreshCooldown, handleManualRefresh };
+  return { races, loading, error, handleManualRefresh, lastRefreshTime };
 };

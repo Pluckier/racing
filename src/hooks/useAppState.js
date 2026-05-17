@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useClock } from './useClock';
 import { useRaces } from './useRaces';
 import { useTheme } from './useTheme';
@@ -19,7 +19,7 @@ export function useAppState() {
   });
   const currentTime = useClock();
   const [showChat, setShowChat] = useState(false);
-  const { races, loading, error, refreshCooldown, handleManualRefresh } = useRaces(displayDate);
+  const { races, loading, error, handleManualRefresh, lastRefreshTime } = useRaces(displayDate);
   
   const [filters, setFilters] = useState({
     places: [],
@@ -31,6 +31,21 @@ export function useAppState() {
   
   const [theme, setTheme] = useTheme();
   const [activeModal, setActiveModal] = useState(null); // 'movement', 'favorites', or null
+
+  // Calculate manual refresh cooldown (10 minutes)
+  const COOLDOWN_MS = 10 * 60 * 1000;
+  const refreshCooldown = lastRefreshTime > 0 && (currentTime.getTime() - lastRefreshTime < COOLDOWN_MS);
+
+  // Auto-refresh logic: trigger a refresh every 15 minutes
+  useEffect(() => {
+    const AUTO_REFRESH_MS = 15 * 60 * 1000;
+    if (lastRefreshTime > 0) {
+      const timeSinceUpdate = currentTime.getTime() - lastRefreshTime;
+      if (timeSinceUpdate >= AUTO_REFRESH_MS) {
+        handleManualRefresh();
+      }
+    }
+  }, [currentTime, lastRefreshTime, handleManualRefresh]);
 
   const formattedDateTime = useMemo(() => 
     formatDisplayDateTime(displayDate, currentTime), 
@@ -50,9 +65,9 @@ export function useAppState() {
   return {
     displayDate, setDisplayDate,
     theme, setTheme,
-    showChat, setShowChat,
+    showChat, setShowChat, currentTime,
     races, loading, error, refreshCooldown, handleManualRefresh,
-    filters, setFilters,
+    filters, setFilters, lastRefreshTime,
     activeModal, setActiveModal,
     formattedDateTime, uniquePlaces, filteredRaces, showNextRaceBanner
   };
