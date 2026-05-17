@@ -32,10 +32,6 @@ export function useAppState() {
   const [theme, setTheme] = useTheme();
   const [activeModal, setActiveModal] = useState(null); // 'movement', 'favorites', or null
 
-  // Calculate manual refresh cooldown (10 minutes)
-  const COOLDOWN_MS = 10 * 60 * 1000;
-  const refreshCooldown = lastRefreshTime > 0 && (currentTime.getTime() - lastRefreshTime < COOLDOWN_MS);
-
   // Auto-refresh logic: trigger a refresh every 15 minutes
   useEffect(() => {
     const AUTO_REFRESH_MS = 15 * 60 * 1000;
@@ -66,7 +62,7 @@ export function useAppState() {
     displayDate, setDisplayDate,
     theme, setTheme,
     showChat, setShowChat, currentTime,
-    races, loading, error, refreshCooldown, handleManualRefresh,
+    races, loading, error,
     filters, setFilters, lastRefreshTime,
     activeModal, setActiveModal,
     formattedDateTime, uniquePlaces, filteredRaces, showNextRaceBanner

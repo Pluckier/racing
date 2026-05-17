@@ -163,8 +163,6 @@ function App() {
       navProps={{
         theme: s.theme, 
         setTheme: s.setTheme,
-        onRefresh: s.handleManualRefresh, 
-        refreshCooldown: s.loading || s.refreshCooldown,
         displayDate: s.displayDate, 
         setDisplayDate: s.setDisplayDate,
         formattedDateTime: s.formattedDateTime,
