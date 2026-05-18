@@ -59,7 +59,7 @@ export const augmentRaceWithStats = (race) => {
       const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
       const maxRating = pr.length > 0 ? Math.max(...pr) : 0;
       
-      const isValue = formPercentage >= 70 && maxRating > 0 && (maxRating === top1 || maxRating === top2) && currentOdds > 9;
+      const isValue = formPercentage >= 1 && maxRating > 0 && (maxRating === top1 || maxRating === top2) && currentOdds > 1;
       
       return {
         ...h,
