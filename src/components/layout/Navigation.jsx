@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import TrackWorker from '../obs/TrackWorker';
 
-const Navigation = ({ children, theme, setTheme, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen, notificationCount, onReleaseNotifications }) => {
+const Navigation = ({ children, theme, setTheme, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen, notificationCount, onReleaseNotifications, refreshMinutes }) => {
   const dateInputRef = useRef(null);
 
   const handleOpenDatePicker = () => {
@@ -37,7 +37,11 @@ const Navigation = ({ children, theme, setTheme, displayDate, setDisplayDate, fo
               disabled={notificationCount === 0}
               onClick={onReleaseNotifications}
               style={{ cursor: notificationCount > 0 ? 'pointer' : 'default' }}
-              title={notificationCount > 0 ? `Show ${notificationCount} non-runner notifications` : "Data updates automatically every 15 mins"}
+              title={
+                notificationCount > 0 
+                  ? `Show ${notificationCount} non-runners` 
+                  : (refreshMinutes ? `Auto Refresh ${refreshMinutes}m` : "Auto Refresh")
+              }
             >
               ↻
               {notificationCount > 0 && (

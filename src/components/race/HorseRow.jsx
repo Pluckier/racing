@@ -7,7 +7,25 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
 
   const pastRuns = horse.past || [];
 
-  const isNR = horse.odds?.[horse.odds.length - 1] === "null" || horse.odds?.[horse.odds.length - 1] === "NR";
+  const oddsArr = horse.odds || [];
+  const currentOdds = oddsArr[oddsArr.length - 1];
+  const previousOdds = oddsArr[oddsArr.length - 2];
+  const isNR = currentOdds === "null" || currentOdds === "NR";
+
+  let oddsArrow = null;
+  if (!isNR && currentOdds && previousOdds && previousOdds !== "null" && previousOdds !== "NR") {
+    const cur = parseFloat(currentOdds);
+    const prev = parseFloat(previousOdds);
+    if (!isNaN(cur) && !isNaN(prev)) {
+      if (cur < prev) {
+        oddsArrow = <span className="odds-arrow arrow-up" title={`Shortened from ${prev}`}>▲</span>;
+      } else if (cur > prev) {
+        oddsArrow = <span className="odds-arrow arrow-down" title={`Lengthened from ${prev}`}>▼</span>;
+      } else {
+        oddsArrow = <span className="odds-arrow arrow-stable">~</span>;
+      }
+    }
+  }
 
   let displayRating = null;
   if (sortBy === 'high') {
@@ -70,9 +88,8 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
         </div>
       <span className="avg-rating"> {displayRating !== null ? displayRating : '-'}</span>
       <span className="odds-value">
-        {horse.odds?.[horse.odds.length - 1] === "null" 
-          ? "NR" 
-          : (horse.odds?.[horse.odds.length - 1] ? (isNaN(horse.odds[horse.odds.length - 1]) ? horse.odds[horse.odds.length - 1] : Number(horse.odds[horse.odds.length - 1])) : "x")}
+        {isNR ? "NR" : (currentOdds || "x")}
+        {oddsArrow}
       </span>
       <button className="past-button hide-mobile" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
       </div>

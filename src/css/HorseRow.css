@@ -144,9 +144,30 @@
   font-weight: bold;
   color: var(--text-h);
   min-width: 60px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding-right: 13px;
-  text-align: center;
+}
+
+.odds-arrow {
+  font-size: 0.7em;
+  margin-left: 3px;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+.arrow-up {
+  color: #ef4444; /* Shortening - Blue */
+}
+
+.arrow-down {
+  color: #3b82f6; /* Lengthening - Red */
+}
+
+.arrow-stable {
+  color: var(--text);
+  opacity: 0.4; /* Keep it subtle so it doesn't clutter the grid */
 }
 
 .horse-main {

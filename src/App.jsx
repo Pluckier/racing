@@ -18,6 +18,21 @@ import './css/App.css';
 import './css/Notifications.css';
 function App() {
   const s = useAppState(); 
+  const [refreshMinutes, setRefreshMinutes] = useState(15);
+
+  // Handle the countdown timer for the Auto-Refresh UI
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRefreshMinutes(prev => (prev > 1 ? prev - 1 : 15));
+    }, 60000); // Update every minute
+    return () => clearInterval(timer);
+  }, []);
+
+  // Reset the countdown whenever the race data is refreshed/updated
+  useEffect(() => {
+    setRefreshMinutes(15);
+  }, [s.races]);
+
   const [viewMode, setViewMode] = useState('all'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const { notifications, removeNotification } = useNonRunnerNotifications(s.races, s.displayDate);
@@ -177,7 +192,8 @@ function App() {
         onShowChat: () => s.setShowChat(!s.showChat),
         isChatOpen: s.showChat,
         notificationCount: isNotificationsReleased ? 0 : notifications.length,
-        onReleaseNotifications: () => setIsNotificationsReleased(true)
+        onReleaseNotifications: () => setIsNotificationsReleased(true),
+        refreshMinutes
       }}
       searchRaces={s.error ? [] : s.races}
     >
