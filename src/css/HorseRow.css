@@ -244,6 +244,7 @@
         font-weight: bold;
         color: var(--accent);
         margin: 0 0px;
+        margin-right: 5px;
         font-size: 1.1em;
         min-width: 2px;
         text-align: right;
