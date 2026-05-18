@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import TrackWorker from '../obs/TrackWorker';
 
-const Navigation = ({ children, theme, setTheme, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen }) => {
+const Navigation = ({ children, theme, setTheme, displayDate, setDisplayDate, formattedDateTime, onShowChat, isChatOpen, notificationCount, onReleaseNotifications }) => {
   const dateInputRef = useRef(null);
 
   const handleOpenDatePicker = () => {
@@ -31,14 +31,35 @@ const Navigation = ({ children, theme, setTheme, displayDate, setDisplayDate, fo
             💬
           </button>
 
-          <button 
-            className="filter-btn refresh-btn disabled"
-            disabled
-            style={{ cursor: 'default' }}
-            title="Data updates automatically every 15 mins"
-          >
-            ↻
-          </button>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <button 
+              className={`filter-btn refresh-btn ${notificationCount > 0 ? 'active' : 'disabled'}`}
+              disabled={notificationCount === 0}
+              onClick={onReleaseNotifications}
+              style={{ cursor: notificationCount > 0 ? 'pointer' : 'default' }}
+              title={notificationCount > 0 ? `Show ${notificationCount} non-runner notifications` : "Data updates automatically every 15 mins"}
+            >
+              ↻
+              {notificationCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-8px',
+                  right: '-8px',
+                  backgroundColor: '#e53e3e',
+                  color: 'white',
+                  borderRadius: '10px',
+                  padding: '2px 6px',
+                  fontSize: '0.65rem',
+                  fontWeight: '800',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                  zIndex: 2,
+                  pointerEvents: 'none'
+                }}>
+                  {notificationCount}
+                </span>
+              )}
+            </button>
+          </div>
 
           <div className="donate-container"> 
             <form action="https://www.paypal.com/donate" method="post" target="_blank"><input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" /><input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" /></form>

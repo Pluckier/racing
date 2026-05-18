@@ -21,6 +21,14 @@ function App() {
   const [viewMode, setViewMode] = useState('all'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const { notifications, removeNotification } = useNonRunnerNotifications(s.races, s.displayDate);
+  const [isNotificationsReleased, setIsNotificationsReleased] = useState(false);
+
+  // Automatically reset the release flag once all current notifications are cleared or timed out
+  useEffect(() => {
+    if (isNotificationsReleased && notifications.length === 0) {
+      setIsNotificationsReleased(false);
+    }
+  }, [notifications.length, isNotificationsReleased]);
   
   // Centralized date string for consistent URL hash generation
   const currentDateStr = s.displayDate instanceof Date 
@@ -167,7 +175,9 @@ function App() {
         setDisplayDate: s.setDisplayDate,
         formattedDateTime: s.formattedDateTime,
         onShowChat: () => s.setShowChat(!s.showChat),
-        isChatOpen: s.showChat
+        isChatOpen: s.showChat,
+        notificationCount: isNotificationsReleased ? 0 : notifications.length,
+        onReleaseNotifications: () => setIsNotificationsReleased(true)
       }}
       searchRaces={s.error ? [] : s.races}
     >
@@ -290,7 +300,7 @@ function App() {
       {s.showChat && <Chatter onClose={() => s.setShowChat(false)} />}
 
       <NonRunnerNotifications 
-        notifications={notifications} 
+        notifications={isNotificationsReleased ? notifications : []} 
         onRemove={removeNotification} 
       />
     </Layout>
