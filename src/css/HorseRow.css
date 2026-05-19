@@ -110,6 +110,7 @@
 
 .horse-row {
   padding: 5px 0px;
+  position: relative;
   transition: background-color 0.2s ease;
 }
 
@@ -121,15 +122,24 @@
   background-color: var(--accent-bg) !important;
 }
 
-.fiddle-highlight {
-  background-color: rgba(255, 215, 0, 0.15) !important; /* Subtle gold background */
-  border-left: 4px solid gold !important; /* Gold border on the left */
+.highlight-indicators {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row-reverse;
+  pointer-events: none;
+  z-index: 5;
 }
 
-.select-highlight {
-  background-color: rgba(241, 5, 5, 0.15) !important; /* Subtle red background */
-  border-left: 4px solid red !important; /* Blue border on the left */
+.indicator {
+  width: 4px;
+  height: 100%;
 }
+.indicator.fiddle { background-color: #ff9f43; }
+.indicator.value { background-color: #3ccf34; }
+.indicator.select { background-color: #f10505; }
 
 .horse-row.non-runner {
   opacity: 0.4;

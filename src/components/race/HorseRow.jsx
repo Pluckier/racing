@@ -51,10 +51,12 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
     <div className={`
       horse-row 
       ${isNR ? 'non-runner' : ''} 
-      ${highlightFiddle ? 'fiddle-highlight' : ''} 
-      ${highlightValue ? 'value-highlight' : ''}
-      ${highlightSelect ? 'select-highlight' : ''}
     `}>
+      <div className="highlight-indicators">
+        {highlightFiddle && <div className="indicator fiddle" title="Fiddle Filter" />}
+        {highlightValue && <div className="indicator value" title="Value Filter" />}
+        {highlightSelect && <div className="indicator select" title="Select Filter" />}
+      </div>
       <div className="horse-main">
         <div className="horse-info-container">
           <div className="horse-silks-wrapper">

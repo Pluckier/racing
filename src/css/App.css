@@ -174,13 +174,11 @@ body {
 }
 
 .fiddle-highlight {
-  background-color: rgba(255, 159, 67, 0.15) !important; /* Keep as is */
-  border-left: 4px solid #ff9f43 !important; /* Keep as is */
+  background-color: rgba(255, 159, 67, 0.15) !important;
 }
 
 .value-highlight {
-  background-color: rgba(60, 207, 52, 0.15) !important; /* Green background for dark mode */
-  border-left: 4px solid #3ccf34 !important; /* Green border for dark mode */
+  background-color: rgba(60, 207, 52, 0.15) !important;
 }
 
 
