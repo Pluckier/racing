@@ -216,15 +216,14 @@ function App() {
           <details className="timeline-details" open>
             <summary className="timeline-summary">⏱️ {s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0]}</summary>
             <RaceTimeline races={s.filteredRaces} theme={s.theme} />
+            <FilterBar 
+              filters={s.filters} 
+              setFilters={s.setFilters} 
+              uniquePlaces={s.uniquePlaces} 
+              onShowMovement={() => s.setActiveModal('movement')} 
+              onShowFavorites={() => s.setActiveModal('favorites')} 
+            />
           </details>
-
-          <FilterBar 
-            filters={s.filters} 
-            setFilters={s.setFilters} 
-            uniquePlaces={s.uniquePlaces} 
-            onShowMovement={() => s.setActiveModal('movement')} 
-            onShowFavorites={() => s.setActiveModal('favorites')} 
-          />
           
           <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '5px 0 15px' }}>
             {viewMode === 'single' && s.filteredRaces.length > 0 && (

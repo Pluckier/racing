@@ -212,6 +212,7 @@ body {
   color: var(--text-h);
   user-select: none;
   padding: 5px 0;
+  text-align: center;
 }
 
 /* Top Bar Layout */
