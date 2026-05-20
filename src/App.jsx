@@ -225,11 +225,12 @@ function App() {
             />
           </details>
           
-          <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '5px 0 15px' }}>
+          <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '5px 20px 15px', width: 'calc(100% - 40px)' }}>
             {viewMode === 'single' && s.filteredRaces.length > 0 && (
               <button
                 className="race-analytics-btn" 
                 disabled={activeRaceIndex === 0}
+                style={{ flex: 1, padding: '18px 0' }}
                 onClick={() => {
                   const race = s.filteredRaces[activeRaceIndex - 1];
                   window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
@@ -251,12 +252,13 @@ function App() {
 
             {viewMode === 'single' && s.filteredRaces.length > 0 && (
               <>
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-h)', fontWeight: 'bold' }}>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-h)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                   {activeRaceIndex + 1} / {s.filteredRaces.length}
                 </span>
                 <button
                 className="race-analytics-btn" 
                 disabled={activeRaceIndex === s.filteredRaces.length - 1}
+                style={{ flex: 1, padding: '18px 0' }}
                 onClick={() => {
                   const race = s.filteredRaces[activeRaceIndex + 1];
                   window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
