@@ -124,22 +124,25 @@
 
 .highlight-indicators {
   position: absolute;
-  right: 0;
+  right: 6px;
   top: 0;
   bottom: 0;
-  display: flex;
-  flex-direction: row-reverse;
+  width: 8px;
   pointer-events: none;
   z-index: 5;
 }
 
 .indicator {
-  width: 4px;
-  height: 100%;
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  right: 0;
 }
-.indicator.fiddle { background-color: #ff9f43; }
-.indicator.value { background-color: #3ccf34; }
-.indicator.select { background-color: #f10505; }
+
+.indicator.fiddle { background-color: #ff9f43; top: 6px; }
+.indicator.value { background-color: #3ccf34; top: calc(50% - 4px); }
+.indicator.select { background-color: #f10505; bottom: 6px; }
 
 .horse-row.non-runner {
   opacity: 0.4;
