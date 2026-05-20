@@ -14,6 +14,8 @@ import RaceGrid from './components/race/RaceGrid';
 import RaceCard from './components/race/Racecard';
 import Chatter from './components/chat/Chatter';
 import NonRunnerNotifications from './components/layout/NonRunnerNotifications';
+import TrackWorker from './components/obs/TrackWorker'; // Import TrackWorker
+import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchOverlay
 import './css/App.css';
 import './css/Notifications.css';
 function App() {
@@ -184,16 +186,9 @@ function App() {
     return (
     <Layout 
       navProps={{
-        theme: s.theme, 
-        setTheme: s.setTheme,
         displayDate: s.displayDate, 
         setDisplayDate: s.setDisplayDate,
         formattedDateTime: s.formattedDateTime,
-        onShowChat: () => s.setShowChat(!s.showChat),
-        isChatOpen: s.showChat,
-        notificationCount: isNotificationsReleased ? 0 : notifications.length,
-        onReleaseNotifications: () => setIsNotificationsReleased(true),
-        refreshMinutes
       }}
       searchRaces={s.error ? [] : s.races}
     >
@@ -214,7 +209,65 @@ function App() {
       ) : (
         <>
           <details className="timeline-details">
-            <summary className="timeline-summary">⏱️ {s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0]}</summary>
+            <summary className="timeline-summary">
+              ⏱️ {s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0]}
+            </summary>
+
+            {/* Moved elements from Navigation here, using a new class for styling */}
+            <div className="app-header-controls">
+              <SearchOverlay races={s.error ? [] : s.races} /> {/* 🔍 Search... */}
+              <TrackWorker /> {/* 2 🧍 */}
+              <button 
+                className={`filter-btn chat-btn ${s.showChat ? 'active' : ''}`} 
+                onClick={() => s.setShowChat(!s.showChat)} 
+                title={s.showChat ? "Close Chat" : "Open Chat"}
+              >
+                💬
+              </button>
+
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <button 
+                  className={`filter-btn refresh-btn ${isNotificationsReleased ? 0 : notifications.length > 0 ? 'active' : 'disabled'}`}
+                  disabled={isNotificationsReleased ? 0 : notifications.length === 0}
+                  onClick={() => setIsNotificationsReleased(true)}
+                  style={{ cursor: (isNotificationsReleased ? 0 : notifications.length > 0) ? 'pointer' : 'default' }}
+                  title={
+                    (isNotificationsReleased ? 0 : notifications.length > 0)
+                      ? `Show ${isNotificationsReleased ? 0 : notifications.length} non-runners` 
+                      : (refreshMinutes ? `Auto Refresh ${refreshMinutes}m` : "Auto Refresh")
+                  }
+                >
+                  ↻
+                  {(isNotificationsReleased ? 0 : notifications.length > 0) && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '-8px',
+                      right: '-8px',
+                      backgroundColor: '#e53e3e',
+                      color: 'white',
+                      borderRadius: '10px',
+                      padding: '2px 6px',
+                      fontSize: '0.65rem',
+                      fontWeight: '800',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                      zIndex: 2,
+                      pointerEvents: 'none'
+                    }}>
+                      {(isNotificationsReleased ? 0 : notifications.length)}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              <div className="donate-container"> 
+                <form action="https://www.paypal.com/donate" method="post" target="_blank"><input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" /><input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" /></form>
+              </div>
+              <div className="theme-toggle-group">
+                <button onClick={() => s.setTheme('light')} className={`theme-btn ${s.theme === 'light' ? 'active' : ''}`} title="Light Mode">☀️</button>
+                <button onClick={() => s.setTheme('dark')} className={`theme-btn ${s.theme === 'dark' ? 'active' : ''}`} title="Dark Mode">🌙</button>
+              </div>
+            </div>
+
             <RaceTimeline races={s.filteredRaces} theme={s.theme} />
             <FilterBar 
               filters={s.filters} 

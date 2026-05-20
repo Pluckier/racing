@@ -214,6 +214,16 @@ body {
   user-select: none;
   padding: 5px 0;
   text-align: center;
+  list-style-position: inside; /* Place the marker inside the content box */
+}
+
+.app-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
 }
 
 /* Top Bar Layout */

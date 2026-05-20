@@ -1,12 +1,9 @@
 import React from 'react';
 import Navigation from './Navigation';
-import SearchOverlay from './SearchOverlay';
 
-const Layout = ({ children, navProps, searchRaces = [] }) => (
+const Layout = ({ children, navProps }) => (
   <main id="home">
-    <Navigation {...navProps}>
-      <SearchOverlay races={searchRaces} />
-    </Navigation>
+    <Navigation {...navProps} />
     {children}
   </main>
 );
