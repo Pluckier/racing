@@ -4,22 +4,22 @@
   "description": "A high-performance full-screen web experience.",
   "icons": [
     {
-      "src": "favicon.png",
+      "src": "/racing/favicon.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "favicon.png",
+      "src": "/racing/favicon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
   ],
-  "start_url": "/?utm_source=homescreen",
+  "start_url": "/racing/",
   "background_color": "#121212",
   "theme_color": "#000000",
   "display": "fullscreen",
   "orientation": "landscape",
-  "id": "/racing"
+  "id": "/racing/"
 }

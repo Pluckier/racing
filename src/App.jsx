@@ -304,7 +304,7 @@ function App() {
             />
           </details>
           
-          <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '5px 20px 15px', width: 'calc(100% - 40px)' }}>
+          <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '5px 0px 15px' }}>
             {viewMode === 'single' && s.filteredRaces.length > 0 && (
               <button
                 className="race-analytics-btn" 
