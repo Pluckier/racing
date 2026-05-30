@@ -6,13 +6,7 @@
     {
       "src": "/racing/favicon.png",
       "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/racing/favicon.png",
-      "type": "image/png",
-      "sizes": "512x512",
+      "sizes": "32x32",
       "purpose": "any maskable"
     }
   ],
