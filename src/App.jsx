@@ -65,9 +65,9 @@ function App() {
     }
   }, [notifications.length, isNotificationsReleased]);
   
-  // Centralized date string for consistent URL hash generation
-  const currentDateStr = s.displayDate instanceof Date 
-    ? s.displayDate.toISOString().split('T')[0] 
+  // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
+  const currentDateStr = s.displayDate instanceof Date
+    ? `${s.displayDate.getFullYear()}-${String(s.displayDate.getMonth() + 1).padStart(2, '0')}-${String(s.displayDate.getDate()).padStart(2, '0')}`
     : s.displayDate;
 
   const [enabledAlarms, setEnabledAlarms] = useState(new Set());
@@ -136,7 +136,8 @@ function App() {
 
         // If the date in the URL is different from the app's current date, switch it.
         if (datePart && datePart !== currentDateStr) {
-          s.setDisplayDate(new Date(datePart));
+          const [y, m, d] = datePart.split('-').map(Number);
+          s.setDisplayDate(new Date(y, m - 1, d));
           // Return early. Once the new date's data is fetched and loading is false,
           // this useEffect will re-run and find the raceId in the new race list.
           return;
@@ -183,11 +184,7 @@ function App() {
     if (s.filters.follow && s.filteredRaces.length > 0) {
       setActiveRaceIndex(0);
       const firstRace = s.filteredRaces[0];
-
-      const currentDateStr = s.displayDate instanceof Date 
-        ? s.displayDate.toISOString().split('T')[0] 
-        : s.displayDate;
-
+      
       // Update hash to ensure the "Single" view and background scroll stay in sync
       window.location.hash = `${currentDateStr}@${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
     }

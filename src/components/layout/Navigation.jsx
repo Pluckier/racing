@@ -4,6 +4,11 @@ const Navigation = ({ displayDate, setDisplayDate, formattedDateTime }) => {
   const dateInputRef = useRef(null);
 
   const handleOpenDatePicker = () => {
+    // Clear the URL state (hash and search parameters) when opening the date picker.
+    // This ensures that manually selecting a new date isn't overridden by a stale URL date.
+    if (window.location.hash || window.location.search) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
     if (dateInputRef.current) {
       if (typeof dateInputRef.current.showPicker === 'function') {
         dateInputRef.current.showPicker();
