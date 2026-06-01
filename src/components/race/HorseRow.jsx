@@ -53,9 +53,9 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
       ${isNR ? 'non-runner' : ''} 
     `}>
       <div className="highlight-indicators">
+        {highlightSelect && <div className="indicator select" title="Select Filter" />}        
         {highlightFiddle && <div className="indicator fiddle" title="Fiddle Filter" />}
         {highlightValue && <div className="indicator value" title="Value Filter" />}
-        {highlightSelect && <div className="indicator select" title="Select Filter" />}
       </div>
       <div className="horse-main">
         <div className="horse-info-container">
