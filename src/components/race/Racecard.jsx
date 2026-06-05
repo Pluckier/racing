@@ -189,11 +189,11 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               style={{ width: '70px', cursor: 'pointer', accentColor: 'var(--accent)' }}
             />
           </div>
-          <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn">
-            Odds
+          <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn" title="View Odds Movement">
+            <span style={{ fontSize: '1.5rem' }}>📊</span>
           </button>
-          <button onClick={openChart} className="race-analytics-btn">
-            Past
+          <button onClick={openChart} className="race-analytics-btn" title="View Past Performance Chart">
+            <span style={{ fontSize: '1.5rem' }}>📈</span>
           </button>
         </div>
       </header>
