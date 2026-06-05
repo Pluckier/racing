@@ -35,6 +35,16 @@ function App() {
     setRefreshMinutes(15);
   }, [s.races]);
 
+  // Set default filters on mount: Value (⭐), Fiddle (🎻), and Select (🎯)
+  useEffect(() => {
+    s.setFilters(prev => ({
+      ...prev,
+      value: true,
+      fiddle: true,
+      select: true
+    }));
+  }, []);
+
   const [viewMode, setViewMode] = useState('all'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
