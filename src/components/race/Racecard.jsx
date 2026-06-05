@@ -100,9 +100,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     const count = r.horses?.length || 0;
 
     const icons = [];
+    if (isC1) icons.push('👑');
     if (isH) icons.push('⚖️');
     if ((isH || isC1) && count >= 8) icons.push('🏆');
-    if (isC1) icons.push('👑');
 
     return icons.length > 0 ? icons.join(' ') : '🚫';
   };
