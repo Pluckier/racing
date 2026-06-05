@@ -19,6 +19,7 @@
 .race-card h2 {
   margin: 0;
   text-align: left;
+  white-space: nowrap;
 }
 
 .race-title-link {

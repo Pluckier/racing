@@ -92,6 +92,21 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     return candidates.sort((a, b) => getAvg(b) - getAvg(a))[0].number;
   }, [race.horses]);
 
+  const getRaceIcon = (r) => {
+    if (!r) return '';
+    const d = (r.detail || '').toLowerCase();
+    const isH = d.includes('handicap') || d.includes('nursery');
+    const isC1 = d.includes('class 1');
+    const count = r.horses?.length || 0;
+
+    const icons = [];
+    if (isH) icons.push('⚖️');
+    if (isH && count >= 8) icons.push('🏆');
+    if (isC1) icons.push('👑');
+
+    return icons.length > 0 ? icons.join(' ') : '🚫';
+  };
+
   const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
 
   // Navigation logic for the FormChart Modal
@@ -151,7 +166,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             </a>
            
           </h2>
-          <h5 className="race-detail">{race.detail} {race.going}</h5>
+          <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going}</h5>
         </div>
         <div className="race-controls">
           <div style={{ 
@@ -194,7 +209,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       <Modal 
         isOpen={showChart} 
         onClose={() => setShowChart(false)} 
-        title={`${activeChartRace.time} ${activeChartRace.place} - ${activeChartRace.detail} ${activeChartRace.going}`}
+        title={`${activeChartRace.time} ${activeChartRace.place} - ${getRaceIcon(activeChartRace)} ${activeChartRace.detail} ${activeChartRace.going}`}
       >
           <FormChart 
             horses={activeChartRace.horses} 
