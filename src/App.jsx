@@ -373,6 +373,8 @@ function App() {
                 highlightSelects={s.filters.select}
                 isAlarmEnabled={enabledAlarms.has(activeRaceId)}
                 onToggleAlarm={() => toggleAlarm(activeRaceId)}
+                viewMode={viewMode}
+                currentDateStr={currentDateStr}
               />
             ) : (
               <div className="no-data" style={{ textAlign: 'center', padding: '20px' }}>No races match filters.</div>
@@ -385,6 +387,8 @@ function App() {
               filters={s.filters} 
               enabledAlarms={enabledAlarms}
               toggleAlarm={toggleAlarm}
+              viewMode={viewMode}
+              currentDateStr={currentDateStr}
             />
           </div>
         </>

@@ -14,7 +14,7 @@ const SORT_LABELS = {
   all: 'All'
 };
 
-const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm }) => {
+const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
@@ -100,11 +100,19 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const hasNext = currentIndex < allRaces.length - 1 && currentIndex !== -1;
 
   const handlePrev = () => {
-    if (hasPrev) setActiveChartRace(allRaces[currentIndex - 1]);
+    if (hasPrev) {
+      const prevRace = allRaces[currentIndex - 1];
+      setActiveChartRace(prevRace);
+      window.location.hash = `${currentDateStr}@${prevRace.time}${prevRace.place.replace(/\s+/g, '')}`;
+    }
   };
 
   const handleNext = () => {
-    if (hasNext) setActiveChartRace(allRaces[currentIndex + 1]);
+    if (hasNext) {
+      const nextRace = allRaces[currentIndex + 1];
+      setActiveChartRace(nextRace);
+      window.location.hash = `${currentDateStr}@${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
+    }
   };
 
   const openChart = () => {
@@ -198,6 +206,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             hasPrev={hasPrev}
             todayDistance={activeChartRace.distance}
             todayGoing={activeChartRace.going}
+            viewMode={viewMode} // Pass down viewMode
+            currentDateStr={currentDateStr} // Pass down currentDateStr
           />
       </Modal>
 

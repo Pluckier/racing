@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { LINE_COLORS } from '../../constants/chartConstants';
 import '../../css/FormChart.css';
 
-const CustomDot = (props) => {
+const CustomDot = React.memo((props) => {
   const { cx, cy, stroke, payload, dataKey, onNodeClick } = props;
   const isHighest = payload[`${dataKey}_isHighest`];
   const isWin = payload[`${dataKey}_isWin`];
@@ -31,7 +31,7 @@ const CustomDot = (props) => {
       )}
     </g>
   );
-};
+});
 
 const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace }) => {
   const parseDistanceToFurlongs = (distStr) => {
