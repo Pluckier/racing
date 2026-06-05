@@ -20,9 +20,10 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
         if (!race?.time) return false;
 
         const matchesPlace = filters.places.length === 0 || filters.places.includes(race.place);
-        const isHandicap = race.detail?.toLowerCase().includes('handicap');
+        const isHandicap = race.detail?.toLowerCase().includes('handicap') || race.detail?.toLowerCase().includes('nursery');
+        const isClass1 = race.detail?.toLowerCase().includes('class 1');
         const hasMinRunners = (race.horses?.length || 0) >= 8;
-        const matchesTricast = !filters.tricast || (isHandicap && hasMinRunners);
+        const matchesTricast = !filters.tricast || ((isHandicap || isClass1) && hasMinRunners);
 
         const [rH, rM] = race.time.split(':').map(Number);
         const raceMinutes = rH * 60 + rM;
