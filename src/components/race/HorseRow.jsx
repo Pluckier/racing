@@ -52,11 +52,6 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
       horse-row 
       ${isNR ? 'non-runner' : ''} 
     `}>
-      <div className="highlight-indicators">
-        {highlightSelect && <div className="indicator select" title="Select Filter" />}        
-        {highlightFiddle && <div className="indicator fiddle" title="Fiddle Filter" />}
-        {highlightValue && <div className="indicator value" title="Value Filter" />}
-      </div>
       <div className="horse-main">
         <div className="horse-info-container">
           <div className="horse-silks-wrapper">
@@ -66,7 +61,16 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             <span className="cell-no">{horse.number}.</span>
             <span className="cell-draw hide-mobile">{horse.draw ? `(${horse.draw})` : ''}</span>
             <span className="cell-form hide-mobile">{horse.form}</span>
-            <span className="cell-name"><strong>{horse.name}</strong></span>
+            <span className="cell-name">
+              <span className="name-wrapper">
+                <strong>{horse.name}</strong>
+                <span className="highlight-indicators-inline">
+                  {highlightSelect && <span className="indicator select" title="Select Filter" />}        
+                  {highlightFiddle && <span className="indicator fiddle" title="Fiddle Filter" />}
+                  {highlightValue && <span className="indicator value" title="Value Filter" />}
+                </span>
+              </span>
+            </span>
             <span className="cell-lastrun hide-mobile">{horse.lastRun && `${horse.lastRun}`}</span>
             <span className="cell-age hide-mobile">{horse.age}yo</span>
             <span className="cell-weight hide-mobile">{horse.weight}</span>

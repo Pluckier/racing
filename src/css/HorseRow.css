@@ -31,8 +31,8 @@
   flex: 1;
   color: var(--text-h);
   font-size: 1.1em;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  position: relative;
 }
 
 .cell-lastrun {
@@ -123,28 +123,34 @@
 .horse-row:hover {
   background-color: var(--accent-bg) !important;
 }
-
-.highlight-indicators {
+.highlight-indicators-inline {
   position: absolute;
-  right: 6px;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  pointer-events: none;
-  z-index: 5;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 4px;
+  margin-left: 6px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.name-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 .indicator {
-  position: absolute;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  right: 0;
+  display: inline-block;
 }
 
-.indicator.select { background-color: #f10505; top: 14px; }
-.indicator.fiddle { background-color: #ff9f43; top: calc(50% - 4px); }
-.indicator.value { background-color: #3ccf34; bottom: 14px; }
+.indicator.select { background-color: #f10505; }
+.indicator.fiddle { background-color: #ff9f43; }
+.indicator.value { background-color: #3ccf34; }
 
 .horse-row.non-runner {
   opacity: 0.4;
