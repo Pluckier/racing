@@ -129,7 +129,8 @@
   top: 50%;
   transform: translateY(-50%);
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 2px;
   margin-left: 6px;
   line-height: 1;
   white-space: nowrap;
@@ -146,6 +147,7 @@
   height: 8px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .indicator.select { background-color: #f10505; }
