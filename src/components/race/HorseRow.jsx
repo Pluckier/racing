@@ -69,7 +69,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
                   {highlightFiddle && <span className="indicator fiddle" title="Fiddle Filter" />}
                   {highlightValue && (
                     <span 
-                      className={`indicator value ${highlightValue === 'massive' ? 'massive' : highlightValue === 'top' ? 'top' : highlightValue === 'second' ? 'second' : ''}`} 
+                      className={`indicator value ${typeof highlightValue === 'string' ? highlightValue : ''}`} 
                       title="Value Filter" 
                     />
                   )}

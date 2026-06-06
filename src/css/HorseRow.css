@@ -152,11 +152,10 @@
 
 .indicator.select { background-color: #f10505; }
 .indicator.fiddle { background-color: #ff9f43; }
-.indicator.value { background-color: #3ccf34; }
+.indicator.value { background-color: #0a2e0c; } /* Fallback: Very Dark Green */
 .indicator.value.top { background-color: #3ccf34; }
-.indicator.value.second { background-color: #1b5e20; }
-.indicator.value.massive { background-color: #00d4ff; }
 .indicator.value.second { background-color: #2e7d32; }
+.indicator.value.massive { background-color: #00d4ff; }
 
 .horse-row.non-runner {
   opacity: 0.4;

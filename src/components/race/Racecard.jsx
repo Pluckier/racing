@@ -68,11 +68,18 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     [race.horses, sortBy]
   );
 
-  const valueRunners = useMemo(() => {
-    if (!highlightValues) return [];
-    return race.horses
-      .filter(h => h.isValue)
-      .sort((a, b) => getAvg(b) - getAvg(a));
+  const valueRunnersRanked = useMemo(() => {
+    if (!highlightValues) return new Map();
+    const runners = race.horses.filter(h => h.isValue);
+    const uniqueRatings = [...new Set(runners.map(getMax))].sort((a, b) => b - a);
+    
+    const ranks = new Map();
+    runners.forEach(h => {
+      const rtg = getMax(h);
+      if (rtg === uniqueRatings[0]) ranks.set(h.number, 'top');
+      else if (rtg === uniqueRatings[1]) ranks.set(h.number, 'second');
+    });
+    return ranks;
   }, [race.horses, highlightValues]);
 
   const massiveSpikeHorseNumber = useMemo(() => {
@@ -244,8 +251,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
       <div className="entries">
         {sortedHorses.map(horse => {
-          const vRank = valueRunners.findIndex(h => h.number === horse.number);
+          const rank = valueRunnersRanked.get(horse.number);
           const isMassive = horse.number === massiveSpikeHorseNumber;
+          const isValue = highlightValues && horse.isValue;
 
           return (
             <HorseRow 
@@ -254,10 +262,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               sortBy={sortBy} 
               highlightFiddle={highlightFiddles && horse.isFiddle}
               highlightValue={
-                isMassive && vRank !== -1 ? 'massive' :
-                vRank === 0 ? 'top' : 
-                vRank === 1 ? 'second' : 
-                (highlightValues && horse.isValue)
+                isMassive && isValue ? 'massive' :
+                rank
               }
               highlightSelect={highlightSelects && horse.number === selectHorseNumber}
             />
