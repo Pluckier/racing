@@ -67,7 +67,12 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
                 <span className="highlight-indicators-inline">
                   {highlightSelect && <span className="indicator select" title="Select Filter" />}        
                   {highlightFiddle && <span className="indicator fiddle" title="Fiddle Filter" />}
-                  {highlightValue && <span className="indicator value" title="Value Filter" />}
+                  {highlightValue && (
+                    <span 
+                      className={`indicator value ${highlightValue === 'massive' ? 'massive' : highlightValue === 'top' ? 'top' : highlightValue === 'second' ? 'second' : ''}`} 
+                      title="Value Filter" 
+                    />
+                  )}
                 </span>
               </span>
             </span>

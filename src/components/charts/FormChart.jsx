@@ -33,7 +33,7 @@ const CustomDot = React.memo((props) => {
   );
 });
 
-const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace }) => {
+const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode }) => {
   const parseDistanceToFurlongs = (distStr) => {
     if (!distStr || typeof distStr !== 'string') return 0;
     let totalFurlongs = 0;
@@ -105,14 +105,14 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
 
   // Synchronize the background scroll position with the race being navigated in the chart
   useEffect(() => {
-    if (raceTime && racePlace) {
+    if (viewMode === 'all' && raceTime && racePlace) {
       const targetId = `${raceTime}${racePlace.replace(/\s+/g, '')}`;
       const element = document.getElementById(targetId);
       if (element) {
         element.scrollIntoView({ behavior: 'auto', block: 'center' });
       }
     }
-  }, [raceTime, racePlace]);
+  }, [raceTime, racePlace, viewMode]);
 
   const chartData = useMemo(() => {
     const map = {};

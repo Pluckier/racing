@@ -68,6 +68,22 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     [race.horses, sortBy]
   );
 
+  const valueRunners = useMemo(() => {
+    if (!highlightValues) return [];
+    return race.horses
+      .filter(h => h.isValue)
+      .sort((a, b) => getAvg(b) - getAvg(a));
+  }, [race.horses, highlightValues]);
+
+  const massiveSpikeHorseNumber = useMemo(() => {
+    const activeRunners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
+    if (activeRunners.length < 2) return null;
+    const sortedByPeak = [...activeRunners].sort((a, b) => getMax(b) - getMax(a));
+    const topPeak = getMax(sortedByPeak[0]);
+    const nextPeak = getMax(sortedByPeak[1]);
+    return (topPeak > 0 && topPeak >= nextPeak * 1.9) ? sortedByPeak[0].number : null;
+  }, [race.horses]);
+
   const selectHorseNumber = useMemo(() => {
     const runners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
     if (runners.length === 0) return null;
@@ -227,16 +243,26 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       </Modal>
 
       <div className="entries">
-        {sortedHorses.map(horse => (
-          <HorseRow 
-            key={horse.number} 
-            horse={horse} 
-            sortBy={sortBy} 
-            highlightFiddle={highlightFiddles && horse.isFiddle}
-            highlightValue={highlightValues && horse.isValue}
-            highlightSelect={highlightSelects && horse.number === selectHorseNumber}
-          />
-        ))}
+        {sortedHorses.map(horse => {
+          const vRank = valueRunners.findIndex(h => h.number === horse.number);
+          const isMassive = horse.number === massiveSpikeHorseNumber;
+
+          return (
+            <HorseRow 
+              key={horse.number} 
+              horse={horse} 
+              sortBy={sortBy} 
+              highlightFiddle={highlightFiddles && horse.isFiddle}
+              highlightValue={
+                isMassive && vRank !== -1 ? 'massive' :
+                vRank === 0 ? 'top' : 
+                vRank === 1 ? 'second' : 
+                (highlightValues && horse.isValue)
+              }
+              highlightSelect={highlightSelects && horse.number === selectHorseNumber}
+            />
+          );
+        })}
       </div>
     </div>
   );
