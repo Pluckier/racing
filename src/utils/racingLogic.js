@@ -8,7 +8,12 @@ export const HOT_TRAINERS = [
   "G & J Moore", "R A Fahey", "Ian Williams", "A W Carroll",
   "K R Burke", "E Bolger", "James Owen", "J P O'Brien", "P Twomey",
   "D Skelton", "P F Nicholls", "A M Balding", "W J Haggas", "N P Mulholland",
-  "J & T Gosden", "C Appleby", "R M Beckett", "C Johnston", "H De Bromhead"
+  "J & T Gosden", "C Appleby", "R M Beckett", "C Johnston", "H De Bromhead",
+  "Gavin Cromwell", "Charlie Johnston", "Ralph Beckett", "John & Thady Gosden", 
+  "Neil Mulholland", "Andrew Balding", "Tony Carroll", "Dan Skelton", "Richard Hannon",
+  "Joseph Patrick O'Brien", "William Haggas", "Henry De Bromhead", "Gordon Elliott",
+  "Lucinda Russell & Michael Scudamore", "Tim Easterby", "Richard & Peter Fahey",
+  "Charlie Appleby", "Martin Keighley", "Ben Pauling"
 ];
 
 /**
@@ -59,7 +64,7 @@ export const augmentRaceWithStats = (race) => {
       const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
       const maxRating = pr.length > 0 ? Math.max(...pr) : 0;
       
-      const isValue = formPercentage >= 1 && maxRating > 0 && (maxRating === top1 || maxRating === top2) && currentOdds > 1;
+      const isValue = maxRating > 0 && (maxRating === top1 || maxRating === top2) && currentOdds > 1;
       
       return {
         ...h,

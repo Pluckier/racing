@@ -76,8 +76,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     const ranks = new Map();
     runners.forEach(h => {
       const rtg = getMax(h);
-      if (rtg === uniqueRatings[0]) ranks.set(h.number, 'top');
-      else if (rtg === uniqueRatings[1]) ranks.set(h.number, 'second');
+      const horseId = h.number === 'NR' ? h.name : h.number;
+      if (rtg === uniqueRatings[0]) ranks.set(horseId, 'top');
+      else if (rtg === uniqueRatings[1]) ranks.set(horseId, 'second');
     });
     return ranks;
   }, [race.horses, highlightValues]);
@@ -88,7 +89,29 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     const sortedByPeak = [...activeRunners].sort((a, b) => getMax(b) - getMax(a));
     const topPeak = getMax(sortedByPeak[0]);
     const nextPeak = getMax(sortedByPeak[1]);
-    return (topPeak > 0 && topPeak >= nextPeak * 1.9) ? sortedByPeak[0].number : null;
+    const winner = sortedByPeak[0];
+
+    // Find the race where the peak rating occurred to ensure it was a competitive effort
+    const peakRun = (winner.past || []).find(p => (Number(p.name) || 0) === topPeak);
+    let peakDistValid = false;
+
+    if (peakRun) {
+      const peakPos = parseInt(peakRun.position?.toString().split('/')[0], 10) || 0;
+      peakDistValid = peakPos === 1;
+
+      if (!peakDistValid && peakRun.distBeaten) {
+        const db = peakRun.distBeaten.toString().toLowerCase().trim();
+        const abbrev = ['shd', 'hd', 'nk', 'ns', 'dh'];
+        if (abbrev.includes(db)) {
+          peakDistValid = true;
+        } else {
+          const dNum = parseFloat(db);
+          peakDistValid = !isNaN(dNum) && dNum < 2;
+        }
+      }
+    }
+
+    return (topPeak > 0 && topPeak >= nextPeak * 1.9 && peakDistValid) ? (winner.number === 'NR' ? winner.name : winner.number) : null;
   }, [race.horses]);
 
   const selectHorseNumber = useMemo(() => {
@@ -99,20 +122,24 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     const top4AvgNumbers = [...runners]
       .sort((a, b) => getAvg(b) - getAvg(a))
       .slice(0, 4)
-      .map(h => h.number);
+      .map(h => h.number === 'NR' ? h.name : h.number);
 
     // Identify Top 4 horses by Odds (Shortest prices)
     const top4OddsNumbers = [...runners]
       .sort((a, b) => getLatestOdds(a) - getLatestOdds(b))
       .slice(0, 4)
-      .map(h => h.number);
+      .map(h => h.number === 'NR' ? h.name : h.number);
 
     // Find horses that appear in both "Top 4" lists
-    const candidates = runners.filter(h => top4AvgNumbers.includes(h.number) && top4OddsNumbers.includes(h.number));
+    const candidates = runners.filter(h => {
+      const horseId = h.number === 'NR' ? h.name : h.number;
+      return top4AvgNumbers.includes(horseId) && top4OddsNumbers.includes(horseId);
+    });
     if (candidates.length === 0) return null;
 
     // If multiple candidates, the "Decider" is the one with the highest average rating
-    return candidates.sort((a, b) => getAvg(b) - getAvg(a))[0].number;
+    const winner = candidates.sort((a, b) => getAvg(b) - getAvg(a))[0];
+    return winner.number === 'NR' ? winner.name : winner.number;
   }, [race.horses]);
 
   const getRaceIcon = (r) => {
@@ -189,7 +216,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             </a>
            
           </h2>
-          <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going}</h5>
+          <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners})</h5>
         </div>
         <div className="race-controls">
           <div style={{ 
@@ -232,7 +259,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       <Modal 
         isOpen={showChart} 
         onClose={() => setShowChart(false)} 
-        title={`${activeChartRace.time} ${activeChartRace.place} - ${getRaceIcon(activeChartRace)} ${activeChartRace.detail} ${activeChartRace.going}`}
+        title={`${activeChartRace.time} ${activeChartRace.place} - ${getRaceIcon(activeChartRace)} ${activeChartRace.detail} ${activeChartRace.going} (Runners ${activeChartRace.runners})`}
       >
           <FormChart 
             horses={activeChartRace.horses} 
@@ -251,13 +278,15 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
       <div className="entries">
         {sortedHorses.map(horse => {
-          const rank = valueRunnersRanked.get(horse.number);
-          const isMassive = horse.number === massiveSpikeHorseNumber;
+          const horseId = horse.number === 'NR' ? horse.name : horse.number;
+          const rank = valueRunnersRanked.get(horseId);
+          const isMassive = horseId === massiveSpikeHorseNumber;
           const isValue = highlightValues && horse.isValue;
+          const isSelect = highlightSelects && horseId === selectHorseNumber;
 
           return (
             <HorseRow 
-              key={horse.number} 
+              key={`${horse.name}-${horse.number}`} 
               horse={horse} 
               sortBy={sortBy} 
               highlightFiddle={highlightFiddles && horse.isFiddle}
@@ -265,7 +294,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
                 isMassive && isValue ? 'massive' :
                 rank
               }
-              highlightSelect={highlightSelects && horse.number === selectHorseNumber}
+              highlightSelect={isSelect}
             />
           );
         })}
