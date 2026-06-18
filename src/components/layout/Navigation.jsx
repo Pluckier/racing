@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-const Navigation = ({ displayDate, setDisplayDate, formattedDateTime }) => {
+const Navigation = ({ displayDate, setDisplayDate, formattedDateTime, summaryTime, detailsContent }) => {
   const dateInputRef = useRef(null);
 
   const handleOpenDatePicker = () => {
@@ -22,17 +22,29 @@ const Navigation = ({ displayDate, setDisplayDate, formattedDateTime }) => {
 
   return (
     <div className="navigation-section">
-      <h2 className="date-header">
-        The Racing {formattedDateTime.split(' (')[0]}
-        <span 
-          className="date-icon" 
-          onClick={handleOpenDatePicker} 
-          title="Click to change date"
-          style={{ cursor: 'pointer' }}
-        >
-          📅
-        </span>
-      </h2>
+      <details className="timeline-details">
+        <summary className="timeline-summary" style={{ listStyle: 'none' }}>
+          <h2 className="date-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', margin: 0 }}>
+            <span onClick={(e) => e.preventDefault()} style={{ cursor: 'default' }}>
+              The Racing {formattedDateTime.split(' (')[0]}
+            </span>
+            <span 
+              className="date-icon" 
+              onClick={(e) => { e.preventDefault(); handleOpenDatePicker(); }} 
+              title="Click to change date"
+              style={{ cursor: 'pointer' }}
+            >
+              📅
+            </span>
+            <span className="summary-time-inline" style={{ fontSize: '0.9em', opacity: 0.8, cursor: 'pointer' }}>
+              ⏱️ {summaryTime}
+            </span>
+          </h2>
+        </summary>
+        <div className="details-expanded-content" style={{ marginTop: '15px' }}>
+          {detailsContent}
+        </div>
+      </details>
       <input
         type="date"
         id="main-date-picker"

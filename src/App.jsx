@@ -214,34 +214,12 @@ function App() {
         displayDate: s.displayDate, 
         setDisplayDate: s.setDisplayDate,
         formattedDateTime: s.formattedDateTime,
-      }}
-      searchRaces={s.error ? [] : s.races}
-    >
-      {s.loading && s.races.length === 0 ? (
-        <>
-          <SkeletonRaceTimeline />
-          <SkeletonRaceCard />
-          <SkeletonRaceCard />
-          <SkeletonRaceCard />
-        </>
-      ) : s.error ? (
-        <div className="full-page-center">
-          <p className="error">Error: {s.error}</p>
-          <button className="filter-btn error-retry-btn" onClick={() => s.setDisplayDate(new Date())}>
-            Go to Today
-          </button>
-        </div>
-      ) : (
-        <>
-          <details className="timeline-details">
-            <summary className="timeline-summary">
-              ⏱️ {s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0]}
-            </summary>
-
-            {/* Moved elements from Navigation here, using a new class for styling */}
+        summaryTime: s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0],
+        detailsContent: (
+          <>
             <div className="app-header-controls">
-              <SearchOverlay races={s.error ? [] : s.races} /> {/* 🔍 Search... */}
-              <TrackWorker /> {/* 2 🧍 */}
+              <SearchOverlay races={s.error ? [] : s.races} />
+              <TrackWorker />
               <button 
                 className={`filter-btn chat-btn ${s.showChat ? 'active' : ''}`} 
                 onClick={() => s.setShowChat(!s.showChat)} 
@@ -293,7 +271,11 @@ function App() {
               </button>
 
               <div className="donate-container"> 
-                <form action="https://www.paypal.com/donate" method="post" target="_blank"><input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" /><input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" /></form>
+                <form action="https://www.paypal.com/donate" method="post" target="_blank">
+                  <input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" />
+                  <input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+                  <img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" />
+                </form>
               </div>
               <div className="theme-toggle-group">
                 <button onClick={() => s.setTheme('light')} className={`theme-btn ${s.theme === 'light' ? 'active' : ''}`} title="Light Mode">☀️</button>
@@ -309,8 +291,27 @@ function App() {
               onShowMovement={() => s.setActiveModal('movement')} 
               onShowFavorites={() => s.setActiveModal('favorites')} 
             />
-          </details>
-          
+          </>
+        )
+      }}
+      searchRaces={s.error ? [] : s.races}
+    >
+      {s.loading && s.races.length === 0 ? (
+        <>
+          <SkeletonRaceTimeline />
+          <SkeletonRaceCard />
+          <SkeletonRaceCard />
+          <SkeletonRaceCard />
+        </>
+      ) : s.error ? (
+        <div className="full-page-center">
+          <p className="error">Error: {s.error}</p>
+          <button className="filter-btn error-retry-btn" onClick={() => s.setDisplayDate(new Date())}>
+            Go to Today
+          </button>
+        </div>
+      ) : (
+        <>
           <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '15px 0px 15px' }}>
             {viewMode === 'single' && s.filteredRaces.length > 0 && (
               <button
