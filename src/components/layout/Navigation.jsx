@@ -1,25 +1,26 @@
-import React, { useRef } from 'react';
+import React from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+
+const CustomDateInput = React.forwardRef(({ value, onClick }, ref) => (
+  <span 
+    className="date-icon" 
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClick(e);
+    }} 
+    ref={ref}
+    title="Click to change date"
+    style={{ cursor: 'pointer' }}
+  >
+    📅
+  </span>
+));
+
+CustomDateInput.displayName = 'CustomDateInput';
 
 const Navigation = ({ displayDate, setDisplayDate, formattedDateTime, summaryTime, detailsContent }) => {
-  const dateInputRef = useRef(null);
-
-  const handleOpenDatePicker = () => {
-    // Clear the URL state (hash and search parameters) when opening the date picker.
-    // This ensures that manually selecting a new date isn't overridden by a stale URL date.
-    if (window.location.hash || window.location.search) {
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-    if (dateInputRef.current) {
-      if (typeof dateInputRef.current.showPicker === 'function') {
-        dateInputRef.current.showPicker();
-      } else {
-        dateInputRef.current.click();
-      }
-    }
-  };
-
-  const dateInputValue = `${displayDate.getFullYear()}-${String(displayDate.getMonth() + 1).padStart(2, '0')}-${String(displayDate.getDate()).padStart(2, '0')}`;
-
   return (
     <div className="navigation-section">
       <details className="timeline-details">
@@ -28,14 +29,21 @@ const Navigation = ({ displayDate, setDisplayDate, formattedDateTime, summaryTim
             <span onClick={(e) => e.preventDefault()} style={{ cursor: 'default' }}>
               The Racing {formattedDateTime.split(' (')[0]}
             </span>
-            <span 
-              className="date-icon" 
-              onClick={(e) => { e.preventDefault(); handleOpenDatePicker(); }} 
-              title="Click to change date"
-              style={{ cursor: 'pointer' }}
-            >
-              📅
-            </span>
+            <DatePicker
+              selected={displayDate}
+              onChange={(date) => {
+                if (date) {
+                  if (window.location.hash || window.location.search) {
+                    window.history.replaceState(null, '', window.location.pathname);
+                  }
+                  setDisplayDate(date);
+                }
+              }}
+              dateFormat="dd/MM/yyyy"
+              customInput={<CustomDateInput />}
+              withPortal
+              portalId="root"
+            />
             <span className="summary-time-inline" style={{ fontSize: '0.9em', opacity: 0.8, cursor: 'pointer' }}>
               ⏱️ {summaryTime}
             </span>
@@ -45,19 +53,6 @@ const Navigation = ({ displayDate, setDisplayDate, formattedDateTime, summaryTim
           {detailsContent}
         </div>
       </details>
-      <input
-        type="date"
-        id="main-date-picker"
-        ref={dateInputRef}
-        value={dateInputValue}
-        onChange={(e) => {
-          if (e.target.value) {
-            const [y, m, d] = e.target.value.split('-').map(Number);
-            setDisplayDate(new Date(y, m - 1, d));
-          }
-        }}
-        className="hidden-date-input"
-      />
     </div>
   );
 };
