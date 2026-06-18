@@ -47,6 +47,10 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
       : null;
   }
 
+  const lastRunRating = pastRuns.length > 0 ? (Number(pastRuns[0].name) || 0) : 0;
+  const peakRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => Number(r.name) || 0)) : 0;
+  const isImprover = lastRunRating > 0 && lastRunRating === peakRating;
+
   return (
     <div className={`
       horse-row 
@@ -63,7 +67,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             <span className="cell-form hide-mobile">{horse.form}</span>
             <span className="cell-name">
               <span className="name-wrapper">
-                <strong>{horse.name}</strong>
+                <strong>{horse.name}</strong>{isImprover ? '*' : ''}
                 <span className="highlight-indicators-inline">
                   {highlightSelect && <span className="indicator select" title="Select Filter" />}        
                   {highlightFiddle && <span className="indicator fiddle" title="Fiddle Filter" />}

@@ -22,12 +22,17 @@ const Navigation = ({ displayDate, setDisplayDate, formattedDateTime }) => {
 
   return (
     <div className="navigation-section">
-      <label htmlFor="main-date-picker">
-        <h2 onClick={handleOpenDatePicker} className="date-header" title="Click to change date">
-          The Racing {formattedDateTime.split(' (')[0]}
-          <span className="date-icon">📅</span>
-        </h2>
-      </label>
+      <h2 className="date-header">
+        The Racing {formattedDateTime.split(' (')[0]}
+        <span 
+          className="date-icon" 
+          onClick={handleOpenDatePicker} 
+          title="Click to change date"
+          style={{ cursor: 'pointer' }}
+        >
+          📅
+        </span>
+      </h2>
       <input
         type="date"
         id="main-date-picker"
