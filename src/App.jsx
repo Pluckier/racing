@@ -318,9 +318,8 @@ function App() {
           <p className="error">Error: {s.error}</p>
           <button className="filter-btn error-retry-btn" onClick={() => {
             // Clear the URL state (hash and search) so synchronization doesn't pull us back to the old date
-            if (window.location.hash || window.location.search) {
+            
               window.history.replaceState(null, '', window.location.pathname);
-            }
             s.setDisplayDate(new Date());
           }}>
             Go to Today
