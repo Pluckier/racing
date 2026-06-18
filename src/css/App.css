@@ -193,8 +193,13 @@ body {
   text-align: center;
 }
 
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+  width: auto !important;
+  display: inline-block !important;
+}
+
 .date-icon {
-  margin-left: 10px;
   font-size: 1rem;
 }
 
