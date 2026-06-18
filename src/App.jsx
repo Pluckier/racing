@@ -137,7 +137,17 @@ function App() {
 
     const handleHashSync = () => {
       const hash = decodeURIComponent(window.location.hash.substring(1));
-      if (!hash) return;
+      
+      // If no hash is present (e.g. on fresh load), automatically jump to the 
+      // first race in the filtered list (usually the 'Next Race' if upcoming is on)
+      if (!hash) {
+        if (s.filteredRaces.length > 0) {
+          const firstRace = s.filteredRaces[0];
+          const firstId = `${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
+          window.location.hash = `${currentDateStr}@${firstId}`;
+        }
+        return;
+      }
       
       let raceId = hash;
       if (hash.includes('@')) {
@@ -180,7 +190,7 @@ function App() {
     window.addEventListener('hashchange', handleHashSync);
     handleHashSync(); // Sync on mount or when filteredRaces changes
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [s.filteredRaces, viewMode, s.loading, s.displayDate, s.setDisplayDate]);
+  }, [s.filteredRaces, viewMode, s.loading, s.displayDate, s.setDisplayDate, currentDateStr]);
 
   // Ensure index stays in bounds if filters reduce the number of races
   useEffect(() => {
