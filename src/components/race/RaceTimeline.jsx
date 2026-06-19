@@ -40,8 +40,8 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
 
     // Break the detail into two lines if it contains a '(' (e.g., "Handicap Chase (Class 4)")
     const detailParts = (race.detail || '').split('(');
-    const displayDetail = detailParts.length > 1 
-      ? `${detailParts[0].trim()}<br/>(${detailParts.slice(1).join('(')}` 
+    const displayDetail = detailParts.length > 1
+      ? `${detailParts[0].trim()}<br/>(${detailParts.slice(1).join('(')}`
       : race.detail || '';
 
     // Create an HTML string for the tooltip and match the theme
@@ -54,7 +54,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
 
   // Calculate unique meetings to determine the number of rows
   const rowCount = new Set(races.map(r => r.place)).size;
-  const computedHeight = (rowCount * 40) + 60; // 40px per row + 60px for the time axis/padding
+  const computedHeight = (rowCount * 40); // 40px per row + 60px for the time axis/padding
 
   const chartEvents = [
     {

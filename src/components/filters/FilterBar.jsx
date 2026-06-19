@@ -2,7 +2,7 @@ import React from 'react';
 
 const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowFavorites }) => {
   return (
-    <div className="filter-section" style={{ marginTop: '0px' }}>
+    <div className="filter-section" style={{ marginTop: '20px' }}>
       <div className="place-filters">
         <button
           onClick={() => setFilters(f => ({ ...f, tricast: !f.tricast }))}
