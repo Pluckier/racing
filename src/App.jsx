@@ -19,7 +19,7 @@ import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchO
 import './css/App.css';
 import './css/Notifications.css';
 function App() {
-  const s = useAppState(); 
+  const s = useAppState();
   const [refreshMinutes, setRefreshMinutes] = useState(15);
 
   // Handle the countdown timer for the Auto-Refresh UI
@@ -74,7 +74,7 @@ function App() {
       setIsNotificationsReleased(false);
     }
   }, [notifications.length, isNotificationsReleased]);
-  
+
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
   const currentDateStr = s.displayDate instanceof Date
     ? `${s.displayDate.getFullYear()}-${String(s.displayDate.getMonth() + 1).padStart(2, '0')}-${String(s.displayDate.getDate()).padStart(2, '0')}`
@@ -116,7 +116,7 @@ function App() {
 
           const triggerTime = raceDate.getTime() - 120000; // 2 minutes before
           if (now.getTime() >= triggerTime && now.getTime() < raceDate.getTime()) {
-            new Audio('music.mp3').play().catch(() => {});
+            new Audio('music.mp3').play().catch(() => { });
             // Update state AND ref immediately to ensure the next 10s tick sees it as "played"
             setPlayedAlarms(prev => {
               const next = new Set(prev).add(id);
@@ -128,7 +128,7 @@ function App() {
       });
     }, 10000);
     return () => clearInterval(interval);
-  }, [enabledAlarms, s.races]); 
+  }, [enabledAlarms, s.races]);
 
   // Synchronize activeRaceIndex with URL hash (from Timeline, Search, or navigation)
   useEffect(() => {
@@ -137,7 +137,7 @@ function App() {
 
     const handleHashSync = () => {
       const hash = decodeURIComponent(window.location.hash.substring(1));
-      
+
       // If no hash is present (e.g. on fresh load), automatically jump to the 
       // first race in the filtered list (usually the 'Next Race' if upcoming is on)
       if (!hash) {
@@ -148,7 +148,7 @@ function App() {
         }
         return;
       }
-      
+
       let raceId = hash;
       if (hash.includes('@')) {
         const [datePart, idPart] = hash.split('@');
@@ -164,10 +164,10 @@ function App() {
         }
       }
 
-      const index = s.filteredRaces.findIndex(r => 
+      const index = s.filteredRaces.findIndex(r =>
         `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
       );
-      
+
       if (index !== -1) {
         setActiveRaceIndex(index);
         // Jump to the race element once it has been rendered in the DOM
@@ -204,7 +204,7 @@ function App() {
     if (s.filters.follow && s.filteredRaces.length > 0) {
       setActiveRaceIndex(0);
       const firstRace = s.filteredRaces[0];
-      
+
       // Update hash to ensure the "Single" view and background scroll stay in sync
       window.location.hash = `${currentDateStr}@${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
     }
@@ -219,214 +219,219 @@ function App() {
     const activeRaceId = activeRace ? `${activeRace.time}${activeRace.place.replace(/\s+/g, '')}` : null;
 
     return (
-    <Layout 
-      navProps={{
-        displayDate: s.displayDate, 
-        setDisplayDate: s.setDisplayDate,
-        formattedDateTime: s.formattedDateTime,
-        summaryTime: s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0],
-        detailsContent: (
-          <>
-            <div className="app-header-controls">
-              <SearchOverlay races={s.error ? [] : s.races} />
-              <TrackWorker />
-              <button 
-                className={`filter-btn chat-btn ${s.showChat ? 'active' : ''}`} 
-                onClick={() => s.setShowChat(!s.showChat)} 
-                title={s.showChat ? "Close Chat" : "Open Chat"}
-              >
-                💬
-              </button>
-
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                <button 
-                  className={`filter-btn refresh-btn ${isNotificationsReleased ? 0 : notifications.length > 0 ? 'active' : 'disabled'}`}
-                  disabled={isNotificationsReleased ? 0 : notifications.length === 0}
-                  onClick={() => setIsNotificationsReleased(true)}
-                  style={{ cursor: (isNotificationsReleased ? 0 : notifications.length > 0) ? 'pointer' : 'default' }}
-                  title={
-                    (isNotificationsReleased ? 0 : notifications.length > 0)
-                      ? `Show ${isNotificationsReleased ? 0 : notifications.length} non-runners` 
-                      : (refreshMinutes ? `Auto Refresh ${refreshMinutes}m` : "Auto Refresh")
-                  }
-                >
-                  ↻
-                  {(isNotificationsReleased ? 0 : notifications.length > 0) && (
-                    <span style={{
-                      position: 'absolute',
-                      top: '-8px',
-                      right: '-8px',
-                      backgroundColor: '#e53e3e',
-                      color: 'white',
-                      borderRadius: '10px',
-                      padding: '2px 6px',
-                      fontSize: '0.65rem',
-                      fontWeight: '800',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                      zIndex: 2,
-                      pointerEvents: 'none'
-                    }}>
-                      {(isNotificationsReleased ? 0 : notifications.length)}
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              <button 
-                onClick={toggleFullscreen} 
-                className={`filter-btn ${isFullscreen ? 'active' : ''}`}
-                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-              >
-                {isFullscreen ? '⛶ Window' : '⛶ Full'}
-              </button>
-
-              <div className="donate-container"> 
-                <form action="https://www.paypal.com/donate" method="post" target="_blank">
-                  <input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" />
-                  <input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
-                  <img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" />
-                </form>
-              </div>
-              <div className="theme-toggle-group">
-                <button onClick={() => s.setTheme('light')} className={`theme-btn ${s.theme === 'light' ? 'active' : ''}`} title="Light Mode">☀️</button>
-                <button onClick={() => s.setTheme('dark')} className={`theme-btn ${s.theme === 'dark' ? 'active' : ''}`} title="Dark Mode">🌙</button>
-              </div>
-            </div>
-
-            <RaceTimeline races={s.filteredRaces} theme={s.theme} />
-            <FilterBar 
-              filters={s.filters} 
-              setFilters={s.setFilters} 
-              uniquePlaces={s.uniquePlaces} 
-              onShowMovement={() => s.setActiveModal('movement')} 
-              onShowFavorites={() => s.setActiveModal('favorites')} 
-            />
-          </>
-        )
-      }}
-      searchRaces={s.error ? [] : s.races}
-    >
-      {s.loading && s.races.length === 0 ? (
-        <>
-          <SkeletonRaceTimeline />
-          <SkeletonRaceCard />
-          <SkeletonRaceCard />
-          <SkeletonRaceCard />
-        </>
-      ) : s.error ? (
-        <div className="full-page-center">
-          <p className="error">Error: {s.error}</p>
-          <button className="filter-btn error-retry-btn" onClick={() => {
-            // Clear the URL state (hash and search) so synchronization doesn't pull us back to the old date
-            
-              window.history.replaceState(null, '', window.location.pathname);
-            s.setDisplayDate(new Date());
-          }}>
-            Go to Today
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '15px 0px 15px' }}>
-            {viewMode === 'single' && s.filteredRaces.length > 0 && (
-              <button
-                className="race-analytics-btn" 
-                disabled={activeRaceIndex === 0}
-                style={{ flex: 1, padding: '18px 0' }}
-                onClick={() => {
-                  const race = s.filteredRaces[activeRaceIndex - 1];
-                  window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
-                }}
-              >← Prev</button>
-            )}
-
-            <button
-              className="filter-btn active"
-              onClick={() => setViewMode(prev => prev === 'all' ? 'single' : 'all')}
-              style={{ 
-                borderRadius: '25px', 
-                padding: '6px 18px', 
-                minWidth: '100px' 
-              }}
-            >
-              {viewMode === 'all' ? 'All 👀' : 'One 👀'}
-            </button>
-
-            {viewMode === 'single' && s.filteredRaces.length > 0 && (
-              <>
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-h)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                  {activeRaceIndex + 1} / {s.filteredRaces.length}
-                </span>
+      <Layout
+        navProps={{
+          displayDate: s.displayDate,
+          setDisplayDate: s.setDisplayDate,
+          formattedDateTime: s.formattedDateTime,
+          summaryTime: s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0],
+          detailsContent: (
+            <>
+              <div className="app-header-controls">
+                <SearchOverlay races={s.error ? [] : s.races} />
+                <TrackWorker />
                 <button
-                className="race-analytics-btn" 
-                disabled={activeRaceIndex === s.filteredRaces.length - 1}
-                style={{ flex: 1, padding: '18px 0' }}
-                onClick={() => {
-                  const race = s.filteredRaces[activeRaceIndex + 1];
-                  window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
-                }}
-                >Next →</button>
-              </>
-            )}
-          </div>
+                  className={`filter-btn chat-btn ${s.showChat ? 'active' : ''}`}
+                  onClick={() => s.setShowChat(!s.showChat)}
+                  title={s.showChat ? "Close Chat" : "Open Chat"}
+                >
+                  💬
+                </button>
 
-          {s.showNextRaceBanner && (
-            <div className="next-race-banner">
-              🕒 Race finished. Moved to next scheduled off...
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <button
+                    className={`filter-btn refresh-btn ${isNotificationsReleased ? 0 : notifications.length > 0 ? 'active' : 'disabled'}`}
+                    disabled={isNotificationsReleased ? 0 : notifications.length === 0}
+                    onClick={() => setIsNotificationsReleased(true)}
+                    style={{ cursor: (isNotificationsReleased ? 0 : notifications.length > 0) ? 'pointer' : 'default' }}
+                    title={
+                      (isNotificationsReleased ? 0 : notifications.length > 0)
+                        ? `Show ${isNotificationsReleased ? 0 : notifications.length} non-runners`
+                        : (refreshMinutes ? `Auto Refresh ${refreshMinutes}m` : "Auto Refresh")
+                    }
+                  >
+                    ↻
+                    {(isNotificationsReleased ? 0 : notifications.length > 0) && (
+                      <span style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '-8px',
+                        backgroundColor: '#e53e3e',
+                        color: 'white',
+                        borderRadius: '10px',
+                        padding: '2px 6px',
+                        fontSize: '0.65rem',
+                        fontWeight: '800',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                        zIndex: 2,
+                        pointerEvents: 'none'
+                      }}>
+                        {(isNotificationsReleased ? 0 : notifications.length)}
+                      </span>
+                    )}
+                  </button>
+                </div>
+
+                <button
+                  onClick={toggleFullscreen}
+                  className={`filter-btn ${isFullscreen ? 'active' : ''}`}
+                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                >
+                  {isFullscreen ? '⛶ Window' : '⛶ Full'}
+                </button>
+
+                <div className="donate-container">
+                  <form action="https://www.paypal.com/donate" method="post" target="_blank">
+                    <input type="hidden" name="hosted_button_id" value="P9PLRQL24TBAN" />
+                    <input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+                    <img alt="" border="0" src="https://www.paypal.com/en_GB/i/scr/pixel.gif" width="1" height="1" />
+                  </form>
+                </div>
+                <div className="theme-toggle-group">
+                  <button onClick={() => s.setTheme('light')} className={`theme-btn ${s.theme === 'light' ? 'active' : ''}`} title="Light Mode">☀️</button>
+                  <button onClick={() => s.setTheme('dark')} className={`theme-btn ${s.theme === 'dark' ? 'active' : ''}`} title="Dark Mode">🌙</button>
+                </div>
+              </div>
+
+              <RaceTimeline races={s.filteredRaces} theme={s.theme} />
+              <FilterBar
+                filters={s.filters}
+                setFilters={s.setFilters}
+                uniquePlaces={s.uniquePlaces}
+                onShowMovement={() => s.setActiveModal('movement')}
+                onShowFavorites={() => s.setActiveModal('favorites')}
+              />
+            </>
+          )
+        }}
+        searchRaces={s.error ? [] : s.races}
+      >
+        {s.loading && s.races.length === 0 ? (
+          <>
+            <SkeletonRaceTimeline />
+            <SkeletonRaceCard />
+            <SkeletonRaceCard />
+            <SkeletonRaceCard />
+          </>
+        ) : s.error ? (
+          <div className="full-page-center">
+            <p className="error">Error: {s.error}</p>
+            <button className="filter-btn error-retry-btn" onClick={() => {
+              // Clear the URL state (hash and search) so synchronization doesn't pull us back to the old date
+
+              window.history.replaceState(null, '', window.location.pathname);
+              s.setDisplayDate(new Date());
+            }}>
+              Go to Today
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '10px 0px 10px' }}>
+              {viewMode === 'single' && s.filteredRaces.length > 0 && (
+                <button
+                  className="race-analytics-btn"
+                  disabled={activeRaceIndex === 0}
+                  style={{ flex: 1, padding: '36px 0' }}
+                  onClick={() => {
+                    const race = s.filteredRaces[activeRaceIndex - 1];
+                    window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
+                  }}
+                >← Prev</button>
+              )}
+
+              {/* Center Container: Columns stack vertically */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                <button
+                  className="filter-btn active"
+                  onClick={() => setViewMode(prev => prev === 'all' ? 'single' : 'all')}
+                  style={{
+                    borderRadius: '25px',
+                    padding: '6px 18px',
+                    minWidth: '100px'
+                  }}
+                >
+                  {viewMode === 'all' ? 'All 👀' : 'One 👀'}
+                </button>
+
+                {/* Counter only renders here below the button if viewMode is 'single' */}
+                {viewMode === 'single' && s.filteredRaces.length > 0 && (
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-h)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    {activeRaceIndex + 1} / {s.filteredRaces.length}
+                  </span>
+                )}
+              </div>
+
+              {viewMode === 'single' && s.filteredRaces.length > 0 && (
+                <button
+                  className="race-analytics-btn"
+                  disabled={activeRaceIndex === s.filteredRaces.length - 1}
+                  style={{ flex: 1, padding: '36px 0' }}
+                  onClick={() => {
+                    const race = s.filteredRaces[activeRaceIndex + 1];
+                    window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
+                  }}
+                >Next →</button>
+              )}
             </div>
-          )}
-          
-          <Modal 
-            isOpen={!!s.activeModal} 
-            onClose={() => s.setActiveModal(null)} 
-            title={s.activeModal === 'movement' ? "Card-wide Odds Movement" : "Strong Favourites"}
-          >
-            {s.activeModal === 'movement' && (
-              <OddsMovementSummary races={s.filteredRaces} onClose={() => s.setActiveModal(null)} />
+
+            {s.showNextRaceBanner && (
+              <div className="next-race-banner">
+                🕒 Race finished. Moved to next scheduled off...
+              </div>
             )}
-            {s.activeModal === 'favorites' && (
-              <FavoriteSelections races={s.filteredRaces} onClose={() => s.setActiveModal(null)} />
-            )}
-          </Modal>
-          
-          <div style={{ display: viewMode === 'single' ? 'block' : 'none' }}>
-            {s.filteredRaces.length > 0 ? (
-              <RaceCard 
-                race={s.filteredRaces[activeRaceIndex] || s.filteredRaces[0]} 
-                allRaces={s.filteredRaces}
-                highlightFiddles={s.filters.fiddle}
-                highlightValues={s.filters.value}
-                highlightSelects={s.filters.select}
-                isAlarmEnabled={enabledAlarms.has(activeRaceId)}
-                onToggleAlarm={() => toggleAlarm(activeRaceId)}
+
+            <Modal
+              isOpen={!!s.activeModal}
+              onClose={() => s.setActiveModal(null)}
+              title={s.activeModal === 'movement' ? "Card-wide Odds Movement" : "Strong Favourites"}
+            >
+              {s.activeModal === 'movement' && (
+                <OddsMovementSummary races={s.filteredRaces} onClose={() => s.setActiveModal(null)} />
+              )}
+              {s.activeModal === 'favorites' && (
+                <FavoriteSelections races={s.filteredRaces} onClose={() => s.setActiveModal(null)} />
+              )}
+            </Modal>
+
+            <div style={{ display: viewMode === 'single' ? 'block' : 'none' }}>
+              {s.filteredRaces.length > 0 ? (
+                <RaceCard
+                  race={s.filteredRaces[activeRaceIndex] || s.filteredRaces[0]}
+                  allRaces={s.filteredRaces}
+                  highlightFiddles={s.filters.fiddle}
+                  highlightValues={s.filters.value}
+                  highlightSelects={s.filters.select}
+                  isAlarmEnabled={enabledAlarms.has(activeRaceId)}
+                  onToggleAlarm={() => toggleAlarm(activeRaceId)}
+                  viewMode={viewMode}
+                  currentDateStr={currentDateStr}
+                />
+              ) : (
+                <div className="no-data" style={{ textAlign: 'center', padding: '20px' }}>No races match filters.</div>
+              )}
+            </div>
+
+            <div style={{ display: viewMode === 'all' ? 'block' : 'none' }}>
+              <RaceGrid
+                races={s.filteredRaces}
+                filters={s.filters}
+                enabledAlarms={enabledAlarms}
+                toggleAlarm={toggleAlarm}
                 viewMode={viewMode}
                 currentDateStr={currentDateStr}
               />
-            ) : (
-              <div className="no-data" style={{ textAlign: 'center', padding: '20px' }}>No races match filters.</div>
-            )}
-          </div>
+            </div>
+          </>
+        )}
 
-          <div style={{ display: viewMode === 'all' ? 'block' : 'none' }}>
-            <RaceGrid 
-              races={s.filteredRaces} 
-              filters={s.filters} 
-              enabledAlarms={enabledAlarms}
-              toggleAlarm={toggleAlarm}
-              viewMode={viewMode}
-              currentDateStr={currentDateStr}
-            />
-          </div>
-        </>
-      )}
+        {s.showChat && <Chatter onClose={() => s.setShowChat(false)} />}
 
-      {s.showChat && <Chatter onClose={() => s.setShowChat(false)} />}
-
-      <NonRunnerNotifications 
-        notifications={isNotificationsReleased ? notifications : []} 
-        onRemove={removeNotification} 
-      />
-    </Layout>
+        <NonRunnerNotifications
+          notifications={isNotificationsReleased ? notifications : []}
+          onRemove={removeNotification}
+        />
+      </Layout>
     );
   };
 
