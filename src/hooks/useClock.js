@@ -6,7 +6,7 @@ export function useClock() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
