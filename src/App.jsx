@@ -332,7 +332,7 @@ function App() {
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === 0}
-                  style={{ flex: 1, padding: '36px 0' }}
+                  style={{ flex: 1, padding: '21px 0' }}
                   onClick={() => {
                     const race = s.filteredRaces[activeRaceIndex - 1];
                     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
@@ -366,7 +366,7 @@ function App() {
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === s.filteredRaces.length - 1}
-                  style={{ flex: 1, padding: '36px 0' }}
+                  style={{ flex: 1, padding: '21px 0' }}
                   onClick={() => {
                     const race = s.filteredRaces[activeRaceIndex + 1];
                     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
