@@ -54,7 +54,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
 
   // Calculate unique meetings to determine the number of rows
   const rowCount = new Set(races.map(r => r.place)).size;
-  const computedHeight = (rowCount * 40) + 5; // 40px per row + 60px for the time axis/padding
+  const computedHeight = (rowCount * 40) + 10; // 40px per row + 60px for the time axis/padding
 
   const chartEvents = [
     {
