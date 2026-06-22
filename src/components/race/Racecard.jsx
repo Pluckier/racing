@@ -72,7 +72,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     if (!highlightValues) return new Map();
     const runners = race.horses.filter(h => h.isValue);
     const uniqueRatings = [...new Set(runners.map(getMax))].sort((a, b) => b - a);
-    
+
     const ranks = new Map();
     runners.forEach(h => {
       const rtg = getMax(h);
@@ -115,32 +115,21 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   }, [race.horses]);
 
   const selectHorseNumber = useMemo(() => {
-    const runners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
-    if (runners.length === 0) return null;
+    // 1. Filter out Non-Runners and invalid odds immediately
+    const activeRunners = race?.horses?.filter(h =>
+      h.number !== 'NR' &&
+      getLatestOdds(h) !== Infinity
+    ) || [];
 
-    // Identify Top 4 horses by Average Rating (Last 3 runs)
-    const top4AvgNumbers = [...runners]
-      .sort((a, b) => getAvg(b) - getAvg(a))
-      .slice(0, 4)
-      .map(h => h.number === 'NR' ? h.name : h.number);
+    if (activeRunners.length === 0) return null;
 
-    // Identify Top 4 horses by Odds (Shortest prices)
-    const top4OddsNumbers = [...runners]
-      .sort((a, b) => getLatestOdds(a) - getLatestOdds(b))
-      .slice(0, 4)
-      .map(h => h.number === 'NR' ? h.name : h.number);
+    // 2. Find the horse with the highest getLast value
+    const winner = [...activeRunners].sort((a, b) => getLast(b) - getLast(a))[0];
 
-    // Find horses that appear in both "Top 4" lists
-    const candidates = runners.filter(h => {
-      const horseId = h.number === 'NR' ? h.name : h.number;
-      return top4AvgNumbers.includes(horseId) && top4OddsNumbers.includes(horseId);
-    });
-    if (candidates.length === 0) return null;
-
-    // If multiple candidates, the "Decider" is the one with the highest average rating
-    const winner = candidates.sort((a, b) => getAvg(b) - getAvg(a))[0];
+    // 3. Return the winning horse's number
     return winner.number === 'NR' ? winner.name : winner.number;
   }, [race.horses]);
+
 
   const getRaceIcon = (r) => {
     if (!r) return '';
@@ -193,7 +182,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             <a href="#home" className="home-link" title="Return to top">
               🏠
             </a>
-            <button 
+            <button
               onClick={onToggleAlarm}
               title={isAlarmEnabled ? "Alarm active (2 mins before start)" : "Click to set alarm for this race"}
               style={{
@@ -214,14 +203,14 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             <a href={`#${raceId}`} className="race-title-link">
               {race.time} {race.place}
             </a>
-           
+
           </h2>
           <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners})</h5>
         </div>
         <div className="race-controls">
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
             gap: '10px',
             padding: '2px 12px',
             borderRadius: '20px',
@@ -229,12 +218,12 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             fontSize: '13px'
           }}>
             <span>{SORT_LABELS[sortBy]}</span>
-            <input 
-              type="range" 
-              min="0" 
-              max={SORT_MODES.length - 1} 
-              step="1" 
-              value={SORT_MODES.indexOf(sortBy)} 
+            <input
+              type="range"
+              min="0"
+              max={SORT_MODES.length - 1}
+              step="1"
+              value={SORT_MODES.indexOf(sortBy)}
               onChange={(e) => setSortBy(SORT_MODES[parseInt(e.target.value, 10)])}
               style={{ width: '70px', cursor: 'pointer', accentColor: 'var(--accent)' }}
             />
@@ -248,32 +237,32 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
         </div>
       </header>
 
-      <Modal 
-        isOpen={showOdds} 
-        onClose={() => setShowOdds(false)} 
+      <Modal
+        isOpen={showOdds}
+        onClose={() => setShowOdds(false)}
         title={`Odds Movement: ${race.time} ${race.place}`}
       >
-          <OddsChart horses={race.horses} />
+        <OddsChart horses={race.horses} />
       </Modal>
 
-      <Modal 
-        isOpen={showChart} 
-        onClose={() => setShowChart(false)} 
+      <Modal
+        isOpen={showChart}
+        onClose={() => setShowChart(false)}
         title={`${activeChartRace.time} ${activeChartRace.place} - ${getRaceIcon(activeChartRace)} ${activeChartRace.detail} ${activeChartRace.going} (Runners ${activeChartRace.runners})`}
       >
-          <FormChart 
-            horses={activeChartRace.horses} 
-            raceTime={activeChartRace.time}
-            racePlace={activeChartRace.place}
-            onNext={handleNext}
-            onPrev={handlePrev}
-            hasNext={hasNext}
-            hasPrev={hasPrev}
-            todayDistance={activeChartRace.distance}
-            todayGoing={activeChartRace.going}
-            viewMode={viewMode} // Pass down viewMode
-            currentDateStr={currentDateStr} // Pass down currentDateStr
-          />
+        <FormChart
+          horses={activeChartRace.horses}
+          raceTime={activeChartRace.time}
+          racePlace={activeChartRace.place}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          hasNext={hasNext}
+          hasPrev={hasPrev}
+          todayDistance={activeChartRace.distance}
+          todayGoing={activeChartRace.going}
+          viewMode={viewMode} // Pass down viewMode
+          currentDateStr={currentDateStr} // Pass down currentDateStr
+        />
       </Modal>
 
       <div className="entries">
@@ -285,14 +274,14 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           const isSelect = highlightSelects && horseId === selectHorseNumber;
 
           return (
-            <HorseRow 
-              key={`${horse.name}-${horse.number}`} 
-              horse={horse} 
-              sortBy={sortBy} 
+            <HorseRow
+              key={`${horse.name}-${horse.number}`}
+              horse={horse}
+              sortBy={sortBy}
               highlightFiddle={highlightFiddles && horse.isFiddle}
               highlightValue={
                 isMassive && isValue ? 'massive' :
-                rank
+                  rank
               }
               highlightSelect={isSelect}
             />

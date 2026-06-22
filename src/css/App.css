@@ -1,4 +1,3 @@
-
 /* Theme Variables */
 :root[data-theme='light'] {
   --bg: #d2e5ed;
@@ -44,7 +43,7 @@ body {
   }
 }
 
-.loading{
+.loading {
   text-align: center;
 }
 
@@ -107,6 +106,7 @@ body {
 .follow-btn {
   border-color: #ff4757;
 }
+
 .follow-btn.active {
   background-color: #ff4757;
   color: white;
@@ -119,6 +119,7 @@ body {
 .interesting-selections-btn {
   border-color: #f4b400;
 }
+
 .interesting-selections-btn.active {
   background-color: #24cb46;
   color: #000;
@@ -131,6 +132,7 @@ body {
 .fiddle-btn {
   border-color: #ff9f43;
 }
+
 .fiddle-btn.active {
   background-color: #ff9f43;
   color: #000;
@@ -150,15 +152,30 @@ body {
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(-5px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-5px); }
+  0% {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
 }
 
 .filter-btn:hover {
-    border-color: var(--accent);
-    background-color: var(--accent);
+  border-color: var(--accent);
+  background-color: var(--accent);
 }
 
 .refresh-btn {
@@ -218,7 +235,8 @@ body {
   user-select: none;
   padding: 5px 0;
   text-align: center;
-  list-style-position: inside; /* Place the marker inside the content box */
+  list-style-position: inside;
+  /* Place the marker inside the content box */
 }
 
 .app-header-controls {
@@ -236,6 +254,11 @@ body {
   gap: 10px;
 
   @media (max-width: 768px) {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+
+  @media (max-width: 400px) {
     flex-wrap: wrap;
     row-gap: 12px;
   }
@@ -257,6 +280,11 @@ body {
     flex: 1 0 100%;
     justify-content: space-around;
   }
+
+  @media (max-width: 400px) {
+    flex: 1 0 100%;
+    justify-content: space-around;
+  }
 }
 
 /* Search Bar Styles */
@@ -265,6 +293,10 @@ body {
   position: relative;
 
   @media (max-width: 768px) {
+    flex: 1 0 100%;
+  }
+
+  @media (max-width: 400px) {
     flex: 1 0 100%;
   }
 }
@@ -309,7 +341,7 @@ body {
   background-color: var(--accent-bg);
   z-index: 2000;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   max-height: 300px;
   overflow-y: auto;
   border: 1px solid var(--border);

@@ -63,29 +63,29 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
           </div>
           <div className="horse-primary-data">
             <span className="cell-no">{horse.number}.</span>
-            <span className="cell-draw hide-mobile">{horse.draw ? `(${horse.draw})` : ''}</span>
-            <span className="cell-form hide-mobile">{horse.form}</span>
+            <span className="cell-draw hide-mobile hide-mobile-medium">{horse.draw ? `(${horse.draw})` : ''}</span>
+            <span className="cell-form hide-mobile hide-mobile-medium">{horse.form}</span>
             <span className="cell-name">
               <span className="name-wrapper">
                 <strong>{horse.name}</strong>{isImprover ? '*' : ''}
                 <span className="highlight-indicators-inline">
-                  {highlightSelect && <span className="indicator select" title="Select Filter" />}        
+                  {highlightSelect && <span className="indicator select" title="Select Filter" />}
                   {highlightFiddle && <span className="indicator fiddle" title="Fiddle Filter" />}
                   {highlightValue && (
-                    <span 
-                      className={`indicator value ${typeof highlightValue === 'string' ? highlightValue : ''}`} 
-                      title="Value Filter" 
+                    <span
+                      className={`indicator value ${typeof highlightValue === 'string' ? highlightValue : ''}`}
+                      title="Value Filter"
                     />
                   )}
                 </span>
               </span>
             </span>
-            <span className="cell-lastrun hide-mobile">{horse.lastRun && `${horse.lastRun}`}</span>
-            <span className="cell-age hide-mobile">{horse.age}yo</span>
-            <span className="cell-weight hide-mobile">{horse.weight}</span>
+            <span className="cell-lastrun hide-mobile hide-mobile-medium">{horse.lastRun && `${horse.lastRun}`}</span>
+            <span className="cell-age hide-mobile hide-mobile-medium">{horse.age}yo</span>
+            <span className="cell-weight hide-mobile hide-mobile-medium">{horse.weight}</span>
           </div>
         </div>
-        <div className="horse-personnel-column hide-mobile">
+        <div className="horse-personnel-column hide-mobile hide-mobile-medium">
           <div className="jockey-row" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
             <strong>J:</strong> {horse.jockey}
           </div>
@@ -99,7 +99,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
           {isNR ? "NR" : (currentOdds || "x")}
           {oddsArrow}
         </span>
-        <button className="past-button hide-mobile" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
+        <button className="past-button hide-mobile hide-mobile-medium" onClick={() => setShowForm(!showForm)}>{pastRuns.length}</button>
       </div>
 
       {showForm && (

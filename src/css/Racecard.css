@@ -48,7 +48,8 @@
   opacity: 0.7;
 }
 
-.race-sort-select, .race-analytics-btn {
+.race-sort-select,
+.race-analytics-btn {
   padding: 4px 8px;
   border-radius: 4px;
   border: 1px solid var(--border);
@@ -89,6 +90,29 @@
 }
 
 @media (max-width: 768px) {
+  .race-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .race-title-group {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .race-detail {
+    height: auto;
+  }
+
+  .race-controls {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 400px) {
   .race-header {
     flex-direction: column;
     align-items: flex-start;

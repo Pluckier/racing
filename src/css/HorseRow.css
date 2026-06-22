@@ -123,6 +123,7 @@
 .horse-row:hover {
   background-color: var(--accent-bg) !important;
 }
+
 .highlight-indicators-inline {
   position: absolute;
   left: 100%;
@@ -150,12 +151,30 @@
   flex-shrink: 0;
 }
 
-.indicator.select { background-color: #f10505; }
-.indicator.fiddle { background-color: #ff9f43; }
-.indicator.value { background-color: #0a2e0c; } /* Fallback: Very Dark Green */
-.indicator.value.top { background-color: #3ccf34; }
-.indicator.value.second { background-color: #2e7d32; }
-.indicator.value.massive { background-color: #00d4ff; }
+.indicator.select {
+  background-color: #f10505;
+}
+
+.indicator.fiddle {
+  background-color: #ff9f43;
+}
+
+.indicator.value {
+  background-color: #0a2e0c;
+}
+
+/* Fallback: Very Dark Green */
+.indicator.value.top {
+  background-color: #3ccf34;
+}
+
+.indicator.value.second {
+  background-color: #2e7d32;
+}
+
+.indicator.value.massive {
+  background-color: #00d4ff;
+}
 
 .horse-row.non-runner {
   opacity: 0.4;
@@ -184,16 +203,19 @@
 }
 
 .arrow-up {
-  color: #ef4444; /* Shortening - Blue */
+  color: #ef4444;
+  /* Shortening - Blue */
 }
 
 .arrow-down {
-  color: #3b82f6; /* Lengthening - Red */
+  color: #3b82f6;
+  /* Lengthening - Red */
 }
 
 .arrow-stable {
   color: var(--text);
-  opacity: 0.4; /* Keep it subtle so it doesn't clutter the grid */
+  opacity: 0.4;
+  /* Keep it subtle so it doesn't clutter the grid */
 }
 
 .horse-main {
@@ -218,7 +240,8 @@
 }
 
 .horse-personnel-column {
-  width: 250px; /* Fixed width to ensure metadata columns to its left align vertically */
+  width: 250px;
+  /* Fixed width to ensure metadata columns to its left align vertically */
   flex-shrink: 0;
   padding-left: 10px;
   font-size: 0.7em;
@@ -239,9 +262,12 @@
 }
 
 .horse-name-row {
-  display: flex;                /* Lines everything up in a row */
-  gap: 15px;                    /* Consistent spacing between 'columns' */
-  flex-wrap: wrap;              /* Allows content to drop down on small screens */
+  display: flex;
+  /* Lines everything up in a row */
+  gap: 15px;
+  /* Consistent spacing between 'columns' */
+  flex-wrap: wrap;
+  /* Allows content to drop down on small screens */
   line-height: 23px;
 }
 
@@ -267,21 +293,24 @@
 @media (max-width: 768px) {
   .horse-name-row {
     gap: 8px;
-    white-space: normal;        /* Ensure text can wrap */
+    white-space: normal;
+    /* Ensure text can wrap */
   }
-  
-  .hide-mobile {
+
+  .hide-mobile-medium {
     display: none !important;
   }
 
   /* Shrink the silks and their container */
   .horse-silks {
-    height: 20px; /* Reduced from default size */
+    height: 20px;
+    /* Reduced from default size */
     width: auto;
   }
 
   .horse-silks-wrapper {
-    width: 24px; /* Matches the smaller image width */
+    width: 24px;
+    /* Matches the smaller image width */
     min-width: 24px;
     margin-right: 4px;
     display: flex;
@@ -289,14 +318,78 @@
   }
 
   .avg-rating {
-        font-weight: bold;
-        color: var(--accent);
-        margin: 0 0px;
-        margin-right: 5px;
-        font-size: 1.1em;
-        min-width: 2px;
-        text-align: right;
-    }
+    font-weight: bold;
+    color: var(--accent);
+    margin: 0 0px;
+    margin-right: 5px;
+    font-size: 1.1em;
+    min-width: 2px;
+    text-align: right;
+  }
 
-  .cell-jockey { display: block; width: 100%; text-align: left; margin-top: 4px; }
+  .cell-jockey {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 400px) {
+  .horse-name-row {
+    gap: 8px;
+    white-space: normal;
+    /* Ensure text can wrap */
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Shrink the silks and their container */
+  .horse-silks {
+    height: 20px;
+    /* Reduced from default size */
+    width: auto;
+  }
+
+  .horse-silks-wrapper {
+    width: 24px;
+    /* Matches the smaller image width */
+    min-width: 24px;
+    margin-right: 4px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .avg-rating {
+    font-weight: bold;
+    color: var(--accent);
+    margin: 0 0px;
+    margin-right: 5px;
+    font-size: 1.1em;
+    min-width: 2px;
+    text-align: right;
+  }
+
+  .cell-jockey {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-top: 4px;
+  }
+}
+
+/* Tier 1: Add this to divs you want to hide as soon as the screen drops below desktop (768px and smaller) */
+@media (max-width: 768px) {
+  .hide-at-768 {
+    display: none;
+  }
+}
+
+/* Tier 2: Add this to divs you want to hide only when the screen hits portrait mobile (480px and smaller) */
+@media (max-width: 480px) {
+  .hide-at-480 {
+    display: none;
+  }
 }

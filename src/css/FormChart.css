@@ -24,11 +24,11 @@
 }
 
 .chart-controls {
-    background-color: var(--bg);
-    margin-bottom: -5px !important;
-    opacity: 1;
-    position: relative;
-    z-index: 10;
+  background-color: var(--bg);
+  margin-bottom: -5px !important;
+  opacity: 1;
+  position: relative;
+  z-index: 10;
 }
 
 .chart-dot-label {
@@ -75,8 +75,15 @@
 }
 
 @keyframes chartPanelFadeIn {
-  from { transform: translateX(10px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .panel-header {
@@ -118,6 +125,22 @@
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
+  .modal-header h3 {
+    font-size: 0.75em;
+  }
+
+  .modal-header {
+    padding: 0px;
+    padding-top: 0px;
+    width: 85%;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 400px) {
   .modal-header h3 {
     font-size: 0.75em;
   }
