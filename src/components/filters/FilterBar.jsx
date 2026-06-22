@@ -34,7 +34,7 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowFa
         <button className="filter-btn strong-favorites-btn" onClick={onShowFavorites} title="Show short priced favourites">📜 Short</button>
         <button className={`filter-btn interesting-selections-btn ${filters.value ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, value: !f.value }))} title="Highlight well rated big prices">⭐ Value</button>
         <button className={`filter-btn fiddle-btn ${filters.fiddle ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, fiddle: !f.fiddle }))} title="Highlight well connected horses">🎻 Fiddles</button>
-        <button className={`filter-btn follow-btn ${filters.select ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, select: !f.select }))} title="Highlight top rated favorites">🎯 Select</button>
+        <button className={`filter-btn follow-btn ${filters.select ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, select: !f.select }))} title="Highlight top rated 1 run">🎯 Recent</button>
       </div>
     </div>
   );
