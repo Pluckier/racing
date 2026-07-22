@@ -9,11 +9,11 @@ export const HOT_TRAINERS = [
   "K R Burke", "E Bolger", "James Owen", "J P O'Brien", "P Twomey",
   "D Skelton", "P F Nicholls", "A M Balding", "W J Haggas", "N P Mulholland",
   "J & T Gosden", "C Appleby", "R M Beckett", "C Johnston", "H De Bromhead",
-  "Gavin Cromwell", "Charlie Johnston", "Ralph Beckett", "John & Thady Gosden", 
+  "Gavin Cromwell", "Charlie Johnston", "Ralph Beckett", "John & Thady Gosden",
   "Neil Mulholland", "Andrew Balding", "Tony Carroll", "Dan Skelton", "Richard Hannon",
   "Joseph Patrick O'Brien", "William Haggas", "Henry De Bromhead", "Gordon Elliott",
   "Lucinda Russell & Michael Scudamore", "Tim Easterby", "Richard & Peter Fahey",
-  "Charlie Appleby", "Martin Keighley", "Ben Pauling"
+  "Charlie Appleby", "Martin Keighley", "Ben Pauling", "Jonjo & A J O'Neill"
 ];
 
 /**
@@ -24,16 +24,16 @@ export const isFiddleHorse = (horse) => {
   const oddsArray = horse.odds || [];
   const latestOddRaw = oddsArray[oddsArray.length - 1];
   if (!latestOddRaw || latestOddRaw === "null" || latestOddRaw === "NR") return false;
-  
+
   if (horse.owner?.startsWith("STAR")) return true;
-  
+
   const currentOdds = parseFloat(latestOddRaw);
   if (isNaN(currentOdds) || currentOdds <= 1) return false;
 
   const owner = (horse.owner || "");
   const trainer = (horse.trainer || "");
   return HOT_OWNERS.some(o => owner.includes(o)) ||
-         HOT_TRAINERS.some(t => trainer.includes(t));
+    HOT_TRAINERS.some(t => trainer.includes(t));
 };
 
 /**
@@ -42,7 +42,7 @@ export const isFiddleHorse = (horse) => {
 export const augmentRaceWithStats = (race) => {
   const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
   const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
-  
+
   const activeHorses = (race.horses || []).filter(h => {
     const lastOdd = h.odds?.[h.odds.length - 1];
     return lastOdd && lastOdd !== "null" && lastOdd !== "NR";
@@ -63,9 +63,9 @@ export const augmentRaceWithStats = (race) => {
       const currentOdds = (lastOdd && lastOdd !== "null" && lastOdd !== "NR") ? parseFloat(lastOdd) : 0;
       const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
       const maxRating = pr.length > 0 ? Math.max(...pr) : 0;
-      
+
       const isValue = maxRating > 0 && (maxRating === top1 || maxRating === top2) && currentOdds > 1;
-      
+
       return {
         ...h,
         isFiddle: isFiddleHorse(h),
