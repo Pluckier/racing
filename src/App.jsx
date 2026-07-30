@@ -13,6 +13,7 @@ import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
 import RaceCard from './components/race/Racecard';
 import Chatter from './components/chat/Chatter';
+import { useAlarmStore } from './store/alarmStore';
 import NonRunnerNotifications from './components/layout/NonRunnerNotifications';
 import TrackWorker from './components/obs/TrackWorker'; // Import TrackWorker
 import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchOverlay
@@ -80,55 +81,60 @@ function App() {
     ? `${s.displayDate.getFullYear()}-${String(s.displayDate.getMonth() + 1).padStart(2, '0')}-${String(s.displayDate.getDate()).padStart(2, '0')}`
     : s.displayDate;
 
-  const [enabledAlarms, setEnabledAlarms] = useState(new Set());
-  const [playedAlarms, setPlayedAlarms] = useState(new Set());
-
-  // Ref to track played alarms to avoid stale closures in the timer interval
-  const playedAlarmsRef = useRef(playedAlarms);
-  playedAlarmsRef.current = playedAlarms;
+  const enabledAlarms = useAlarmStore((state) => state.alarms);
+  if (typeof window !== 'undefined') {
+    window.currentAlarms = enabledAlarms;
+  }
+  const addAlarm = useAlarmStore((state) => state.addAlarm);
+  const removeAlarm = useAlarmStore((state) => state.removeAlarm);
 
   const toggleAlarm = (raceId) => {
-    setEnabledAlarms(prev => {
-      const next = new Set(prev);
-      if (next.has(raceId)) next.delete(raceId);
-      else next.add(raceId);
-      return next;
-    });
+    if (enabledAlarms.includes(raceId)) {
+      removeAlarm(raceId);
+    } else {
+      addAlarm(raceId);
+    }
   };
-
-  // Reset played tracking when the date changes
-  useEffect(() => {
-    setPlayedAlarms(new Set());
-  }, [s.displayDate]);
 
   // Global timer to check for upcoming races with enabled alarms
   useEffect(() => {
-    if (enabledAlarms.size === 0) return;
+    // FIXED: Arrays use .length, not .size
+    if (enabledAlarms.length === 0) return;
+
     const interval = setInterval(() => {
       const now = new Date();
+
       s.races.forEach(race => {
         const id = `${race.time}${race.place.replace(/\s+/g, '')}`;
-        // Access the latest `playedAlarms` from the ref
-        if (enabledAlarms.has(id) && !playedAlarmsRef.current.has(id)) {
+
+        // 1. Is this alarm actively enabled by the user in the Zustand store?
+        if (enabledAlarms.includes(id)) {
           const [hours, minutes] = race.time.split(':').map(Number);
           const raceDate = new Date();
           raceDate.setHours(hours, minutes, 0, 0);
 
-          const triggerTime = raceDate.getTime() - 120000; // 2 minutes before
+          const triggerTime = raceDate.getTime() - 240000; // 4 minutes before
+
+          // 2. Are we inside the 2-minute alarm trigger window?
           if (now.getTime() >= triggerTime && now.getTime() < raceDate.getTime()) {
+
+            // 3. Play the audio file safely
             new Audio('music.mp3').play().catch(() => { });
-            // Update state AND ref immediately to ensure the next 10s tick sees it as "played"
-            setPlayedAlarms(prev => {
-              const next = new Set(prev).add(id);
-              playedAlarmsRef.current = next;
-              return next;
-            });
+
+            // 4. FIXED: Instantly remove it from the store as requested.
+            // This breaks the loop naturally because next tick, step 1 will be false!
+            removeAlarm(id);
+          }
+          else if (now.getTime() >= raceDate.getTime()) {
+            // 2. FIXED: If the race is already in the past, silently remove it to keep the store clean
+            removeAlarm(id);
           }
         }
       });
-    }, 10000);
+    }, 30000); // Check every 30 seconds
+
     return () => clearInterval(interval);
-  }, [enabledAlarms, s.races]);
+  }, [enabledAlarms, s.races, removeAlarm]);
 
   // Synchronize activeRaceIndex with URL hash (from Timeline, Search, or navigation)
   useEffect(() => {
@@ -402,7 +408,7 @@ function App() {
                   highlightFiddles={s.filters.fiddle}
                   highlightValues={s.filters.value}
                   highlightSelects={s.filters.select}
-                  isAlarmEnabled={enabledAlarms.has(activeRaceId)}
+                  isAlarmEnabled={enabledAlarms.includes(activeRaceId)}
                   onToggleAlarm={() => toggleAlarm(activeRaceId)}
                   viewMode={viewMode}
                   currentDateStr={currentDateStr}

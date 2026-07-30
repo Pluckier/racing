@@ -184,7 +184,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             </a>
             <button
               onClick={onToggleAlarm}
-              title={isAlarmEnabled ? "Alarm active (2 mins before start)" : "Click to set alarm for this race"}
+              title={isAlarmEnabled ? "Alarm active (4 mins before start)" : "Click to set alarm for this race"}
               style={{
                 background: 'none',
                 border: 'none',
