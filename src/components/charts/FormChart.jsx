@@ -95,6 +95,9 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
   const [goingFilter, setGoingFilter] = useState(false);
 
+  const isAiEnabled = useStore.getState().isAiEnabled;
+  const toggleAi = useStore((state) => state.toggleAi);
+
   // Clean up selection when moving between races to prevent "ghost" filters
   useEffect(() => {
     setSelectedHorse(prev => {
@@ -249,7 +252,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
     });
 
     return sortedData; // Add weeksFilter to dependencies
-  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing]);
+  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, isAiEnabled]);
   return (
     <div className="form-chart-container">
       <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -432,6 +435,22 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         </div>
 
         <div style={{ flex: 1, textAlign: 'right' }}>
+          <button
+            onClick={() => toggleAi()}
+            className="race-analytics-btn" title="Use AI"
+            style={{
+              backgroundColor: isAiEnabled ? '#10B981' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
+              color: 'white',
+              padding: '1px 1px',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s ease'
+            }}
+          >
+            AI
+          </button>
           {hasNext && (
             <button className="race-analytics-btn" onClick={onNext}>
               Next Race →
