@@ -4,6 +4,7 @@ import FormChart from '../charts/FormChart';
 import OddsChart from '../charts/OddsChart';
 import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
+import { useStore } from '../../store/alarmStore';
 
 const SORT_MODES = ['odds', 'last', 'avg', 'all', 'high'];
 const SORT_LABELS = {
@@ -20,28 +21,31 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
 
+  const isAiEnabled = useStore.getState().isAiEnabled;
+  const toggleAi = useStore((state) => state.toggleAi);
+
   const getAvg = (h) => {
     const past = h.past || [];
     const last3 = past.slice(0, 3);
     if (last3.length === 0) return 0;
-    return last3.reduce((acc, r) => acc + (Number(r.name) || 0), 0) / last3.length;
+    return last3.reduce((acc, r) => acc + (Number(isAiEnabled ? r.nameAI : r.name) || 0), 0) / last3.length;
   };
 
   const getMax = (h) => {
     const past = h.past || [];
     if (past.length === 0) return 0;
-    return Math.max(...past.map(r => Number(r.name) || 0));
+    return Math.max(...past.map(r => Number(isAiEnabled ? r.nameAI : r.name) || 0));
   };
 
   const getLast = (h) => {
     const past = h.past || [];
-    return past.length > 0 ? (Number(past[0].name) || 0) : 0;
+    return past.length > 0 ? (Number(isAiEnabled ? past[0].nameAI : past[0].name) || 0) : 0;
   };
 
   const getAllAvg = (h) => {
     const past = h.past || [];
     if (past.length === 0) return 0;
-    return past.reduce((acc, r) => acc + (Number(r.name) || 0), 0) / past.length;
+    return past.reduce((acc, r) => acc + (Number(isAiEnabled ? r.nameAI : r.name) || 0), 0) / past.length;
   };
 
   const getLatestOdds = (h) => {
@@ -92,7 +96,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     const winner = sortedByPeak[0];
 
     // Find the race where the peak rating occurred to ensure it was a competitive effort
-    const peakRun = (winner.past || []).find(p => (Number(p.name) || 0) === topPeak);
+    const peakRun = (winner.past || []).find(p => (Number(isAiEnabled ? p.nameAI : p.name) || 0) === topPeak);
     let peakDistValid = false;
 
     if (peakRun) {
@@ -228,6 +232,22 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               style={{ width: '70px', cursor: 'pointer', accentColor: 'var(--accent)' }}
             />
           </div>
+          <button
+            onClick={() => toggleAi()}
+            className="race-analytics-btn" title="Use AI"
+            style={{
+              backgroundColor: isAiEnabled ? '#10B981' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
+              color: 'white',
+              padding: '1px 1px',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s ease'
+            }}
+          >
+            <span style={{ fontSize: '1.5rem' }}>AI</span>
+          </button>
           <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn" title="View Odds Movement">
             <span style={{ fontSize: '1.5rem' }}>📊</span>
           </button>

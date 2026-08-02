@@ -1,20 +1,22 @@
 import React, { useMemo, useState } from 'react';
 import '../../css/FavoriteSelections.css';
+import { useStore } from '../../store/alarmStore';
 
 const FavoriteSelections = ({ races, onClose }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'time', direction: 'asc' });
 
   const selections = useMemo(() => {
     const results = [];
+    const isAiEnabled = useStore.getState().isAiEnabled;
 
     races.forEach(race => {
       const horseData = race.horses.map(horse => {
-        const ratings = (horse.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
+        const ratings = (horse.past || []).map(p => parseFloat(isAiEnabled ? p.nameAI : p.name)).filter(n => !isNaN(n));
         const maxRating = ratings.length > 0 ? Math.max(...ratings) : 0;
-        
+
         const lastOdd = horse.odds?.[horse.odds.length - 1];
         const currentOdds = (lastOdd && lastOdd !== "null" && lastOdd !== "NR") ? parseFloat(lastOdd) : Infinity;
-        
+
         return {
           name: horse.name,
           rating: maxRating,
@@ -94,8 +96,8 @@ const FavoriteSelections = ({ races, onClose }) => {
         <tbody>
           {selections.map((item, idx) => (
             <tr key={`${item.name}-${idx}`}>
-              <td 
-                className="venue-cell jump-link" 
+              <td
+                className="venue-cell jump-link"
                 onClick={() => handleJump(item.time, item.place)}
               >
                 {item.venue}

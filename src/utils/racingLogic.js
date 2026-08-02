@@ -1,3 +1,5 @@
+import { useStore } from '../store/alarmStore';
+
 export const HOT_OWNERS = [
   "John P McManus", "Mrs J Donnelly"
 ];
@@ -48,10 +50,12 @@ export const augmentRaceWithStats = (race) => {
     return lastOdd && lastOdd !== "null" && lastOdd !== "NR";
   });
 
-  const ratingsPool = activeHorses.map(h => {
-    const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
-    return pr.length > 0 ? Math.max(...pr) : 0;
-  });
+  const isAiEnabled = useStore.getState().isAiEnabled;
+  const ratingsPool
+    = activeHorses.map(h => {
+      const pr = (h.past || []).map(p => parseFloat(isAiEnabled ? p.nameAI : p.name)).filter(n => !isNaN(n));
+      return pr.length > 0 ? Math.max(...pr) : 0;
+    });
 
   const uniqueRatings = [...new Set(ratingsPool)].sort((a, b) => b - a);
   const [top1 = 0, top2 = 0] = uniqueRatings;
@@ -61,7 +65,7 @@ export const augmentRaceWithStats = (race) => {
     horses: (race.horses || []).map(h => {
       const lastOdd = h.odds?.[h.odds.length - 1];
       const currentOdds = (lastOdd && lastOdd !== "null" && lastOdd !== "NR") ? parseFloat(lastOdd) : 0;
-      const pr = (h.past || []).map(p => parseFloat(p.name)).filter(n => !isNaN(n));
+      const pr = (h.past || []).map(p => parseFloat(isAiEnabled ? p.nameAI : p.name)).filter(n => !isNaN(n));
       const maxRating = pr.length > 0 ? Math.max(...pr) : 0;
 
       const isValue = maxRating > 0 && (maxRating === top1 || maxRating === top2) && currentOdds > 1;

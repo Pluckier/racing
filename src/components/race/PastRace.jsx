@@ -1,22 +1,25 @@
 import React from 'react';
 import '../../css/PastRace.css';
+import { useStore } from '../../store/alarmStore';
 
 const PastRace = ({ race }) => {
   // Destructuring the JSON properties for cleaner code
-  const { 
-    course, 
-    date, 
-    time, 
-    name, 
-    position, 
-    weight, 
-    distance, 
+  const {
+    course,
+    date,
+    time,
+    name,
+    nameAI,
+    position,
+    weight,
+    distance,
     going,
     raceClass,
-    distBeaten, 
-    url 
+    distBeaten,
+    url
   } = race;
 
+  const isAiEnabled = useStore.getState().isAiEnabled;
   // Helper function to convert furlongs string (e.g., "15f") to miles and furlongs (e.g., "1m 7f")
   const formatFurlongsToMiles = (furlongsStr) => {
     if (!furlongsStr || typeof furlongsStr !== 'string' || !furlongsStr.endsWith('f')) {
@@ -56,7 +59,7 @@ const PastRace = ({ race }) => {
         <small>Pos: </small><strong>{position}</strong> {distBeaten && <small>({distBeaten} btn)</small>}
       </span>
       <span className="past-race-weight-rtg-col">
-        <small>Wt: </small><strong>{weight}</strong> • <small>Rtg: </small><strong>{name}</strong>
+        <small>Wt: </small><strong>{weight}</strong> • <small>Rtg: </small><strong>{isAiEnabled ? nameAI : name}</strong>
       </span>
       <a href={url} target="_blank" rel="noopener noreferrer" className="past-race-link">↗</a>
     </div>

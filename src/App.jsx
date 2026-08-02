@@ -13,7 +13,7 @@ import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
 import RaceCard from './components/race/Racecard';
 import Chatter from './components/chat/Chatter';
-import { useAlarmStore } from './store/alarmStore';
+import { useStore } from './store/alarmStore';
 import NonRunnerNotifications from './components/layout/NonRunnerNotifications';
 import TrackWorker from './components/obs/TrackWorker'; // Import TrackWorker
 import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchOverlay
@@ -22,6 +22,8 @@ import './css/Notifications.css';
 function App() {
   const s = useAppState();
   const [refreshMinutes, setRefreshMinutes] = useState(15);
+  const isAiEnabled = useStore((state) => state.isAiEnabled);
+  const toggleAi = useStore((state) => state.toggleAi);
 
   // Handle the countdown timer for the Auto-Refresh UI
   useEffect(() => {
@@ -81,12 +83,9 @@ function App() {
     ? `${s.displayDate.getFullYear()}-${String(s.displayDate.getMonth() + 1).padStart(2, '0')}-${String(s.displayDate.getDate()).padStart(2, '0')}`
     : s.displayDate;
 
-  const enabledAlarms = useAlarmStore((state) => state.alarms);
-  if (typeof window !== 'undefined') {
-    window.currentAlarms = enabledAlarms;
-  }
-  const addAlarm = useAlarmStore((state) => state.addAlarm);
-  const removeAlarm = useAlarmStore((state) => state.removeAlarm);
+  const enabledAlarms = useStore((state) => state.alarms);
+  const addAlarm = useStore((state) => state.addAlarm);
+  const removeAlarm = useStore((state) => state.removeAlarm);
 
   const toggleAlarm = (raceId) => {
     if (enabledAlarms.includes(raceId)) {
@@ -242,6 +241,22 @@ function App() {
                   title={s.showChat ? "Close Chat" : "Open Chat"}
                 >
                   💬
+                </button>
+
+                <button
+                  onClick={toggleAi}
+                  style={{
+                    backgroundColor: isAiEnabled ? '#10B981' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
+                    color: 'white',
+                    padding: '10px 24px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    transition: 'background-color 0.2s ease'
+                  }}
+                >
+                  AI
                 </button>
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>

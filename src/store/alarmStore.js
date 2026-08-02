@@ -1,17 +1,47 @@
-import { create } from 'zustand'; // FIXED: Use named import
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
-export const useAlarmStore = create((set) => ({
-    // Using an array makes React re-renders highly reliable
-    alarms: [],
+export const useStore = create(
+    persist(
+        (set) => ({
+            // =================================================================
+            // 1. STATE DEFINITIONS
+            // =================================================================
+            alarms: [],
+            isAiEnabled: false,
 
-    addAlarm: (id) => set((state) => ({
-        // Only add if it doesn't already exist (simulating Set behavior)
-        alarms: state.alarms.includes(id) ? state.alarms : [...state.alarms, id]
-    })),
+            // =================================================================
+            // 2. ALARM ACTIONS
+            // =================================================================
+            addAlarm: (id) => set((state) => ({
+                // Ensures item array behaves like a Set to keep identity values unique
+                alarms: state.alarms.includes(id) ? state.alarms : [...state.alarms, id]
+            })),
 
-    removeAlarm: (id) => set((state) => ({
-        alarms: state.alarms.filter(alarmId => alarmId !== id)
-    })),
+            removeAlarm: (id) => set((state) => ({
+                alarms: state.alarms.filter(alarmId => alarmId !== id)
+            })),
 
-    clearAlarms: () => set({ alarms: [] })
-}));
+            clearAlarms: () => set({ alarms: [] }),
+
+            // =================================================================
+            // 3. AI TOGGLE ACTIONS
+            // =================================================================
+            toggleAi: () => set((state) => ({
+                isAiEnabled: !state.isAiEnabled
+            })),
+
+            setAi: (isEnabled) => set({
+                isAiEnabled: isEnabled
+            })
+        }),
+        {
+            name: 'alarm-storage',
+
+            // Modern, error-free storage binding safe for both SSR and standard client apps
+            storage: typeof window !== 'undefined'
+                ? createJSONStorage(() => localStorage)
+                : undefined
+        }
+    )
+);
