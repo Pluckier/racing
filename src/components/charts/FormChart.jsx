@@ -95,7 +95,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
   const [goingFilter, setGoingFilter] = useState(false);
 
-  const isAiEnabled = useStore.getState().isAiEnabled;
+  const isAiEnabled = useStore((state) => state.isAiEnabled);
   const toggleAi = useStore((state) => state.toggleAi);
 
   // Clean up selection when moving between races to prevent "ghost" filters
@@ -200,7 +200,6 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         }
 
         // If race passes all filters, add its rating to eligible ratings for this horse
-        const isAiEnabled = useStore.getState().isAiEnabled;
 
         // 2. Select the rating field dynamically based on the button state
 

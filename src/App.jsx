@@ -415,34 +415,36 @@ function App() {
               )}
             </Modal>
 
-            <div style={{ display: viewMode === 'single' ? 'block' : 'none' }}>
-              {s.filteredRaces.length > 0 ? (
-                <RaceCard
-                  race={s.filteredRaces[activeRaceIndex] || s.filteredRaces[0]}
-                  allRaces={s.filteredRaces}
-                  highlightFiddles={s.filters.fiddle}
-                  highlightValues={s.filters.value}
-                  highlightSelects={s.filters.select}
-                  isAlarmEnabled={enabledAlarms.includes(activeRaceId)}
-                  onToggleAlarm={() => toggleAlarm(activeRaceId)}
+            {viewMode === 'single' ? (
+              <div style={{ display: 'block' }}>
+                {s.filteredRaces.length > 0 ? (
+                  <RaceCard
+                    race={s.filteredRaces[activeRaceIndex] || s.filteredRaces[0]}
+                    allRaces={s.filteredRaces}
+                    highlightFiddles={s.filters.fiddle}
+                    highlightValues={s.filters.value}
+                    highlightSelects={s.filters.select}
+                    isAlarmEnabled={enabledAlarms.includes(activeRaceId)}
+                    onToggleAlarm={() => toggleAlarm(activeRaceId)}
+                    viewMode={viewMode}
+                    currentDateStr={currentDateStr}
+                  />
+                ) : (
+                  <div className="no-data" style={{ textAlign: 'center', padding: '20px' }}>No races match filters.</div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'block' }}>
+                <RaceGrid
+                  races={s.filteredRaces}
+                  filters={s.filters}
+                  enabledAlarms={enabledAlarms}
+                  toggleAlarm={toggleAlarm}
                   viewMode={viewMode}
                   currentDateStr={currentDateStr}
                 />
-              ) : (
-                <div className="no-data" style={{ textAlign: 'center', padding: '20px' }}>No races match filters.</div>
-              )}
-            </div>
-
-            <div style={{ display: viewMode === 'all' ? 'block' : 'none' }}>
-              <RaceGrid
-                races={s.filteredRaces}
-                filters={s.filters}
-                enabledAlarms={enabledAlarms}
-                toggleAlarm={toggleAlarm}
-                viewMode={viewMode}
-                currentDateStr={currentDateStr}
-              />
-            </div>
+              </div>
+            )}
           </>
         )}
 

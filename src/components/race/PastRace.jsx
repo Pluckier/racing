@@ -19,7 +19,7 @@ const PastRace = ({ race }) => {
     url
   } = race;
 
-  const isAiEnabled = useStore.getState().isAiEnabled;
+  const isAiEnabled = useStore((state) => state.isAiEnabled);
   // Helper function to convert furlongs string (e.g., "15f") to miles and furlongs (e.g., "1m 7f")
   const formatFurlongsToMiles = (furlongsStr) => {
     if (!furlongsStr || typeof furlongsStr !== 'string' || !furlongsStr.endsWith('f')) {

@@ -28,7 +28,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
     }
   }
 
-  const isAiEnabled = useStore.getState().isAiEnabled;
+  const isAiEnabled = useStore((state) => state.isAiEnabled);
 
   let displayRating = null;
   if (sortBy === 'high') {

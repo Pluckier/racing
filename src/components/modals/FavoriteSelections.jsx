@@ -4,10 +4,10 @@ import { useStore } from '../../store/alarmStore';
 
 const FavoriteSelections = ({ races, onClose }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'time', direction: 'asc' });
+  const isAiEnabled = useStore((state) => state.isAiEnabled);
 
   const selections = useMemo(() => {
     const results = [];
-    const isAiEnabled = useStore.getState().isAiEnabled;
 
     races.forEach(race => {
       const horseData = race.horses.map(horse => {
@@ -52,7 +52,7 @@ const FavoriteSelections = ({ races, onClose }) => {
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [races, sortConfig]);
+  }, [races, sortConfig, isAiEnabled]);
 
   const requestSort = (key) => {
     let direction = 'asc';

@@ -21,7 +21,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
 
-  const isAiEnabled = useStore.getState().isAiEnabled;
+  const isAiEnabled = useStore((state) => state.isAiEnabled);
   const toggleAi = useStore((state) => state.toggleAi);
 
   const getAvg = (h) => {
@@ -69,7 +69,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       if (sortBy === 'odds') return getLatestOdds(a) - getLatestOdds(b);
       return Number(a.number) - Number(b.number);
     }),
-    [race.horses, sortBy]
+    [race.horses, sortBy, isAiEnabled]
   );
 
   const valueRunnersRanked = useMemo(() => {
@@ -85,7 +85,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       else if (rtg === uniqueRatings[1]) ranks.set(horseId, 'second');
     });
     return ranks;
-  }, [race.horses, highlightValues]);
+  }, [race.horses, highlightValues, isAiEnabled]);
 
   const massiveSpikeHorseNumber = useMemo(() => {
     const activeRunners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
@@ -116,7 +116,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     }
 
     return (topPeak > 0 && topPeak >= nextPeak * 1.9 && peakDistValid) ? (winner.number === 'NR' ? winner.name : winner.number) : null;
-  }, [race.horses]);
+  }, [race.horses, isAiEnabled]);
 
   const selectHorseNumber = useMemo(() => {
     // 1. Filter out Non-Runners and invalid odds immediately
@@ -132,7 +132,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     // 3. Return the winning horse's number
     return winner.number === 'NR' ? winner.name : winner.number;
-  }, [race.horses]);
+  }, [race.horses, isAiEnabled]);
 
 
   const getRaceIcon = (r) => {

@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
 import { augmentRaceWithStats } from '../utils/racingLogic';
+import { useStore } from '../store/alarmStore';
 
 export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
+  const isAiEnabled = useStore((state) => state.isAiEnabled);
+
   return useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -30,5 +33,5 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
         const matchesFollow = !filters.follow || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
         return matchesPlace && matchesTricast && matchesFollow;
       });
-  }, [races, filters, currentTime, displayDate]);
+  }, [races, filters, currentTime, displayDate, isAiEnabled]);
 };
