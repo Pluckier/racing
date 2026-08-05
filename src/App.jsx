@@ -136,12 +136,11 @@ function App() {
     return () => clearInterval(interval);
   }, [enabledAlarms, s.races, removeAlarm]);
 
-  // Synchronize activeRaceIndex with URL hash (from Timeline, Search, or navigation)
+  // Attach the hashchange listener only once; keep it stable
   useEffect(() => {
-    // If we're still loading, wait for the data to arrive and DOM to render
-    if (s.loading) return;
-
     const handleHashSync = () => {
+      if (s.loading) return;
+
       const hash = decodeURIComponent(window.location.hash.substring(1));
 
       // If no hash is present (e.g. on fresh load), automatically jump to the 
@@ -194,9 +193,31 @@ function App() {
     };
 
     window.addEventListener('hashchange', handleHashSync);
-    handleHashSync(); // Sync on mount or when filteredRaces changes
+    handleHashSync(); // Sync on mount
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [s.filteredRaces, viewMode, s.loading, s.displayDate, s.setDisplayDate, currentDateStr]);
+  }, [viewMode, s.loading, s.filteredRaces, s.displayDate, s.setDisplayDate, currentDateStr]);
+
+  // When filteredRaces changes, sync activeRaceIndex to current hash without re-attaching listeners
+  useEffect(() => {
+    if (s.loading) return;
+
+    const hash = decodeURIComponent(window.location.hash.substring(1));
+    if (!hash) return;
+
+    let raceId = hash;
+    if (hash.includes('@')) {
+      const [datePart, idPart] = hash.split('@');
+      raceId = idPart;
+    }
+
+    const index = s.filteredRaces.findIndex(r =>
+      `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
+    );
+
+    if (index !== -1) {
+      setActiveRaceIndex(index);
+    }
+  }, [s.filteredRaces, s.loading]);
 
   // Ensure index stays in bounds if filters reduce the number of races
   useEffect(() => {
