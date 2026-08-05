@@ -197,28 +197,6 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashSync);
   }, [viewMode, s.loading, s.filteredRaces, s.displayDate, s.setDisplayDate, currentDateStr]);
 
-  // When filteredRaces changes, sync activeRaceIndex to current hash without re-attaching listeners
-  useEffect(() => {
-    if (s.loading) return;
-
-    const hash = decodeURIComponent(window.location.hash.substring(1));
-    if (!hash) return;
-
-    let raceId = hash;
-    if (hash.includes('@')) {
-      const [datePart, idPart] = hash.split('@');
-      raceId = idPart;
-    }
-
-    const index = s.filteredRaces.findIndex(r =>
-      `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
-    );
-
-    if (index !== -1) {
-      setActiveRaceIndex(index);
-    }
-  }, [s.filteredRaces, s.loading]);
-
   // Ensure index stays in bounds if filters reduce the number of races
   useEffect(() => {
     if (activeRaceIndex >= s.filteredRaces.length && s.filteredRaces.length > 0) {
