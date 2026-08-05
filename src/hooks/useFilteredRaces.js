@@ -3,7 +3,8 @@ import { augmentRaceWithStats } from '../utils/racingLogic';
 import { useStore } from '../store/alarmStore';
 
 export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
-  const isAiEnabled = useStore((state) => state.isAiEnabled);
+  const aiMode = useStore((state) => state.aiMode);
+  const toggleAi = useStore((state) => state.toggleAi);
 
   return useMemo(() => {
     const today = new Date();
@@ -18,7 +19,7 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
     const pool = Array.isArray(races) ? races : [];
 
     return pool
-      .map(augmentRaceWithStats)
+      .map(race => augmentRaceWithStats(race, aiMode))
       .filter(race => {
         if (!race?.time) return false;
 
@@ -33,5 +34,5 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
         const matchesFollow = !filters.follow || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
         return matchesPlace && matchesTricast && matchesFollow;
       });
-  }, [races, filters, currentTime, displayDate, isAiEnabled]);
+  }, [races, filters, currentTime, displayDate, aiMode]);
 };

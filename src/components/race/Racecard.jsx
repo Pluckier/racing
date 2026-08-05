@@ -21,31 +21,38 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
 
-  const isAiEnabled = useStore((state) => state.isAiEnabled);
+  const aiMode = useStore((state) => state.aiMode);
   const toggleAi = useStore((state) => state.toggleAi);
 
   const getAvg = (h) => {
     const past = h.past || [];
     const last3 = past.slice(0, 3);
     if (last3.length === 0) return 0;
-    return last3.reduce((acc, r) => acc + (Number(isAiEnabled ? r.nameAI : r.name) || 0), 0) / last3.length;
+    return last3.reduce((acc, r) => acc + getRating(r), 0) / last3.length;
   };
+
+  const getRating = (run) => {
+    if (!run) return 0;
+    const targetProperty = aiMode === 2 ? run.name2AI : aiMode === 1 ? run.nameAI : run.name;
+    return Number(targetProperty) || 0;
+  };
+
 
   const getMax = (h) => {
     const past = h.past || [];
     if (past.length === 0) return 0;
-    return Math.max(...past.map(r => Number(isAiEnabled ? r.nameAI : r.name) || 0));
+    return Math.max(...past.map(r => getRating(r)));
   };
 
   const getLast = (h) => {
     const past = h.past || [];
-    return past.length > 0 ? (Number(isAiEnabled ? past[0].nameAI : past[0].name) || 0) : 0;
+    return past.length > 0 ? (getRating(past[0]) || 0) : 0;
   };
 
   const getAllAvg = (h) => {
     const past = h.past || [];
     if (past.length === 0) return 0;
-    return past.reduce((acc, r) => acc + (Number(isAiEnabled ? r.nameAI : r.name) || 0), 0) / past.length;
+    return past.reduce((acc, r) => acc + getRating(r), 0) / past.length;
   };
 
   const getLatestOdds = (h) => {
@@ -69,7 +76,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       if (sortBy === 'odds') return getLatestOdds(a) - getLatestOdds(b);
       return Number(a.number) - Number(b.number);
     }),
-    [race.horses, sortBy, isAiEnabled]
+    [race.horses, sortBy, aiMode]
   );
 
   const valueRunnersRanked = useMemo(() => {
@@ -85,7 +92,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       else if (rtg === uniqueRatings[1]) ranks.set(horseId, 'second');
     });
     return ranks;
-  }, [race.horses, highlightValues, isAiEnabled]);
+  }, [race.horses, highlightValues, aiMode]);
 
   const massiveSpikeHorseNumber = useMemo(() => {
     const activeRunners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
@@ -96,7 +103,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     const winner = sortedByPeak[0];
 
     // Find the race where the peak rating occurred to ensure it was a competitive effort
-    const peakRun = (winner.past || []).find(p => (Number(isAiEnabled ? p.nameAI : p.name) || 0) === topPeak);
+    const peakRun = (winner.past || []).find(p => getRating(p) === topPeak);
     let peakDistValid = false;
 
     if (peakRun) {
@@ -116,7 +123,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     }
 
     return (topPeak > 0 && topPeak >= nextPeak * 1.9 && peakDistValid) ? (winner.number === 'NR' ? winner.name : winner.number) : null;
-  }, [race.horses, isAiEnabled]);
+  }, [race.horses, aiMode]);
 
   const selectHorseNumber = useMemo(() => {
     // 1. Filter out Non-Runners and invalid odds immediately
@@ -132,7 +139,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     // 3. Return the winning horse's number
     return winner.number === 'NR' ? winner.name : winner.number;
-  }, [race.horses, isAiEnabled]);
+  }, [race.horses, aiMode]);
 
 
   const getRaceIcon = (r) => {
@@ -236,7 +243,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             onClick={() => toggleAi()}
             className="race-analytics-btn" title="Use AI"
             style={{
-              backgroundColor: isAiEnabled ? '#10B981' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
+              backgroundColor:
+                aiMode === 2 ? '#10B981' :
+                  aiMode === 1 ? '#F59E0B' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
               color: 'white',
               padding: '1px 1px',
               border: 'none',

@@ -95,8 +95,14 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
   const [goingFilter, setGoingFilter] = useState(false);
 
-  const isAiEnabled = useStore((state) => state.isAiEnabled);
+  const aiMode = useStore((state) => state.aiMode);
   const toggleAi = useStore((state) => state.toggleAi);
+
+  const getRating = (run) => {
+    if (!run) return 0;
+    const targetProperty = aiMode === 2 ? run.name2AI : aiMode === 1 ? run.nameAI : run.name;
+    return Number(targetProperty) || 0;
+  };
 
   // Clean up selection when moving between races to prevent "ghost" filters
   useEffect(() => {
@@ -203,13 +209,13 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
 
         // 2. Select the rating field dynamically based on the button state
 
-        horseEligibleRatings[horse.name].push(parseFloat(isAiEnabled ? race.nameAI : race.name));
+        horseEligibleRatings[horse.name].push(parseFloat(getRating(race)));
 
         const timestamp = new Date(y, m - 1, d).getTime();
 
         if (!map[timestamp]) map[timestamp] = { timestamp, date: race.date };
 
-        map[timestamp][horse.name] = parseFloat(isAiEnabled ? race.nameAI : race.name);
+        map[timestamp][horse.name] = parseFloat(getRating(race));
         map[timestamp][`${horse.name}_todayWeight`] = horse.weight;
         map[timestamp][`${horse.name}_latestOdds`] = displayOdd;
         map[timestamp][`${horse.name}_isWin`] = isWinner;
@@ -251,7 +257,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
     });
 
     return sortedData; // Add weeksFilter to dependencies
-  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, isAiEnabled]);
+  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, aiMode]);
   return (
     <div className="form-chart-container">
       <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -438,7 +444,9 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             onClick={() => toggleAi()}
             className="race-analytics-btn" title="Use AI"
             style={{
-              backgroundColor: isAiEnabled ? '#10B981' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
+              backgroundColor:
+                aiMode === 2 ? '#10B981' :
+                  aiMode === 1 ? '#F59E0B' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
               color: 'white',
               padding: '1px 1px',
               border: 'none',

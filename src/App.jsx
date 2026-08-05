@@ -22,8 +22,9 @@ import './css/Notifications.css';
 function App() {
   const s = useAppState();
   const [refreshMinutes, setRefreshMinutes] = useState(15);
-  const isAiEnabled = useStore((state) => state.isAiEnabled);
+  const aiMode = useStore((state) => state.aiMode);
   const toggleAi = useStore((state) => state.toggleAi);
+  const aiNames = { 0: 0, 1: 1, 2: 2 };
 
   // Handle the countdown timer for the Auto-Refresh UI
   useEffect(() => {
@@ -246,7 +247,10 @@ function App() {
                 <button
                   onClick={toggleAi}
                   style={{
-                    backgroundColor: isAiEnabled ? '#10B981' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
+                    // 0 = Dark Slate, 1 = Amber/Orange, 2 = Vibrant Green
+                    backgroundColor:
+                      aiMode === 2 ? '#10B981' :
+                        aiMode === 1 ? '#F59E0B' : '#374151',
                     color: 'white',
                     padding: '10px 24px',
                     border: 'none',
@@ -256,7 +260,8 @@ function App() {
                     transition: 'background-color 0.2s ease'
                   }}
                 >
-                  AI
+                  {/* Dynamic button text based on state */}
+                  AI{aiNames[aiMode]}
                 </button>
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>

@@ -28,30 +28,38 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
     }
   }
 
-  const isAiEnabled = useStore((state) => state.isAiEnabled);
+  // 1. Fetch the 3-way numerical mode state
+  const aiMode = useStore((state) => state.aiMode);
+
+  // 2. Clear helper to safely parse individual run metrics based on state
+  const getRating = (run) => {
+    if (!run) return 0;
+    const targetProperty = aiMode === 2 ? run.name2AI : aiMode === 1 ? run.nameAI : run.name;
+    return Number(targetProperty) || 0;
+  };
 
   let displayRating = null;
   if (sortBy === 'high') {
     // Show career highest rating
-    displayRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => Number(isAiEnabled ? r.nameAI : r.name) || 0)) : null;
+    displayRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => getRating(r))) : null;
   } else if (sortBy === 'last') {
     // Show rating from the most recent run only
-    displayRating = pastRuns.length > 0 ? (Number(isAiEnabled ? pastRuns[0].nameAI : pastRuns[0].name) || 0) : null;
+    displayRating = pastRuns.length > 0 ? getRating(pastRuns[0]) : null;
   } else if (sortBy === 'all') {
     // Calculate average rating across all career runs
     displayRating = pastRuns.length > 0
-      ? (pastRuns.reduce((acc, race) => acc + (Number(isAiEnabled ? race.nameAI : race.name) || 0), 0) / pastRuns.length).toFixed(0)
+      ? (pastRuns.reduce((acc, run) => acc + getRating(run), 0) / pastRuns.length).toFixed(0)
       : null;
   } else {
     // Default: Calculate average rating of the last 3 runs (L3)
     const lastThree = pastRuns.slice(0, 3);
     displayRating = lastThree.length > 0
-      ? (lastThree.reduce((acc, race) => acc + (Number(isAiEnabled ? race.nameAI : race.name) || 0), 0) / lastThree.length).toFixed(0)
+      ? (lastThree.reduce((acc, run) => acc + getRating(run), 0) / lastThree.length).toFixed(0)
       : null;
   }
 
-  const lastRunRating = pastRuns.length > 0 ? (Number(isAiEnabled ? pastRuns[0].nameAI : pastRuns[0].name) || 0) : 0;
-  const peakRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => Number(isAiEnabled ? r.nameAI : r.name) || 0)) : 0;
+  const lastRunRating = pastRuns.length > 0 ? getRating(pastRuns[0]) : 0;
+  const peakRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => getRating(r))) : 0;
   const isImprover = lastRunRating > 0 && lastRunRating === peakRating;
 
   return (
@@ -116,4 +124,4 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   );
 };
 
-export default HorseRow
+export default HorseRow;

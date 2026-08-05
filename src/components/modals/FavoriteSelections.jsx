@@ -4,14 +4,16 @@ import { useStore } from '../../store/alarmStore';
 
 const FavoriteSelections = ({ races, onClose }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'time', direction: 'asc' });
-  const isAiEnabled = useStore((state) => state.isAiEnabled);
+  const aiMode = useStore((state) => state.aiMode);
+  const toggleAi = useStore((state) => state.toggleAi);
+  const aiNames = { 0: race.name, 1: race.nameAI, 2: race.name2AI };
 
   const selections = useMemo(() => {
     const results = [];
 
     races.forEach(race => {
       const horseData = race.horses.map(horse => {
-        const ratings = (horse.past || []).map(p => parseFloat(isAiEnabled ? p.nameAI : p.name)).filter(n => !isNaN(n));
+        const ratings = (horse.past || []).map(p => parseFloat(aiNames[aiMode])).filter(n => !isNaN(n));
         const maxRating = ratings.length > 0 ? Math.max(...ratings) : 0;
 
         const lastOdd = horse.odds?.[horse.odds.length - 1];
@@ -52,7 +54,7 @@ const FavoriteSelections = ({ races, onClose }) => {
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [races, sortConfig, isAiEnabled]);
+  }, [races, sortConfig, aiMode]);
 
   const requestSort = (key) => {
     let direction = 'asc';

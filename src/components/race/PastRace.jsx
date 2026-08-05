@@ -10,6 +10,7 @@ const PastRace = ({ race }) => {
     time,
     name,
     nameAI,
+    name2AI,
     position,
     weight,
     distance,
@@ -19,7 +20,9 @@ const PastRace = ({ race }) => {
     url
   } = race;
 
-  const isAiEnabled = useStore((state) => state.isAiEnabled);
+  const aiMode = useStore((state) => state.aiMode);
+  const toggleAi = useStore((state) => state.toggleAi);
+  const aiNames = { 0: race.name, 1: race.nameAI, 2: race.name2AI };
   // Helper function to convert furlongs string (e.g., "15f") to miles and furlongs (e.g., "1m 7f")
   const formatFurlongsToMiles = (furlongsStr) => {
     if (!furlongsStr || typeof furlongsStr !== 'string' || !furlongsStr.endsWith('f')) {
@@ -59,7 +62,7 @@ const PastRace = ({ race }) => {
         <small>Pos: </small><strong>{position}</strong> {distBeaten && <small>({distBeaten} btn)</small>}
       </span>
       <span className="past-race-weight-rtg-col">
-        <small>Wt: </small><strong>{weight}</strong> • <small>Rtg: </small><strong>{isAiEnabled ? nameAI : name}</strong>
+        <small>Wt: </small><strong>{weight}</strong> • <small>Rtg: </small><strong>{aiNames[aiMode]}</strong>
       </span>
       <a href={url} target="_blank" rel="noopener noreferrer" className="past-race-link">↗</a>
     </div>

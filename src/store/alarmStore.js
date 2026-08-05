@@ -8,13 +8,13 @@ export const useStore = create(
             // 1. STATE DEFINITIONS
             // =================================================================
             alarms: [],
-            isAiEnabled: false,
+            // 0 = Off, 1 = Basic/Mode A, 2 = Advanced/Mode B
+            aiMode: 0,
 
             // =================================================================
             // 2. ALARM ACTIONS
             // =================================================================
             addAlarm: (id) => set((state) => ({
-                // Ensures item array behaves like a Set to keep identity values unique
                 alarms: state.alarms.includes(id) ? state.alarms : [...state.alarms, id]
             })),
 
@@ -27,18 +27,19 @@ export const useStore = create(
             // =================================================================
             // 3. AI TOGGLE ACTIONS
             // =================================================================
+            // Cycles cleanly: 0 -> 1 -> 2 -> 0
             toggleAi: () => set((state) => ({
-                isAiEnabled: !state.isAiEnabled
+                aiMode: (state.aiMode + 1) % 3
             })),
 
-            setAi: (isEnabled) => set({
-                isAiEnabled: isEnabled
+            // Directly sets the mode, ensuring it stays within the 0-2 range
+            setAi: (mode) => set({
+                aiMode: [0, 1, 2].includes(mode) ? mode : 0
             })
         }),
         {
             name: 'alarm-storage',
 
-            // Modern, error-free storage binding safe for both SSR and standard client apps
             storage: typeof window !== 'undefined'
                 ? createJSONStorage(() => localStorage)
                 : undefined
