@@ -136,15 +136,13 @@ function App() {
     return () => clearInterval(interval);
   }, [enabledAlarms, s.races, removeAlarm]);
 
-  // Attach the hashchange listener only once; keep it stable
+  // Only attach hashchange listener; don't scroll on effect re-run
   useEffect(() => {
     const handleHashSync = () => {
       if (s.loading) return;
 
       const hash = decodeURIComponent(window.location.hash.substring(1));
 
-      // If no hash is present (e.g. on fresh load), automatically jump to the 
-      // first race in the filtered list (usually the 'Next Race' if upcoming is on)
       if (!hash) {
         if (s.filteredRaces.length > 0) {
           const firstRace = s.filteredRaces[0];
@@ -159,12 +157,9 @@ function App() {
         const [datePart, idPart] = hash.split('@');
         raceId = idPart;
 
-        // If the date in the URL is different from the app's current date, switch it.
         if (datePart && datePart !== currentDateStr) {
           const [y, m, d] = datePart.split('-').map(Number);
           s.setDisplayDate(new Date(y, m - 1, d));
-          // Return early. Once the new date's data is fetched and loading is false,
-          // this useEffect will re-run and find the raceId in the new race list.
           return;
         }
       }
@@ -175,27 +170,13 @@ function App() {
 
       if (index !== -1) {
         setActiveRaceIndex(index);
-        // Jump to the race element once it has been rendered in the DOM
-        if (viewMode === 'all') {
-          let retries = 0;
-          const tryScroll = () => {
-            const element = document.getElementById(raceId);
-            if (element) {
-              element.scrollIntoView({ behavior: 'auto', block: 'start' });
-            } else if (retries < 10) { // Retry for up to 1 second if DOM is still updating
-              retries++;
-              setTimeout(tryScroll, 100);
-            }
-          };
-          tryScroll();
-        }
       }
     };
 
     window.addEventListener('hashchange', handleHashSync);
-    handleHashSync(); // Sync on mount
+    handleHashSync();
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [viewMode, s.loading, s.filteredRaces, s.displayDate, s.setDisplayDate, currentDateStr]);
+  }, [viewMode, s.loading, s.displayDate, s.setDisplayDate, currentDateStr, s.filteredRaces]);
 
   // Ensure index stays in bounds if filters reduce the number of races
   useEffect(() => {
