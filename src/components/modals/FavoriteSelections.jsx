@@ -6,14 +6,23 @@ const FavoriteSelections = ({ races, onClose }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'time', direction: 'asc' });
   const aiMode = useStore((state) => state.aiMode);
   const toggleAi = useStore((state) => state.toggleAi);
-  const aiNames = { 0: race.name, 1: race.nameAI, 2: race.name2AI };
 
   const selections = useMemo(() => {
     const results = [];
+    const aiKeys = { 
+      0: 'name', 
+      1: 'nameAI', 
+      2: 'name2AI' 
+    };
+
+    const targetRatingKey = aiKeys[aiMode];
 
     races.forEach(race => {
+
+      // Get the specific key name for the current AI mode (e.g., "SpeedRating")
+
       const horseData = race.horses.map(horse => {
-        const ratings = (horse.past || []).map(p => parseFloat(aiNames[aiMode])).filter(n => !isNaN(n));
+        const ratings = (horse.past || []).map(p => parseFloat(p[targetRatingKey])).filter(n => !isNaN(n));
         const maxRating = ratings.length > 0 ? Math.max(...ratings) : 0;
 
         const lastOdd = horse.odds?.[horse.odds.length - 1];

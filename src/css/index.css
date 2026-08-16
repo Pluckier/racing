@@ -70,7 +70,7 @@ body {
   width: 100%;
   margin: 0 auto;
   text-align: left;
-  min-height: 100svh;
+  min-height: 99svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;

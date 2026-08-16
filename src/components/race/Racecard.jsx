@@ -24,6 +24,36 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const aiMode = useStore((state) => state.aiMode);
   const toggleAi = useStore((state) => state.toggleAi);
 
+  // Math.min(horse.past?.length || 0, 6) caps each individual horse at 6
+  const totalPastRuns = race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
+  const maxPossibleRuns = (race.horses?.length || 0) * 6;
+
+  // 1. Calculate percentage as a number
+  const formPercentage = maxPossibleRuns > 0
+    ? Math.round((totalPastRuns / maxPossibleRuns) * 100)
+    : 0;
+
+  // 2. Determine which emoji to use based on the tier
+  let emoji = "";
+
+  if (formPercentage >= 0 && formPercentage <= 33) {
+    emoji = " ❌";
+  } else if (formPercentage >= 34 && formPercentage <= 55) {
+    emoji = " ⚠️";
+  } else if (formPercentage >= 56 && formPercentage <= 74) {
+    emoji = " 👎";
+  } else if (formPercentage >= 75 && formPercentage <= 87) {
+    emoji = " 👍";
+  } else if (formPercentage >= 88 && formPercentage <= 99) {
+    emoji = " 👌";
+  } else if (formPercentage === 100) {
+    emoji = " ✅💯";
+  }
+
+  // 3. Create final output string
+  const finalDisplay = `${formPercentage}%${emoji}`;
+
+
   const getAvg = (h) => {
     const past = h.past || [];
     const last3 = past.slice(0, 3);
@@ -185,6 +215,36 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     setShowChart(true);
   };
 
+  const CpuIcon = () => (
+    <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="16" height="16" x="4" y="4" rx="2" />
+      <rect width="6" height="6" x="9" y="9" rx="1" />
+      <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
+    </svg>
+  );
+  
+  const ClaudeIcon = () => (
+    <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2a1 1 0 0 1 1 1v4.757l3.364-3.364a1 1 0 1 1 1.414 1.414L14.414 9H19a1 1 0 1 1 0 2h-4.757l3.364 3.364a1 1 0 0 1-1.414 1.414L13 12.414V17a1 1 0 1 1-2 0v-4.757l-3.364 3.364a1 1 0 0 1-1.414-1.414L9.586 11H5a1 1 0 1 1 0-2h4.757L6.393 5.636a1 1 0 0 1 1.414-1.414L11 7.586V3a1 1 0 0 1 1-1z" />
+    </svg>
+  );
+  
+  const ChatGptIcon = () => (
+    <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M21.74 11.63a4.19 4.19 0 0 0-.25-1.57 4.29 4.29 0 0 0-.85-1.34 4.39 4.39 0 0 0-1.34-.85A4.6 4.6 0 0 0 16.32 7a4.41 4.41 0 0 0-2.84 1 4.54 4.54 0 0 0-1.48 2.37 4.62 4.62 0 0 0-2.48-.68 4.4 4.4 0 0 0-3.18 1.34 4.51 4.51 0 0 0-1.12 4.48 4.19 4.19 0 0 0 .25 1.57 4.29 4.29 0 0 0 .85 1.34 4.39 4.39 0 0 0 1.34.85A4.31 4.31 0 0 0 11 18.2a4.4 4.4 0 0 0 2.84-1A4.54 4.54 0 0 0 15.32 15a4.62 4.62 0 0 0 2.48.68 4.4 4.4 0 0 0 3.18-1.34 4.51 4.51 0 0 0 .76-2.71zm-9.35 4a2.43 2.43 0 0 1-1.63-.61l3.52-2a.45.45 0 0 0 .23-.39V8.65a2.53 2.53 0 0 1 1.15 2.15 2.56 2.56 0 0 1-2.52 2.53zm-5.63-2.61a2.45 2.45 0 0 1 .42-1.69l3.52 2a.46 4.46 0 0 0 .45 0l3.94-2.27v1a2.53 2.53 0 0 1-1.87 2.44 2.56 2.56 0 0 1-2.89-1l-3.57-2.05zm.88-5.32A2.43 2.43 0 0 1 9.27 7a2.53 2.53 0 0 1 2.3 1.49l-3.52 2a.45.45 0 0 0-.23.39v4A2.53 2.53 0 0 1 6.68 12a2.56 2.56 0 0 1 1-2.31zM16.32 9a2.43 2.43 0 0 1 1.63.61l-3.52 2a.45.45 0 0 0-.23.39v4a2.53 2.53 0 0 1-1.15-2.15A2.56 2.56 0 0 1 15.57 11.3a2.54 2.54 0 0 1 .75-.3zm5.63 2.61a2.45 2.45 0 0 1-.42 1.69l-3.52-2a.46 4.46 0 0 0-.45 0l-3.94 2.27v-1a2.53 2.53 0 0 1 1.87-2.44 2.56 2.56 0 0 1 2.89 1z" />
+    </svg>
+  );
+  
+  // 2. Updated clean mapping object utilizing the local SVG components
+  const aiButtonConfig = {
+    0: { icon: <CpuIcon />, color: '#374151', title: "Turn on AI" },
+    1: { icon: <ClaudeIcon />, color: '#F59E0B', title: "Using Claude" },
+    2: { icon: <ChatGptIcon />, color: '#10B981', title: "Using ChatGPT" }
+  };
+
+  const currentConfig = aiButtonConfig[aiMode] || aiButtonConfig[0];
+
+
   return (
     <div id={raceId} className="race-card">
       <header className="race-header">
@@ -216,7 +276,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             </a>
 
           </h2>
-          <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners})</h5>
+          <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners}) FORM:{finalDisplay}</h5>
         </div>
         <div className="race-controls">
           <div style={{
@@ -240,23 +300,38 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             />
           </div>
           <button
-            onClick={() => toggleAi()}
-            className="race-analytics-btn" title="Use AI"
-            style={{
-              backgroundColor:
-                aiMode === 2 ? '#10B981' :
-                  aiMode === 1 ? '#F59E0B' : '#374151', // Vibrant Green when ON, Dark Slate/Grey when OFF
-              color: 'white',
-              padding: '1px 1px',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transition: 'background-color 0.2s ease'
-            }}
-          >
-            <span style={{ fontSize: '1.5rem' }}>AI</span>
-          </button>
+    onClick={() => toggleAi()}
+    className="race-analytics-btn" 
+    title={currentConfig.title}
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      
+      // 1. Force explicit dimensions so the button never shrinks or jumps shapes
+      width: '42px',               
+      height: '42px',              
+      
+      backgroundColor: currentConfig.color,
+      color: 'white',
+      border: 'none',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      transition: 'background-color 0.2s ease',
+      padding: '0' // Clear padding since width/height handle sizing now
+    }}
+  >
+    <span style={{ 
+      fontSize: '1.5rem', 
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      height: '100%'
+    }}> 
+      {currentConfig.icon} 
+    </span>
+  </button>
           <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn" title="View Odds Movement">
             <span style={{ fontSize: '1.5rem' }}>📊</span>
           </button>
