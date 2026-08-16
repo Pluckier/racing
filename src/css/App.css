@@ -103,6 +103,33 @@ body {
   margin-right: 8px;
 }
 
+.race-number-input {
+  padding: 0 2px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: center;
+  outline: none;
+}
+
+.race-number-input:hover,
+.race-number-input:focus {
+  border-color: var(--accent-border);
+}
+
+.race-number-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.9rem;
+  color: var(--text-h);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
 .follow-btn {
   border-color: #ff4757;
 }

@@ -52,6 +52,7 @@ function App() {
 
   const [viewMode, setViewMode] = useState('all'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
+  const [raceNumberInput, setRaceNumberInput] = useState('1');
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
 
   useEffect(() => {
@@ -185,6 +186,20 @@ function App() {
       setActiveRaceIndex(s.filteredRaces.length - 1);
     }
   }, [s.filteredRaces.length, activeRaceIndex]);
+
+  useEffect(() => {
+    setRaceNumberInput(String(activeRaceIndex + 1));
+  }, [activeRaceIndex]);
+
+  const jumpToRaceNumber = (value) => {
+    const num = parseInt(value, 10);
+    if (isNaN(num) || num < 1 || num > s.filteredRaces.length) {
+      setRaceNumberInput(String(activeRaceIndex + 1));
+      return;
+    }
+    const race = s.filteredRaces[num - 1];
+    window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
+  };
 
   // Automatically jump to the first available race when 'Follow' mode is enabled
   useEffect(() => {
@@ -397,8 +412,26 @@ function App() {
 
                 {/* Counter only renders here below the button if viewMode is 'single' */}
                 {viewMode === 'single' && s.filteredRaces.length > 0 && (
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-h)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                    {activeRaceIndex + 1} / {s.filteredRaces.length}
+                  <span className="race-number-counter">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      className="race-number-input"
+                      aria-label="Race number"
+                      style={{ width: `${Math.max(3, String(s.filteredRaces.length).length)}ch` }}
+                      value={raceNumberInput}
+                      onChange={(e) => setRaceNumberInput(e.target.value.replace(/\D/g, ''))}
+                      onFocus={(e) => e.target.select()}
+                      onBlur={() => jumpToRaceNumber(raceNumberInput)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          jumpToRaceNumber(raceNumberInput);
+                          e.currentTarget.blur();
+                        }
+                      }}
+                    />
+                    / {s.filteredRaces.length}
                   </span>
                 )}
               </div>
