@@ -245,7 +245,11 @@ function App() {
           detailsContent: (
             <>
               <div className="app-header-controls">
-                <SearchOverlay races={s.error ? [] : s.races} />
+                <SearchOverlay
+                  races={s.error ? [] : s.races}
+                  viewMode={viewMode}
+                  currentDateStr={currentDateStr}
+                />
                 <TrackWorker />
                 <button
                   className={`filter-btn chat-btn ${s.showChat ? 'active' : ''}`}

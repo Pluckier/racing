@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 
-const SearchOverlay = ({ races }) => {
+const SearchOverlay = ({ races, viewMode, currentDateStr }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const searchResults = useMemo(() => {
@@ -23,6 +23,12 @@ const SearchOverlay = ({ races }) => {
   }, [searchTerm, races]);
 
   const handleSearchSelect = (id) => {
+    if (viewMode === 'single') {
+      window.location.hash = `${currentDateStr}@${id}`;
+      setSearchTerm('');
+      return;
+    }
+
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'instant', block: 'start' });
