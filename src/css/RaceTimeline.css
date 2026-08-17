@@ -1,7 +1,7 @@
 .race-timeline-container {
   background-color: var(--bg);
   border-radius: 8px;
-  padding: 20px;
+  padding: 10px;
   overflow: hidden;
 }
 
