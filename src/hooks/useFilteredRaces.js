@@ -25,7 +25,7 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
 
         const matchesPlace = filters.places.length === 0 || filters.places.includes(race.place);
         const isHandicap = race.detail?.toLowerCase().includes('handicap') || race.detail?.toLowerCase().includes('nursery');
-        const isClass1 = race.detail?.toLowerCase().includes('class 1');
+        const isClass1 = race.detail?.toLowerCase().includes('class 1') || race.detail?.toLowerCase().includes('class 2');
         const hasMinRunners = (race.horses?.length || 0) >= 8;
         const matchesTricast = !filters.tricast || ((isHandicap || isClass1) && hasMinRunners);
 
