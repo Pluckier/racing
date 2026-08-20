@@ -15,7 +15,7 @@ export const HOT_TRAINERS = [
   "Neil Mulholland", "Andrew Balding", "Tony Carroll", "Dan Skelton", "Richard Hannon",
   "Joseph Patrick O'Brien", "William Haggas", "Henry De Bromhead", "Gordon Elliott",
   "Lucinda Russell & Michael Scudamore", "Tim Easterby", "Richard & Peter Fahey",
-  "Charlie Appleby", "Martin Keighley", "Ben Pauling", "Jonjo & A.J. O'Neill"
+  "Charlie Appleby", "Martin Keighley", "Ben Pauling", "Jonjo & A.J. O'Neill", "Clive Cox", "George Boughey"
 ];
 
 /**
