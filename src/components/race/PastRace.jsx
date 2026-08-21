@@ -20,8 +20,8 @@ const PastRace = ({ race }) => {
     url
   } = race;
 
-  const aiMode = useStore((state) => state.aiMode);
-  const toggleAi = useStore((state) => state.toggleAi);
+  const aiMode = useStore((store) => store.aiMode);
+  const toggleAi = useStore((store) => store.toggleAi);
   const aiNames = { 0: race.name, 1: race.nameAI, 2: race.name2AI };
   // Helper function to convert furlongs string (e.g., "15f") to miles and furlongs (e.g., "1m 7f")
   const formatFurlongsToMiles = (furlongsStr) => {

@@ -23,8 +23,8 @@ import './css/Notifications.css';
 function App() {
   const state = useAppState();
   const [refreshMinutes, setRefreshMinutes] = useState(15);
-  const aiMode = useStore((state) => state.aiMode);
-  const toggleAi = useStore((state) => state.toggleAi);
+  const aiMode = useStore((store) => store.aiMode);
+  const toggleAi = useStore((store) => store.toggleAi);
   const aiNames = { 0: 0, 1: 1, 2: 2 };
 
   // Handle the countdown timer for the Auto-Refresh UI
@@ -221,7 +221,7 @@ function App() {
     const activeRaceId = activeRace ? `${activeRace.time}${activeRace.place.replace(/\s+/g, '')}` : null;
 
     const CpuIcon = () => (
-      <svg xmlns="http://w3.org" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect width="16" height="16" x="4" y="4" rx="2" />
         <rect width="6" height="6" x="9" y="9" rx="1" />
         <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
@@ -229,7 +229,7 @@ function App() {
     );
 
     const ClaudeIcon = () => (
-      <svg xmlns="http://w3.org" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2a1 1 0 0 1 1 1v4.757l3.364-3.364a1 1 0 1 1 1.414 1.414L14.414 9H19a1 1 0 1 1 0 2h-4.757l3.364 3.364a1 1 0 0 1-1.414 1.414L13 12.414V17a1 1 0 1 1-2 0v-4.757l-3.364 3.364a1 1 0 0 1-1.414-1.414L9.586 11H5a1 1 0 1 1 0-2h4.757L6.393 5.636a1 1 0 0 1 1.414-1.414L11 7.586V3a1 1 0 0 1 1-1z" />
       </svg>
     );
