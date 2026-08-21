@@ -21,7 +21,7 @@ import './css/App.css';
 import './css/Notifications.css';
 
 function App() {
-  const s = useAppState();
+  const state = useAppState();
   const [refreshMinutes, setRefreshMinutes] = useState(15);
   const aiMode = useStore((state) => state.aiMode);
   const toggleAi = useStore((state) => state.toggleAi);
@@ -38,11 +38,11 @@ function App() {
   // Reset the countdown whenever the race data is refreshed/updated
   useEffect(() => {
     setRefreshMinutes(15);
-  }, [s.races]);
+  }, [state.races]);
 
   // Set default filters on mount: Value (⭐), Fiddle (🎻), and Select (🎯)
   useEffect(() => {
-    s.setFilters(prev => ({
+    state.setFilters(prev => ({
       ...prev,
       value: true,
       fiddle: true,
@@ -71,7 +71,7 @@ function App() {
     }
   };
 
-  const { notifications, removeNotification } = useNonRunnerNotifications(s.races, s.displayDate);
+  const { notifications, removeNotification } = useNonRunnerNotifications(state.races, state.displayDate);
   const [isNotificationsReleased, setIsNotificationsReleased] = useState(false);
 
   // Automatically reset the release flag once all current notifications are cleared or timed out
@@ -82,9 +82,9 @@ function App() {
   }, [notifications.length, isNotificationsReleased]);
 
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
-  const currentDateStr = s.displayDate instanceof Date
-    ? `${s.displayDate.getFullYear()}-${String(s.displayDate.getMonth() + 1).padStart(2, '0')}-${String(s.displayDate.getDate()).padStart(2, '0')}`
-    : s.displayDate;
+  const currentDateStr = state.displayDate instanceof Date
+    ? `${state.displayDate.getFullYear()}-${String(state.displayDate.getMonth() + 1).padStart(2, '0')}-${String(state.displayDate.getDate()).padStart(2, '0')}`
+    : state.displayDate;
 
   const enabledAlarms = useStore((state) => state.alarms);
   const addAlarm = useStore((state) => state.addAlarm);
@@ -106,7 +106,7 @@ function App() {
     const interval = setInterval(() => {
       const now = new Date();
 
-      s.races.forEach(race => {
+      state.races.forEach(race => {
         const id = `${race.time}${race.place.replace(/\s+/g, '')}`;
 
         // 1. Is this alarm actively enabled by the user in the Zustand store?
@@ -136,18 +136,18 @@ function App() {
     }, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
-  }, [enabledAlarms, s.races, removeAlarm]);
+  }, [enabledAlarms, state.races, removeAlarm]);
 
   // Only attach hashchange listener; don't scroll on effect re-run
   useEffect(() => {
     const handleHashSync = () => {
-      if (s.loading) return;
+      if (state.loading) return;
 
       const hash = decodeURIComponent(window.location.hash.substring(1));
 
       if (!hash) {
-        if (s.filteredRaces.length > 0) {
-          const firstRace = s.filteredRaces[0];
+        if (state.filteredRaces.length > 0) {
+          const firstRace = state.filteredRaces[0];
           const firstId = `${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
           window.location.hash = `${currentDateStr}@${firstId}`;
         }
@@ -161,12 +161,12 @@ function App() {
 
         if (datePart && datePart !== currentDateStr) {
           const [y, m, d] = datePart.split('-').map(Number);
-          s.setDisplayDate(new Date(y, m - 1, d));
+          state.setDisplayDate(new Date(y, m - 1, d));
           return;
         }
       }
 
-      const index = s.filteredRaces.findIndex(r =>
+      const index = state.filteredRaces.findIndex(r =>
         `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
       );
 
@@ -178,14 +178,14 @@ function App() {
     window.addEventListener('hashchange', handleHashSync);
     handleHashSync();
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [viewMode, s.loading, s.displayDate, s.setDisplayDate, currentDateStr, s.filteredRaces]);
+  }, [viewMode, state.loading, state.displayDate, state.setDisplayDate, currentDateStr, state.filteredRaces]);
 
   // Ensure index stays in bounds if filters reduce the number of races
   useEffect(() => {
-    if (activeRaceIndex >= s.filteredRaces.length && s.filteredRaces.length > 0) {
-      setActiveRaceIndex(s.filteredRaces.length - 1);
+    if (activeRaceIndex >= state.filteredRaces.length && state.filteredRaces.length > 0) {
+      setActiveRaceIndex(state.filteredRaces.length - 1);
     }
-  }, [s.filteredRaces.length, activeRaceIndex]);
+  }, [state.filteredRaces.length, activeRaceIndex]);
 
   useEffect(() => {
     setRaceNumberInput(String(activeRaceIndex + 1));
@@ -193,31 +193,31 @@ function App() {
 
   const jumpToRaceNumber = (value) => {
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 1 || num > s.filteredRaces.length) {
+    if (isNaN(num) || num < 1 || num > state.filteredRaces.length) {
       setRaceNumberInput(String(activeRaceIndex + 1));
       return;
     }
-    const race = s.filteredRaces[num - 1];
+    const race = state.filteredRaces[num - 1];
     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
   };
 
   // Automatically jump to the first available race when 'Follow' mode is enabled
   useEffect(() => {
-    if (s.filters.follow && s.filteredRaces.length > 0) {
+    if (state.filters.follow && state.filteredRaces.length > 0) {
       setActiveRaceIndex(0);
-      const firstRace = s.filteredRaces[0];
+      const firstRace = state.filteredRaces[0];
 
       // Update hash to ensure the "Single" view and background scroll stay in sync
       window.location.hash = `${currentDateStr}@${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
     }
-  }, [s.filters.follow, s.filteredRaces, s.displayDate]);
+  }, [state.filters.follow, state.filteredRaces, state.displayDate]);
 
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
 
   // 1. Define your UI in a single block
   const content = (auth = {}) => {
-    const activeRace = s.filteredRaces[activeRaceIndex] || s.filteredRaces[0];
+    const activeRace = state.filteredRaces[activeRaceIndex] || state.filteredRaces[0];
     const activeRaceId = activeRace ? `${activeRace.time}${activeRace.place.replace(/\s+/g, '')}` : null;
 
     const CpuIcon = () => (
@@ -272,23 +272,23 @@ function App() {
     return (
       <Layout
         navProps={{
-          displayDate: s.displayDate,
-          setDisplayDate: s.setDisplayDate,
-          formattedDateTime: s.formattedDateTime,
-          summaryTime: s.formattedDateTime.match(/\d{2}:\d{2}/)?.[0],
+          displayDate: state.displayDate,
+          setDisplayDate: state.setDisplayDate,
+          formattedDateTime: state.formattedDateTime,
+          summaryTime: state.formattedDateTime.match(/\d{2}:\d{2}/)?.[0],
           detailsContent: (
             <>
               <div className="app-header-controls">
                 <SearchOverlay
-                  races={s.error ? [] : s.races}
+                  races={state.error ? [] : state.races}
                   viewMode={viewMode}
                   currentDateStr={currentDateStr}
                 />
                 <TrackWorker />
                 <button
-                  className={`filter-btn chat-btn ${s.showChat ? 'active' : ''}`}
-                  onClick={() => s.setShowChat(!s.showChat)}
-                  title={s.showChat ? "Close Chat" : "Open Chat"}
+                  className={`filter-btn chat-btn ${state.showChat ? 'active' : ''}`}
+                  onClick={() => state.setShowChat(!state.showChat)}
+                  title={state.showChat ? "Close Chat" : "Open Chat"}
                 >
                   💬
                 </button>
@@ -363,39 +363,39 @@ function App() {
                   </form>
                 </div>
                 <div className="theme-toggle-group">
-                  <button onClick={() => s.setTheme('light')} className={`theme-btn ${s.theme === 'light' ? 'active' : ''}`} title="Light Mode">☀️</button>
-                  <button onClick={() => s.setTheme('dark')} className={`theme-btn ${s.theme === 'dark' ? 'active' : ''}`} title="Dark Mode">🌙</button>
+                  <button onClick={() => state.setTheme('light')} className={`theme-btn ${state.theme === 'light' ? 'active' : ''}`} title="Light Mode">☀️</button>
+                  <button onClick={() => state.setTheme('dark')} className={`theme-btn ${state.theme === 'dark' ? 'active' : ''}`} title="Dark Mode">🌙</button>
                 </div>
               </div>
 
-              <RaceTimeline races={s.filteredRaces} theme={s.theme} />
+              <RaceTimeline races={state.filteredRaces} theme={state.theme} />
               <FilterBar
-                filters={s.filters}
-                setFilters={s.setFilters}
-                uniquePlaces={s.uniquePlaces}
-                onShowMovement={() => s.setActiveModal('movement')}
-                onShowFavorites={() => s.setActiveModal('favorites')}
+                filters={state.filters}
+                setFilters={state.setFilters}
+                uniquePlaces={state.uniquePlaces}
+                onShowMovement={() => state.setActiveModal('movement')}
+                onShowFavorites={() => state.setActiveModal('favorites')}
               />
             </>
           )
         }}
-        searchRaces={s.error ? [] : s.races}
+        searchRaces={state.error ? [] : state.races}
       >
-        {s.loading && s.races.length === 0 ? (
+        {state.loading && state.races.length === 0 ? (
           <>
             <SkeletonRaceTimeline />
             <SkeletonRaceCard />
             <SkeletonRaceCard />
             <SkeletonRaceCard />
           </>
-        ) : s.error ? (
+        ) : state.error ? (
           <div className="full-page-center">
-            <p className="error">Error: {s.error}</p>
+            <p className="error">Error: {state.error}</p>
             <button className="filter-btn error-retry-btn" onClick={() => {
               // Clear the URL state (hash and search) so synchronization doesn't pull us back to the old date
 
               window.history.replaceState(null, '', window.location.pathname);
-              s.setDisplayDate(new Date());
+              state.setDisplayDate(new Date());
             }}>
               Go to Today
             </button>
@@ -403,13 +403,13 @@ function App() {
         ) : (
           <>
             <div className="view-controls-and-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '10px 0px 10px' }}>
-              {viewMode === 'single' && s.filteredRaces.length > 0 && (
+              {viewMode === 'single' && state.filteredRaces.length > 0 && (
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === 0}
                   style={{ flex: 1, padding: '21px 0' }}
                   onClick={() => {
-                    const race = s.filteredRaces[activeRaceIndex - 1];
+                    const race = state.filteredRaces[activeRaceIndex - 1];
                     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
                   }}
                 >← Prev</button>
@@ -430,14 +430,14 @@ function App() {
                 </button>
 
                 {/* Counter only renders here below the button if viewMode is 'single' */}
-                {viewMode === 'single' && s.filteredRaces.length > 0 && (
+                {viewMode === 'single' && state.filteredRaces.length > 0 && (
                   <span className="race-number-counter">
                     <input
                       type="text"
                       inputMode="numeric"
                       className="race-number-input"
                       aria-label="Race number"
-                      style={{ width: `${Math.max(3, String(s.filteredRaces.length).length)}ch` }}
+                      style={{ width: `${Math.max(3, String(state.filteredRaces.length).length)}ch` }}
                       value={raceNumberInput}
                       onChange={(e) => setRaceNumberInput(e.target.value.replace(/\D/g, ''))}
                       onFocus={(e) => e.target.select()}
@@ -450,52 +450,52 @@ function App() {
                         }
                       }}
                     />
-                    / {s.filteredRaces.length}
+                    / {state.filteredRaces.length}
                   </span>
                 )}
               </div>
 
-              {viewMode === 'single' && s.filteredRaces.length > 0 && (
+              {viewMode === 'single' && state.filteredRaces.length > 0 && (
                 <button
                   className="race-analytics-btn"
-                  disabled={activeRaceIndex === s.filteredRaces.length - 1}
+                  disabled={activeRaceIndex === state.filteredRaces.length - 1}
                   style={{ flex: 1, padding: '21px 0' }}
                   onClick={() => {
-                    const race = s.filteredRaces[activeRaceIndex + 1];
+                    const race = state.filteredRaces[activeRaceIndex + 1];
                     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
                   }}
                 >Next →</button>
               )}
             </div>
 
-            {s.showNextRaceBanner && (
+            {state.showNextRaceBanner && (
               <div className="next-race-banner">
                 🕒 Race finished. Moved to next scheduled off...
               </div>
             )}
 
             <Modal
-              isOpen={!!s.activeModal}
-              onClose={() => s.setActiveModal(null)}
-              title={s.activeModal === 'movement' ? "Card-wide Odds Movement" : "Strong Favourites"}
+              isOpen={!!state.activeModal}
+              onClose={() => state.setActiveModal(null)}
+              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Strong Favourites"}
             >
-              {s.activeModal === 'movement' && (
-                <OddsMovementSummary races={s.filteredRaces} onClose={() => s.setActiveModal(null)} />
+              {state.activeModal === 'movement' && (
+                <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
               )}
-              {s.activeModal === 'favorites' && (
-                <FavoriteSelections races={s.filteredRaces} onClose={() => s.setActiveModal(null)} />
+              {state.activeModal === 'favorites' && (
+                <FavoriteSelections races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
               )}
             </Modal>
 
             {viewMode === 'single' ? (
               <div style={{ display: 'block' }}>
-                {s.filteredRaces.length > 0 ? (
+                {state.filteredRaces.length > 0 ? (
                   <RaceCard
-                    race={s.filteredRaces[activeRaceIndex] || s.filteredRaces[0]}
-                    allRaces={s.filteredRaces}
-                    highlightFiddles={s.filters.fiddle}
-                    highlightValues={s.filters.value}
-                    highlightSelects={s.filters.select}
+                    race={state.filteredRaces[activeRaceIndex] || state.filteredRaces[0]}
+                    allRaces={state.filteredRaces}
+                    highlightFiddles={state.filters.fiddle}
+                    highlightValues={state.filters.value}
+                    highlightSelects={state.filters.select}
                     isAlarmEnabled={enabledAlarms.includes(activeRaceId)}
                     onToggleAlarm={() => toggleAlarm(activeRaceId)}
                     viewMode={viewMode}
@@ -508,8 +508,8 @@ function App() {
             ) : (
               <div style={{ display: 'block' }}>
                 <RaceGrid
-                  races={s.filteredRaces}
-                  filters={s.filters}
+                  races={state.filteredRaces}
+                  filters={state.filters}
                   enabledAlarms={enabledAlarms}
                   toggleAlarm={toggleAlarm}
                   viewMode={viewMode}
@@ -520,7 +520,7 @@ function App() {
           </>
         )}
 
-        {s.showChat && <Chatter onClose={() => s.setShowChat(false)} />}
+        {state.showChat && <Chatter onClose={() => state.setShowChat(false)} />}
 
         <NonRunnerNotifications
           notifications={isNotificationsReleased ? notifications : []}
