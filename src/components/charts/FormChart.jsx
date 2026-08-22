@@ -226,34 +226,46 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         let baseRating = parseFloat(getRating(race)) || 0;
         let totalBonus = 0;
 
+        // Safe weight parser handling strings like "9-7" or numbers
         const parseWeightToLbs = (wStr) => {
-          if (!wStr || typeof wStr !== 'string') return typeof wStr === 'number' ? wStr : 0;
-          const parts = wStr.split('-');
-          if (parts.length === 2) return (parseInt(parts, 10) * 14) + parseInt(parts, 10);
+          if (!wStr) return 0;
+          if (typeof wStr === 'number') return wStr;
+          const parts = wStr.toString().split('-');
+          if (parts.length === 2) return (parseInt(parts[0], 10) * 14) + parseInt(parts[1], 10);
           return parseInt(wStr, 10) || 0;
         };
 
-        // 2. Weights Turnaround Bonus (W) -> Adds the raw slider value (0, 20, 40, 60, 80, 100)
-        const todayWeightLbs = parseWeightToLbs(horse.weight);
-        const pastWeightLbs = parseWeightToLbs(race.weight);
-        if (pastWeightLbs > 0 && todayWeightLbs < pastWeightLbs) {
-          totalBonus += wValue;
-        }
+        const todayWeightLbs = parseWeightToLbs(horse?.weight);
+        const pastWeightLbs = parseWeightToLbs(race?.weight);
 
-        // 3. Distance Match Bonus (D) -> Adds the raw slider value directly
-        if (todayFurlongs > 0 && raceFurlongs > 0) {
-          const maxAllowedDifference = todayFurlongs * 0.20;
-          if (Math.abs(todayFurlongs - raceFurlongs) <= maxAllowedDifference) {
-            totalBonus += dValue;
+        if (pastWeightLbs > 0 && todayWeightLbs > 0) {
+          const weightDifference = Math.abs(pastWeightLbs - todayWeightLbs);
+
+          if (todayWeightLbs < pastWeightLbs) {
+            // Lighter today: Full proportional bonus (+10% per lb at 100% slider)
+            totalBonus += baseRating * (wValue / 1000) * weightDifference;
+          } else if (todayWeightLbs > pastWeightLbs) {
+            // Heavier today: Milder proportional penalty (-5% per lb at 100% slider)
+            totalBonus -= baseRating * (wValue / 2000) * weightDifference;
           }
         }
 
-        // 4. Going Match Bonus (G) -> Adds the raw slider value directly
-        if (race.going && todayGoing && race.going.trim().toLowerCase() === todayGoing.trim().toLowerCase()) {
-          totalBonus += gValue;
+        // 3. Distance Match Check (D) - Proportional increase of baseRating
+        if (todayFurlongs > 0 && raceFurlongs > 0) {
+          const maxAllowedDifference = todayFurlongs * 0.20; // 20% tolerance
+          if (Math.abs(todayFurlongs - raceFurlongs) <= maxAllowedDifference) {
+            totalBonus += baseRating * (dValue / 100);
+          }
         }
 
-        // 5. Apply total addition to final score
+        // 4. Going Match Check (G) - Proportional increase of baseRating
+        const cleanPastGoing = (race?.going || '').trim().toLowerCase();
+        const cleanTodayGoing = (todayGoing || '').trim().toLowerCase();
+        if (cleanPastGoing && cleanTodayGoing && cleanPastGoing.includes(cleanTodayGoing)) {
+          totalBonus += baseRating * (gValue / 100);
+        }
+
+        // 5. Apply final calculated score
         const finalScore = Number((baseRating + totalBonus).toFixed(2));
         horseEligibleRatings[horse.name].push(finalScore);
         map[timestamp][horse.name] = finalScore;
