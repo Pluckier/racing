@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { LINE_COLORS } from '../../constants/chartConstants';
 import '../../css/FormChart.css';
 import { useStore } from '../../store/alarmStore';
+import ThreeSliders from './Sliders';
 
 const CustomDot = React.memo((props) => {
   const { cx, cy, stroke, payload, dataKey, onNodeClick } = props;
@@ -35,6 +36,11 @@ const CustomDot = React.memo((props) => {
 });
 
 const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode }) => {
+
+  const [wValue, setW] = useState(0);
+  const [dValue, setD] = useState(0);
+  const [gValue, setG] = useState(0);
+
   const parseDistanceToFurlongs = (distStr) => {
     if (!distStr || typeof distStr !== 'string') return 0;
     let totalFurlongs = 0;
@@ -215,7 +221,43 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
 
         if (!map[timestamp]) map[timestamp] = { timestamp, date: race.date };
 
-        map[timestamp][horse.name] = parseFloat(getRating(race));
+
+        // 1. Get Base Rating
+        let baseRating = parseFloat(getRating(race)) || 0;
+        let totalBonus = 0;
+
+        const parseWeightToLbs = (wStr) => {
+          if (!wStr || typeof wStr !== 'string') return typeof wStr === 'number' ? wStr : 0;
+          const parts = wStr.split('-');
+          if (parts.length === 2) return (parseInt(parts, 10) * 14) + parseInt(parts, 10);
+          return parseInt(wStr, 10) || 0;
+        };
+
+        // 2. Weights Turnaround Bonus (W) -> Adds the raw slider value (0, 20, 40, 60, 80, 100)
+        const todayWeightLbs = parseWeightToLbs(horse.weight);
+        const pastWeightLbs = parseWeightToLbs(race.weight);
+        if (pastWeightLbs > 0 && todayWeightLbs < pastWeightLbs) {
+          totalBonus += wValue;
+        }
+
+        // 3. Distance Match Bonus (D) -> Adds the raw slider value directly
+        if (todayFurlongs > 0 && raceFurlongs > 0) {
+          const maxAllowedDifference = todayFurlongs * 0.20;
+          if (Math.abs(todayFurlongs - raceFurlongs) <= maxAllowedDifference) {
+            totalBonus += dValue;
+          }
+        }
+
+        // 4. Going Match Bonus (G) -> Adds the raw slider value directly
+        if (race.going && todayGoing && race.going.trim().toLowerCase() === todayGoing.trim().toLowerCase()) {
+          totalBonus += gValue;
+        }
+
+        // 5. Apply total addition to final score
+        const finalScore = Number((baseRating + totalBonus).toFixed(2));
+        horseEligibleRatings[horse.name].push(finalScore);
+        map[timestamp][horse.name] = finalScore;
+
         map[timestamp][`${horse.name}_todayWeight`] = horse.weight;
         map[timestamp][`${horse.name}_latestOdds`] = displayOdd;
         map[timestamp][`${horse.name}_isWin`] = isWinner;
@@ -257,7 +299,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
     });
 
     return sortedData; // Add weeksFilter to dependencies
-  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, aiMode]);
+  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, aiMode, wValue, dValue, gValue]);
 
   const CpuIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -311,6 +353,13 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
 
   return (
     <div className="form-chart-container">
+      <div>
+        <ThreeSliders
+          wValue={wValue} setW={setW}
+          dValue={dValue} setD={setD}
+          gValue={gValue} setG={setG}
+        />
+      </div>
       <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ flex: 1 }}>
           {hasPrev && (
@@ -518,7 +567,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
           )}
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="90%">
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <XAxis
             dataKey="timestamp"
@@ -568,14 +617,15 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
           />
           {horses
             .filter(h => selectedHorse.length === 0 || selectedHorse.includes(h.name))
-            .map((horse, index) => (
+            .map((horse) => (
               <Line
-                key={horse.name}
+                key={`${horse.name}`}
                 type="linear"
                 dataKey={horse.name}
                 stroke={LINE_COLORS[horses.indexOf(horse) % LINE_COLORS.length]}
                 strokeWidth={2}
-                dot={<CustomDot onNodeClick={handleNodeClick} />}
+                // FIX: Pass slider states as custom props down into CustomDot to break its React.memo cache
+                dot={<CustomDot onNodeClick={handleNodeClick} w={wValue} d={dValue} g={gValue} />}
                 connectNulls
               />
             ))}
