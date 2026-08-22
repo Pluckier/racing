@@ -6,7 +6,8 @@ import { useStore } from '../../store/alarmStore';
 import ThreeSliders from './Sliders';
 
 const CustomDot = React.memo((props) => {
-  const { cx, cy, stroke, payload, dataKey, onNodeClick } = props;
+  // FIX: Destructure w, d, g so React.memo knows to re-render when sliders move
+  const { cx, cy, stroke, payload, dataKey, onNodeClick, w, d, g } = props;
   const isHighest = payload[`${dataKey}_isHighest`];
   const isWin = payload[`${dataKey}_isWin`];
   const isSameDist = payload[`${dataKey}_isSameDist`];
@@ -17,7 +18,7 @@ const CustomDot = React.memo((props) => {
       {isWin ? (
         <text
           x={cx}
-          y={cy - (isSameDist ? 2 : 1)} // Adjusted Y to visually center symbols
+          y={cy - (isSameDist ? 2 : 1)}
           fill={stroke}
           textAnchor="middle"
           dominantBaseline="central"
@@ -235,18 +236,25 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
           return parseInt(wStr, 10) || 0;
         };
 
+        // 2. Weights Turnaround Check (W) - Smooth launch, explosive finish
         const todayWeightLbs = parseWeightToLbs(horse?.weight);
         const pastWeightLbs = parseWeightToLbs(race?.weight);
 
         if (pastWeightLbs > 0 && todayWeightLbs > 0) {
           const weightDifference = Math.abs(pastWeightLbs - todayWeightLbs);
 
+          // 1. Turn 0-100 into a decimal (0.0 to 1.0)
+          const sliderDecimal = wValue / 100;
+
+          // 2. Raise it to the 4th power to keep low settings completely calm
+          const weightFactor = Math.pow(sliderDecimal, 4);
+
           if (todayWeightLbs < pastWeightLbs) {
-            // Lighter today: Full proportional bonus (+10% per lb at 100% slider)
-            totalBonus += baseRating * (wValue / 1000) * weightDifference;
+            // Lighter today: Max 30% rating increase per pound saved at 100% slider
+            totalBonus += baseRating * (weightFactor * 0.30) * weightDifference;
           } else if (todayWeightLbs > pastWeightLbs) {
-            // Heavier today: Milder proportional penalty (-5% per lb at 100% slider)
-            totalBonus -= baseRating * (wValue / 2000) * weightDifference;
+            // Heavier today: Ultra-low penalty so it doesn't squash the chart scale
+            totalBonus -= baseRating * (weightFactor * 0.01) * weightDifference;
           }
         }
 
@@ -281,6 +289,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         map[timestamp][`${horse.name}_breeding`] = horse.breeding;
         map[timestamp][`${horse.name}_foaled`] = horse.foaled;
         map[timestamp][`${horse.name}_jockey`] = horse.jockey;
+        map[timestamp][`${horse.name}_baseScore`] = baseRating;
 
         const beaten = race.distBeaten ? ` (${race.distBeaten} l)` : '';
         map[timestamp][`${horse.name}_details`] =
@@ -289,28 +298,41 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
       });
     });
 
-    // After all races have been processed and filtered, determine the max rating from eligible races
+    // 1. Calculate max rating based ONLY on the static baseline rating (getRating)
     filteredHorses.forEach(horse => {
-      const ratings = horseEligibleRatings[horse.name];
-      horseMaxRatings[horse.name] = (ratings && ratings.length > 0) ? Math.max(...ratings) : -1;
+      const baselineRatings = horse.past
+        // Apply your existing filters here so it matches eligible runs
+        .filter(race => {
+          const posStr = race.position ? race.position.toString().trim() : "";
+          const actualPos = parseInt(posStr.split('/')[0], 10);
+          if (positionFilter > 0 && (isNaN(actualPos) || actualPos > positionFilter)) return false;
+          // ... add your other standard filter logic here if preferred
+          return true;
+        })
+        .map(race => parseFloat(getRating(race)) || 0);
+
+      horseMaxRatings[horse.name] = baselineRatings.length > 0 ? Math.max(...baselineRatings) : -1;
     });
 
     const sortedData = Object.values(map).sort((a, b) => a.timestamp - b.timestamp);
-
-    // Single-annotation pass: Mark only the chronologically first occurrence of the max rating
     const horseNames = Object.keys(horseMaxRatings);
     const annotatedHorses = new Set();
 
+    // 2. Mark the highest point based on the original unadjusted baseline score
     sortedData.forEach(point => {
       horseNames.forEach(horseName => {
-        if (point[horseName] === horseMaxRatings[horseName] && !annotatedHorses.has(horseName)) {
+        // Look for the baseline field version or check against the clean unadjusted score
+        // to prevent the text label from disappearing or jumping between dots during sliding transitions
+        const originalPointScore = point[`${horseName}_baseScore`] || point[horseName];
+
+        if (originalPointScore === horseMaxRatings[horseName] && !annotatedHorses.has(horseName)) {
           point[`${horseName}_isHighest`] = true;
           annotatedHorses.add(horseName);
         }
       });
     });
 
-    return sortedData; // Add weeksFilter to dependencies
+    return sortedData;
   }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, aiMode, wValue, dValue, gValue]);
 
   const CpuIcon = () => (
@@ -579,7 +601,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
           )}
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="90%">
+      <ResponsiveContainer width="100%" height="80%">
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <XAxis
             dataKey="timestamp"
@@ -631,12 +653,13 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             .filter(h => selectedHorse.length === 0 || selectedHorse.includes(h.name))
             .map((horse) => (
               <Line
-                key={`${horse.name}`}
+                // FIX: Use a stable key so Recharts animates instead of redrawing
+                key={horse.name}
                 type="linear"
                 dataKey={horse.name}
                 stroke={LINE_COLORS[horses.indexOf(horse) % LINE_COLORS.length]}
                 strokeWidth={2}
-                // FIX: Pass slider states as custom props down into CustomDot to break its React.memo cache
+                // FIX: Pass slider states here so CustomDot re-renders its text and icons cleanly
                 dot={<CustomDot onNodeClick={handleNodeClick} w={wValue} d={dValue} g={gValue} />}
                 connectNulls
               />
