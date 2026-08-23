@@ -262,15 +262,19 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         if (todayFurlongs > 0 && raceFurlongs > 0) {
           const maxAllowedDifference = todayFurlongs * 0.20; // 20% tolerance
           if (Math.abs(todayFurlongs - raceFurlongs) <= maxAllowedDifference) {
-            totalBonus += baseRating * (dValue / 100);
+            totalBonus += baseRating * (dValue);
           }
         }
 
         // 4. Going Match Check (G) - Proportional increase of baseRating
         const cleanPastGoing = (race?.going || '').trim().toLowerCase();
         const cleanTodayGoing = (todayGoing || '').trim().toLowerCase();
-        if (cleanPastGoing && cleanTodayGoing && cleanPastGoing.includes(cleanTodayGoing)) {
-          totalBonus += baseRating * (gValue / 100);
+        if (cleanPastGoing && cleanTodayGoing && (cleanPastGoing === cleanTodayGoing)) {
+          totalBonus += baseRating * (gValue);
+        } else if (cleanPastGoing && cleanTodayGoing && (cleanPastGoing.includes(cleanTodayGoing) || cleanTodayGoing.includes(cleanPastGoing))) {
+          totalBonus += baseRating * (gValue / 2);
+        } else if (cleanPastGoing && cleanTodayGoing && (!cleanPastGoing.includes(cleanTodayGoing) && !cleanTodayGoing.includes(cleanPastGoing))) {
+          totalBonus += baseRating - (gValue * baseRating * 0.2);
         }
 
         // 5. Apply final calculated score
