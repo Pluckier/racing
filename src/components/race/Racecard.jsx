@@ -5,6 +5,7 @@ import OddsChart from '../charts/OddsChart';
 import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
 import { useStore } from '../../store/alarmStore';
+import ThreeSliders from '../charts/Sliders';
 
 const SORT_MODES = ['odds', 'last', 'avg', 'all', 'high'];
 const SORT_LABELS = {
@@ -20,6 +21,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
+  const [wValue, setW] = useState(0);
+  const [dValue, setD] = useState(0);
+  const [gValue, setG] = useState(0);
 
   const aiMode = useStore((store) => store.aiMode);
   const toggleAi = useStore((store) => store.toggleAi);
@@ -266,6 +270,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
   return (
     <div id={raceId} className="race-card">
+      <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
       <header className="race-header">
         <div className="race-title-group">
           <h2 className="race-title">
@@ -407,6 +412,11 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
                   rank
               }
               highlightSelect={isSelect}
+              wValue={wValue}
+              dValue={dValue}
+              gValue={gValue}
+              todayDistance={race.distance}
+              todayGoing={race.going}
             />
           );
         })}

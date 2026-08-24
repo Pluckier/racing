@@ -307,36 +307,34 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
       });
     });
 
-    // 1. Calculate max rating based ONLY on the static baseline rating (getRating)
-    filteredHorses.forEach(horse => {
-      const baselineRatings = horse.past
-        // Apply your existing filters here so it matches eligible runs
-        .filter(race => {
-          const posStr = race.position ? race.position.toString().trim() : "";
-          const actualPos = parseInt(posStr.split('/')[0], 10);
-          if (positionFilter > 0 && (isNaN(actualPos) || actualPos > positionFilter)) return false;
-          // ... add your other standard filter logic here if preferred
-          return true;
-        })
-        .map(race => parseFloat(getRating(race)) || 0);
-
-      horseMaxRatings[horse.name] = baselineRatings.length > 0 ? Math.max(...baselineRatings) : -1;
-    });
-
     const sortedData = Object.values(map).sort((a, b) => a.timestamp - b.timestamp);
-    const horseNames = Object.keys(horseMaxRatings);
-    const annotatedHorses = new Set();
+    const horseNames = filteredHorses.map(h => h.name);
 
-    // 2. Mark the highest point based on the original unadjusted baseline score
+    // 1. Scan surviving timeline points to find the dynamically adjusted peak value for each horse
+    const dynamicMaxScores = {};
+
     sortedData.forEach(point => {
       horseNames.forEach(horseName => {
-        // Look for the baseline field version or check against the clean unadjusted score
-        // to prevent the text label from disappearing or jumping between dots during sliding transitions
-        const originalPointScore = point[`${horseName}_baseScore`] || point[horseName];
+        const score = point[horseName];
+        if (score !== undefined) {
+          if (dynamicMaxScores[horseName] === undefined || score > dynamicMaxScores[horseName]) {
+            dynamicMaxScores[horseName] = score;
+          }
+        }
+      });
+    });
 
-        if (originalPointScore === horseMaxRatings[horseName] && !annotatedHorses.has(horseName)) {
+    // 2. Annotate the single highest visible point in the active chart dataset
+    const annotatedHorses = new Set();
+
+    sortedData.forEach(point => {
+      horseNames.forEach(horseName => {
+        const score = point[horseName];
+
+        // Match the current point to the dynamic highest value found above
+        if (score !== undefined && score === dynamicMaxScores[horseName] && !annotatedHorses.has(horseName)) {
           point[`${horseName}_isHighest`] = true;
-          annotatedHorses.add(horseName);
+          annotatedHorses.add(horseName); // Ensures only one label is applied per horse line
         }
       });
     });

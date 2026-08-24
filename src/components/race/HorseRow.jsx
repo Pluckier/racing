@@ -3,7 +3,7 @@ import PastRace from './PastRace';
 import '../../css/HorseRow.css';
 import { useStore } from '../../store/alarmStore';
 
-const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect }) => {
+const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '' }) => {
   const [showForm, setShowForm] = useState(false);
 
   const pastRuns = horse.past || [];
@@ -38,28 +38,94 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
     return Number(targetProperty) || 0;
   };
 
+  // --- W/D/G Slider Bonus Helpers ---
+  const parseDistanceToFurlongs = (distStr) => {
+    if (!distStr || typeof distStr !== 'string') return 0;
+    let total = 0;
+    const mMatch = distStr.match(/(\d+)m/);
+    const fMatch = distStr.match(/(\d+)f/);
+    const yMatch = distStr.match(/(\d+)y/);
+    if (mMatch) total += parseInt(mMatch[1], 10) * 8;
+    if (fMatch) total += parseInt(fMatch[1], 10);
+    if (yMatch) total += Math.round(parseInt(yMatch[1], 10) / 220);
+    return total;
+  };
+
+  const parseWeightToLbs = (wStr) => {
+    if (!wStr) return 0;
+    if (typeof wStr === 'number') return wStr;
+    const parts = wStr.toString().split('-');
+    if (parts.length === 2) return (parseInt(parts[0], 10) * 14) + parseInt(parts[1], 10);
+    return parseInt(wStr, 10) || 0;
+  };
+
+  // Applies the same W/D/G bonus formula used in FormChart
+  const getAdjustedRating = (run) => {
+    const baseRating = getRating(run);
+    if (!baseRating) return 0;
+    let totalBonus = 0;
+
+    // W — Weight turnaround
+    const todayWeightLbs = parseWeightToLbs(horse?.weight);
+    const pastWeightLbs = parseWeightToLbs(run?.weight);
+    if (pastWeightLbs > 0 && todayWeightLbs > 0) {
+      const weightDifference = Math.abs(pastWeightLbs - todayWeightLbs);
+      const weightFactor = Math.pow(wValue / 100, 4);
+      if (todayWeightLbs < pastWeightLbs) {
+        totalBonus += baseRating * (weightFactor * 0.30) * weightDifference;
+      } else if (todayWeightLbs > pastWeightLbs) {
+        totalBonus -= baseRating * (weightFactor * 0.01) * weightDifference;
+      }
+    }
+
+    // D — Distance match (within 20% tolerance)
+    const todayFurlongs = parseDistanceToFurlongs(todayDistance);
+    const raceFurlongs = parseDistanceToFurlongs(run?.distance);
+    if (todayFurlongs > 0 && raceFurlongs > 0) {
+      const maxAllowedDiff = todayFurlongs * 0.20;
+      if (Math.abs(todayFurlongs - raceFurlongs) <= maxAllowedDiff) {
+        totalBonus += baseRating * dValue;
+      }
+    }
+
+    // G — Going match
+    const cleanPastGoing = (run?.going || '').trim().toLowerCase();
+    const cleanTodayGoing = (todayGoing || '').trim().toLowerCase();
+    if (cleanPastGoing && cleanTodayGoing) {
+      if (cleanPastGoing === cleanTodayGoing) {
+        totalBonus += baseRating * gValue;
+      } else if (cleanPastGoing.includes(cleanTodayGoing) || cleanTodayGoing.includes(cleanPastGoing)) {
+        totalBonus += baseRating * (gValue / 2);
+      } else {
+        totalBonus -= baseRating * gValue * 0.2;
+      }
+    }
+
+    return baseRating + totalBonus;
+  };
+
   let displayRating = null;
   if (sortBy === 'high') {
-    // Show career highest rating
-    displayRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => getRating(r))) : null;
+    // Show career highest adjusted rating
+    displayRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => getAdjustedRating(r))).toFixed(0) : null;
   } else if (sortBy === 'last') {
     // Show rating from the most recent run only
-    displayRating = pastRuns.length > 0 ? getRating(pastRuns[0]) : null;
+    displayRating = pastRuns.length > 0 ? getAdjustedRating(pastRuns[0]).toFixed(0) : null;
   } else if (sortBy === 'all') {
-    // Calculate average rating across all career runs
+    // Calculate average adjusted rating across all career runs
     displayRating = pastRuns.length > 0
-      ? (pastRuns.reduce((acc, run) => acc + getRating(run), 0) / pastRuns.length).toFixed(0)
+      ? (pastRuns.reduce((acc, run) => acc + getAdjustedRating(run), 0) / pastRuns.length).toFixed(0)
       : null;
   } else {
-    // Default: Calculate average rating of the last 3 runs (L3)
+    // Default: Calculate average adjusted rating of the last 3 runs (L3)
     const lastThree = pastRuns.slice(0, 3);
     displayRating = lastThree.length > 0
-      ? (lastThree.reduce((acc, run) => acc + getRating(run), 0) / lastThree.length).toFixed(0)
+      ? (lastThree.reduce((acc, run) => acc + getAdjustedRating(run), 0) / lastThree.length).toFixed(0)
       : null;
   }
 
-  const lastRunRating = pastRuns.length > 0 ? getRating(pastRuns[0]) : 0;
-  const peakRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => getRating(r))) : 0;
+  const lastRunRating = pastRuns.length > 0 ? getAdjustedRating(pastRuns[0]) : 0;
+  const peakRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => getAdjustedRating(r))) : 0;
   const isImprover = lastRunRating > 0 && lastRunRating === peakRating;
 
   return (
