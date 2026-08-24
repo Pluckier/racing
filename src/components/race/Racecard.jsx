@@ -10,8 +10,8 @@ import ThreeSliders from '../charts/Sliders';
 const SORT_MODES = ['odds', 'last', 'avg', 'all', 'high'];
 const SORT_LABELS = {
   odds: 'Odds',
-  avg: 'Avg 3',
-  last: '1 Run',
+  avg: 'Avg3',
+  last: '1Run',
   high: 'High',
   all: 'All'
 };
