@@ -58,35 +58,98 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const finalDisplay = `${formPercentage}%${emoji}`;
 
 
-  const getAvg = (h) => {
-    const past = h.past || [];
-    const last3 = past.slice(0, 3);
-    if (last3.length === 0) return 0;
-    return last3.reduce((acc, r) => acc + getRating(r), 0) / last3.length;
-  };
-
   const getRating = (run) => {
     if (!run) return 0;
     const targetProperty = aiMode === 2 ? run.name2AI : aiMode === 1 ? run.nameAI : run.name;
     return Number(targetProperty) || 0;
   };
 
+  const parseDistanceToFurlongs = (distStr) => {
+    if (!distStr || typeof distStr !== 'string') return 0;
+    let total = 0;
+    const mMatch = distStr.match(/(\d+)m/);
+    const fMatch = distStr.match(/(\d+)f/);
+    const yMatch = distStr.match(/(\d+)y/);
+    if (mMatch) total += parseInt(mMatch[1], 10) * 8;
+    if (fMatch) total += parseInt(fMatch[1], 10);
+    if (yMatch) total += Math.round(parseInt(yMatch[1], 10) / 220);
+    return total;
+  };
+
+  const parseWeightToLbs = (wStr) => {
+    if (!wStr) return 0;
+    if (typeof wStr === 'number') return wStr;
+    const parts = wStr.toString().split('-');
+    if (parts.length === 2) return (parseInt(parts[0], 10) * 14) + parseInt(parts[1], 10);
+    return parseInt(wStr, 10) || 0;
+  };
+
+  // Applies the same W/D/G bonus formula as FormChart and HorseRow
+  const getAdjustedRating = (horse, run) => {
+    const baseRating = getRating(run);
+    if (!baseRating) return 0;
+    let totalBonus = 0;
+
+    // W — Weight turnaround
+    const todayWeightLbs = parseWeightToLbs(horse?.weight);
+    const pastWeightLbs = parseWeightToLbs(run?.weight);
+    if (pastWeightLbs > 0 && todayWeightLbs > 0) {
+      const weightDiff = Math.abs(pastWeightLbs - todayWeightLbs);
+      const weightFactor = Math.pow(wValue / 100, 4);
+      if (todayWeightLbs < pastWeightLbs) {
+        totalBonus += baseRating * (weightFactor * 0.30) * weightDiff;
+      } else if (todayWeightLbs > pastWeightLbs) {
+        totalBonus -= baseRating * (weightFactor * 0.01) * weightDiff;
+      }
+    }
+
+    // D — Distance match (within 20% tolerance)
+    const todayFurlongs = parseDistanceToFurlongs(race.distance);
+    const raceFurlongs = parseDistanceToFurlongs(run?.distance);
+    if (todayFurlongs > 0 && raceFurlongs > 0) {
+      if (Math.abs(todayFurlongs - raceFurlongs) <= todayFurlongs * 0.20) {
+        totalBonus += baseRating * dValue;
+      }
+    }
+
+    // G — Going match
+    const cleanPastGoing = (run?.going || '').trim().toLowerCase();
+    const cleanTodayGoing = (race.going || '').trim().toLowerCase();
+    if (cleanPastGoing && cleanTodayGoing) {
+      if (cleanPastGoing === cleanTodayGoing) {
+        totalBonus += baseRating * gValue;
+      } else if (cleanPastGoing.includes(cleanTodayGoing) || cleanTodayGoing.includes(cleanPastGoing)) {
+        totalBonus += baseRating * (gValue / 2);
+      } else {
+        totalBonus -= baseRating * gValue * 0.2;
+      }
+    }
+
+    return baseRating + totalBonus;
+  };
+
+  const getAvg = (h) => {
+    const past = h.past || [];
+    const last3 = past.slice(0, 3);
+    if (last3.length === 0) return 0;
+    return last3.reduce((acc, r) => acc + getAdjustedRating(h, r), 0) / last3.length;
+  };
 
   const getMax = (h) => {
     const past = h.past || [];
     if (past.length === 0) return 0;
-    return Math.max(...past.map(r => getRating(r)));
+    return Math.max(...past.map(r => getAdjustedRating(h, r)));
   };
 
   const getLast = (h) => {
     const past = h.past || [];
-    return past.length > 0 ? (getRating(past[0]) || 0) : 0;
+    return past.length > 0 ? (getAdjustedRating(h, past[0]) || 0) : 0;
   };
 
   const getAllAvg = (h) => {
     const past = h.past || [];
     if (past.length === 0) return 0;
-    return past.reduce((acc, r) => acc + getRating(r), 0) / past.length;
+    return past.reduce((acc, r) => acc + getAdjustedRating(h, r), 0) / past.length;
   };
 
   const getLatestOdds = (h) => {
@@ -110,7 +173,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       if (sortBy === 'odds') return getLatestOdds(a) - getLatestOdds(b);
       return Number(a.number) - Number(b.number);
     }),
-    [race.horses, sortBy, aiMode]
+    [race.horses, sortBy, aiMode, wValue, dValue, gValue]
   );
 
   const valueRunnersRanked = useMemo(() => {
