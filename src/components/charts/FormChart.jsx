@@ -245,7 +245,6 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
 
           // 1. Turn 0-100 into a decimal (0.0 to 1.0)
           const sliderDecimal = wValue / 100;
-
           // 2. Raise it to the 4th power to keep low settings completely calm
           const weightFactor = Math.pow(sliderDecimal, 4);
 
@@ -262,19 +261,25 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         if (todayFurlongs > 0 && raceFurlongs > 0) {
           const maxAllowedDifference = todayFurlongs * 0.20; // 20% tolerance
           if (Math.abs(todayFurlongs - raceFurlongs) <= maxAllowedDifference) {
-            totalBonus += baseRating * (dValue);
+            totalBonus += baseRating * dValue;
           }
         }
 
         // 4. Going Match Check (G) - Proportional increase of baseRating
         const cleanPastGoing = (race?.going || '').trim().toLowerCase();
         const cleanTodayGoing = (todayGoing || '').trim().toLowerCase();
-        if (cleanPastGoing && cleanTodayGoing && (cleanPastGoing === cleanTodayGoing)) {
-          totalBonus += baseRating * (gValue);
-        } else if (cleanPastGoing && cleanTodayGoing && (cleanPastGoing.includes(cleanTodayGoing) || cleanTodayGoing.includes(cleanPastGoing))) {
-          totalBonus += baseRating * (gValue / 2);
-        } else if (cleanPastGoing && cleanTodayGoing && (!cleanPastGoing.includes(cleanTodayGoing) && !cleanTodayGoing.includes(cleanPastGoing))) {
-          totalBonus += baseRating - (gValue * baseRating * 0.2);
+
+        if (cleanPastGoing && cleanTodayGoing) {
+          if (cleanPastGoing === cleanTodayGoing) {
+            // Exact Match: Full slider value reward
+            totalBonus += baseRating * gValue;
+          } else if (cleanPastGoing.includes(cleanTodayGoing) || cleanTodayGoing.includes(cleanPastGoing)) {
+            // Partial Match (e.g., "Good" vs "Good to Firm"): Half reward
+            totalBonus += baseRating * (gValue / 2);
+          } else {
+            // FIXED: Properly subtracts penalty instead of accidentally adding baseRating
+            totalBonus -= (baseRating * gValue * 0.2);
+          }
         }
 
         // 5. Apply final calculated score
