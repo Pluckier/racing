@@ -2,7 +2,7 @@ import React from 'react';
 import '../../css/PastRace.css';
 import { useStore } from '../../store/alarmStore';
 
-const PastRace = ({ race }) => {
+const PastRace = ({ race, adjustedRating }) => {
   // Destructuring the JSON properties for cleaner code
   const {
     course,
@@ -62,7 +62,7 @@ const PastRace = ({ race }) => {
         <small>Pos: </small><strong>{position}</strong> {distBeaten && <small>({distBeaten} btn)</small>}
       </span>
       <span className="past-race-weight-rtg-col">
-        <small>Wt: </small><strong>{weight}</strong> • <small>Rtg: </small><strong>{aiNames[aiMode]}</strong>
+        <small>Wt: </small><strong>{weight}</strong> • <small>Rtg: </small><strong>{adjustedRating !== undefined ? Number(adjustedRating).toFixed(0) : aiNames[aiMode]}</strong>
       </span>
       <a href={url} target="_blank" rel="noopener noreferrer" className="past-race-link">↗</a>
     </div>

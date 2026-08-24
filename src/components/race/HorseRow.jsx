@@ -182,7 +182,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
       {showForm && (
         <div className="past-races-container">
           {horse.past.map((race, idx) => (
-            <PastRace key={idx} race={race} />
+            <PastRace key={idx} race={race} adjustedRating={getAdjustedRating(race)} />
           ))}
         </div>
       )}
