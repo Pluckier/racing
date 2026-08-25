@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PastRace from './PastRace';
 import '../../css/HorseRow.css';
 import { useStore } from '../../store/alarmStore';
+import { SOFT_COLORS } from '../../constants/chartConstants';
 
 const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '' }) => {
   const [showForm, setShowForm] = useState(false);
@@ -128,11 +129,15 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const peakRating = pastRuns.length > 0 ? Math.max(...pastRuns.map(r => getAdjustedRating(r))) : 0;
   const isImprover = lastRunRating > 0 && lastRunRating === peakRating;
 
+  const num = parseInt(horse.number, 10);
+  const colorIndex = !isNaN(num) ? (num - 1) % SOFT_COLORS.length : SOFT_COLORS.length - 1;
+  const rowBg = `${SOFT_COLORS[colorIndex]}40`; // 25% opacity
+
   return (
-    <div className={`
-      horse-row 
-      ${isNR ? 'non-runner' : ''} 
-    `}>
+    <div
+      className={`horse-row ${isNR ? 'non-runner' : ''}`}
+      style={{ backgroundColor: rowBg }}
+    >
       <div className="horse-main">
         <div className="horse-info-container">
           <div className="horse-silks-wrapper">
