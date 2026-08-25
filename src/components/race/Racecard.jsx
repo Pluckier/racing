@@ -21,12 +21,15 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
-  const [wValue, setW] = useState(0);
-  const [dValue, setD] = useState(0);
-  const [gValue, setG] = useState(0);
 
   const aiMode = useStore((store) => store.aiMode);
   const toggleAi = useStore((store) => store.toggleAi);
+  const wValue = useStore((store) => store.wValue);
+  const dValue = useStore((store) => store.dValue);
+  const gValue = useStore((store) => store.gValue);
+  const setW = useStore((store) => store.setW);
+  const setD = useStore((store) => store.setD);
+  const setG = useStore((store) => store.setG);
 
   // Math.min(horse.past?.length || 0, 6) caps each individual horse at 6
   const totalPastRuns = race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;

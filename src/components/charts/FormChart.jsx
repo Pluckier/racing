@@ -38,9 +38,12 @@ const CustomDot = React.memo((props) => {
 
 const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode }) => {
 
-  const [wValue, setW] = useState(0);
-  const [dValue, setD] = useState(0);
-  const [gValue, setG] = useState(0);
+  const wValue = useStore((state) => state.wValue);
+  const dValue = useStore((state) => state.dValue);
+  const gValue = useStore((state) => state.gValue);
+  const setW = useStore((state) => state.setW);
+  const setD = useStore((state) => state.setD);
+  const setG = useStore((state) => state.setG);
 
   const parseDistanceToFurlongs = (distStr) => {
     if (!distStr || typeof distStr !== 'string') return 0;

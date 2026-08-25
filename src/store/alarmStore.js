@@ -11,6 +11,11 @@ export const useStore = create(
             // 0 = Off, 1 = Basic/Mode A, 2 = Advanced/Mode B
             aiMode: 0,
 
+            // W/D/G slider values (0-100)
+            wValue: 0,
+            dValue: 0,
+            gValue: 0,
+
             // =================================================================
             // 2. ALARM ACTIONS
             // =================================================================
@@ -35,7 +40,14 @@ export const useStore = create(
             // Directly sets the mode, ensuring it stays within the 0-2 range
             setAi: (mode) => set({
                 aiMode: [0, 1, 2].includes(mode) ? mode : 0
-            })
+            }),
+
+            // =================================================================
+            // 4. SLIDER ACTIONS
+            // =================================================================
+            setW: (v) => set({ wValue: Math.min(100, Math.max(0, v)) }),
+            setD: (v) => set({ dValue: Math.min(100, Math.max(0, v)) }),
+            setG: (v) => set({ gValue: Math.min(100, Math.max(0, v)) }),
         }),
         {
             name: 'alarm-storage',
