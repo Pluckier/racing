@@ -1,6 +1,15 @@
 import React from 'react';
 
 function SliderField({ label, value, onChange }) {
+
+  const fullNames = {
+    W: 'Weights',
+    D: 'Distance',
+    G: 'Going'
+  };
+
+  const tooltipText = fullNames[label] || label;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', flex: 1 }}>
       <label style={{ whiteSpace: 'nowrap', minWidth: '55px' }}>{label}: {value}%</label>
@@ -9,6 +18,7 @@ function SliderField({ label, value, onChange }) {
         min="0"
         max="100"
         value={value}
+        title={`${tooltipText}: ${value}%`}
         onChange={onChange}
         style={{ width: '100%' }}
       />

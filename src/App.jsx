@@ -50,7 +50,7 @@ function App() {
     }));
   }, []);
 
-  const [viewMode, setViewMode] = useState('all'); // 'all' (Grid) or 'single'
+  const [viewMode, setViewMode] = useState('single'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const [raceNumberInput, setRaceNumberInput] = useState('1');
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
@@ -420,10 +420,11 @@ function App() {
                 <button
                   className="filter-btn active"
                   onClick={() => setViewMode(prev => prev === 'all' ? 'single' : 'all')}
+                  title="Toggle View Mode"
                   style={{
                     borderRadius: '25px',
                     padding: '6px 18px',
-                    minWidth: '100px'
+                    minWidth: '10viewMode0px'
                   }}
                 >
                   {viewMode === 'all' ? 'All 👀' : 'One 👀'}

@@ -385,6 +385,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               max={SORT_MODES.length - 1}
               step="1"
               value={SORT_MODES.indexOf(sortBy)}
+              title="Sort by"
               onChange={(e) => setSortBy(SORT_MODES[parseInt(e.target.value, 10)])}
               style={{ width: '70px', cursor: 'pointer', accentColor: 'var(--accent)' }}
             />
