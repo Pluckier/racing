@@ -38,7 +38,7 @@ const CustomDot = React.memo((props) => {
 
 const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode }) => {
 
-  const GOING_OPTIONS = ['Hvy', 'Sft', 'Gd/Sft', 'Std', 'Gd', 'Gd/Fm', 'Fm'];
+  const GOING_OPTIONS = ['Hvy', 'Sft', 'G/S', 'Std', 'Gd-', 'G/F', 'Fm-'];
 
   const wValue = useStore((state) => state.wValue);
   const dValue = useStore((state) => state.dValue);
@@ -104,7 +104,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
   const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(-1); // 0 = All, 1 = within 1 length, etc.
   const [monthsFilter, setMonthsFilter] = useState(0); // 0 = All, 3-12 = months back
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
-  const [goingFilter, setGoingFilter] = useState(false);
+  const [goingFilter, setGoingFilter] = useState(-1); // -1 = Off, 0-6 = index into GOING_OPTIONS
 
   const aiMode = useStore((state) => state.aiMode);
   const toggleAi = useStore((state) => state.toggleAi);
@@ -197,8 +197,8 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
           return;
         }
 
-        // Apply Going Filter (Exact Match)
-        if (goingFilter && todayGoing && race.going !== todayGoing) {
+        // Apply Going Filter (Exact Match against selected GOING_OPTIONS entry)
+        if (goingFilter >= 0 && race.going !== GOING_OPTIONS[goingFilter]) {
           return;
         }
 
@@ -339,7 +339,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
     });
 
     return sortedData;
-  }, [horses, selectedHorse, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, aiMode, wValue, dValue, gValue]);
+  }, [horses, selectedHorse, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, aiMode, wValue, dValue, gValue]);
 
   const CpuIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -512,22 +512,28 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             />
           </div>
 
-          {/* Going Filter Toggle */}
-          <div
-            onClick={() => setGoingFilter(!goingFilter)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '2px 12px',
-              borderRadius: '20px',
-              border: '1px solid var(--border)',
-              backgroundColor: goingFilter ? 'var(--accent)' : 'transparent',
-              color: goingFilter ? 'var(--bg)' : 'var(--text)',
-              fontSize: '13px',
-              cursor: 'pointer'
-            }}
-          >
-            <span style={{ whiteSpace: 'nowrap' }}>{goingFilter ? todayGoing || 'Match' : 'Going'}</span>
+          {/* Going Filter Slider */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            backgroundColor: goingFilter >= 0 ? 'var(--accent)' : 'transparent',
+            color: goingFilter >= 0 ? 'var(--bg)' : 'var(--text)',
+            fontSize: '13px'
+          }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Going: {goingFilter === -1 ? 'Off-' : GOING_OPTIONS[goingFilter]}</span>
+            <input
+              type="range"
+              min="-1"
+              max={GOING_OPTIONS.length - 1}
+              step="1"
+              value={goingFilter}
+              onChange={(e) => setGoingFilter(parseInt(e.target.value, 10))}
+              style={{ width: '70px', cursor: 'pointer', accentColor: goingFilter >= 0 ? 'var(--bg)' : 'var(--accent)' }}
+            />
           </div>
 
           {/* NEW: Months Filter Slider */}
