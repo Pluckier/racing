@@ -94,6 +94,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
       <Chart
         chartType="Timeline"
         data={data}
+        chartVersion="51"
         height={computedHeight - 40}
         loader={<SkeletonRaceTimeline height={computedHeight - 40} />}
         width="100%"

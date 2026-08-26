@@ -98,6 +98,26 @@ function App() {
     }
   };
 
+  function playAudioWithRetry(src, retries = 3, delay = 1000) {
+    const audio = new Audio(src);
+
+    audio.play().catch((error) => {
+      // Check if we have retries left
+      if (retries > 0) {
+        console.warn(`Audio playback failed. Retrying in ${delay}ms... (${retries} retries left)`, error);
+
+        setTimeout(() => {
+          // Appending a timestamp forces the browser to bypass any broken connections or bad cache
+          const freshSrc = `${src}?t=${Date.now()}`;
+          playAudioWithRetry(freshSrc, retries - 1, delay * 1.5);
+        }, delay);
+      } else {
+        console.error(`Audio failed to play after multiple attempts for source: ${src}`);
+      }
+    });
+  }
+
+
   // Global timer to check for upcoming races with enabled alarms
   useEffect(() => {
     // FIXED: Arrays use .length, not .size
@@ -120,15 +140,13 @@ function App() {
           // 2. Are we inside the 2-minute alarm trigger window?
           if (now.getTime() >= triggerTime && now.getTime() < raceDate.getTime()) {
 
-            // 3. Play the audio file safely
-            new Audio('music.mp3').play().catch(() => { });
+            // 3. Play the audio file with automatic retry logic
+            playAudioWithRetry('music.mp3');
 
             // 4. FIXED: Instantly remove it from the store as requested.
-            // This breaks the loop naturally because next tick, step 1 will be false!
             removeAlarm(id);
           }
           else if (now.getTime() >= raceDate.getTime()) {
-            // 2. FIXED: If the race is already in the past, silently remove it to keep the store clean
             removeAlarm(id);
           }
         }
