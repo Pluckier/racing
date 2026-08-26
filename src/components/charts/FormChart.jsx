@@ -38,6 +38,8 @@ const CustomDot = React.memo((props) => {
 
 const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode }) => {
 
+  const GOING_OPTIONS = ['Hvy', 'Sft', 'Gd/Sft', 'Std', 'Gd', 'Gd/Fm', 'Fm'];
+
   const wValue = useStore((state) => state.wValue);
   const dValue = useStore((state) => state.dValue);
   const gValue = useStore((state) => state.gValue);
@@ -99,8 +101,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
   };
 
   const [top2Only, setTop2Only] = useState(false);
-  const [positionFilter, setPositionFilter] = useState(0); // 0 = All, 1 = 1st, 2 = 1st or 2nd, etc.
-  const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(0); // 0 = All, 1 = within 1 length, etc.
+  const [distanceBeatenFilter, setDistanceBeatenFilter] = useState(-1); // 0 = All, 1 = within 1 length, etc.
   const [monthsFilter, setMonthsFilter] = useState(0); // 0 = All, 3-12 = months back
   const [distMargin, setDistMargin] = useState(-1); // -1 = All, 0 = Exact, 1-4 = furlong margin for race distance
   const [goingFilter, setGoingFilter] = useState(false);
@@ -169,13 +170,8 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         const diff = Math.abs(raceFurlongs - todayFurlongs);
         const isSameDist = todayFurlongs > 0 && diff <= (distMargin === -1 ? 0 : distMargin);
 
-        // Apply Position Filter
-        if (positionFilter > 0 && (isNaN(actualPos) || actualPos > positionFilter)) {
-          return; // Exclude if position filter is active and horse didn't meet it
-        }
-
         // Apply Distance Beaten Filter
-        if (distanceBeatenFilter > 0) {
+        if (distanceBeatenFilter >= 0) {
           let meetsDistanceBeaten = false;
           if (isWinner) {
             meetsDistanceBeaten = true; // Winners are considered to have beaten by 0 lengths
@@ -343,7 +339,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
     });
 
     return sortedData;
-  }, [horses, selectedHorse, positionFilter, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, aiMode, wValue, dValue, gValue]);
+  }, [horses, selectedHorse, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, todayGoing, aiMode, wValue, dValue, gValue]);
 
   const CpuIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -468,30 +464,6 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             </select>
           </div>
 
-          {/* Position Filter Slider */}
-          <div className="hide-mobile" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '2px 12px',
-            borderRadius: '20px',
-            border: '1px solid var(--border)',
-            backgroundColor: positionFilter > 0 ? 'var(--accent)' : 'transparent',
-            color: positionFilter > 0 ? 'var(--bg)' : 'var(--text)',
-            fontSize: '13px'
-          }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Pos: {positionFilter === 0 ? 'Off' : `${positionFilter}`}</span>
-            <input
-              type="range"
-              min="0"
-              max="5" // Max 5 positions, adjust as needed
-              step="1"
-              value={positionFilter}
-              onChange={(e) => setPositionFilter(parseInt(e.target.value, 10))}
-              style={{ width: '60px', cursor: 'pointer', accentColor: positionFilter > 0 ? 'var(--bg)' : 'var(--accent)' }}
-            />
-          </div>
-
           {/* Distance Beaten Filter Slider */}
           <div className="hide-mobile" style={{
             display: 'flex',
@@ -504,10 +476,10 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             color: distanceBeatenFilter > 0 ? 'var(--bg)' : 'var(--text)',
             fontSize: '13px'
           }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Btn: {distanceBeatenFilter === 0 ? 'Off' : `<${distanceBeatenFilter}L`}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>Btn: {distanceBeatenFilter === -1 ? ' Off- ' : `<${distanceBeatenFilter}L`}</span>
             <input
               type="range"
-              min="0"
+              min="-1" // Starts at -1 for "All"
               max="5" // Max 5 lengths, adjust as needed
               step="1"
               value={distanceBeatenFilter}
