@@ -38,7 +38,15 @@ const CustomDot = React.memo((props) => {
 
 const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode }) => {
 
-  const GOING_OPTIONS = ['Hvy', 'Sft', 'G/S', 'Std', 'Gd-', 'G/F', 'Fm-'];
+  const GOING_OPTIONS = [
+    { code: 'Hvy', label: 'Hvy' },
+    { code: 'Sft', label: 'Sft' },
+    { code: 'Gd/Sft', label: 'G/S' },
+    { code: 'Std', label: 'Std' },
+    { code: 'Gd', label: 'Gd-' },
+    { code: 'Gd/Fm', label: 'G/F' },
+    { code: 'Fm', label: 'Fm-' }
+  ];
 
   const wValue = useStore((state) => state.wValue);
   const dValue = useStore((state) => state.dValue);
@@ -198,7 +206,11 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
         }
 
         // Apply Going Filter (Exact Match against selected GOING_OPTIONS entry)
-        if (goingFilter >= 0 && race.going !== GOING_OPTIONS[goingFilter]) {
+        let going = race.going;
+        if (going === "Y") {
+          going = "Gd/Sft";
+        }
+        if (goingFilter >= 0 && going !== GOING_OPTIONS[goingFilter].code) {
           return;
         }
 
@@ -524,7 +536,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             color: goingFilter >= 0 ? 'var(--bg)' : 'var(--text)',
             fontSize: '13px'
           }}>
-            <span style={{ whiteSpace: 'nowrap' }}>Going: {goingFilter === -1 ? 'Off-' : GOING_OPTIONS[goingFilter]}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>Going: {goingFilter === -1 ? 'Off-' : GOING_OPTIONS[goingFilter].label}</span>
             <input
               type="range"
               min="-1"
