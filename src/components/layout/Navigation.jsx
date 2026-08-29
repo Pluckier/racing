@@ -46,7 +46,7 @@ const Navigation = ({ displayDate, setDisplayDate, formattedDateTime, summaryTim
             <span onClick={(e) => e.preventDefault()} style={{ cursor: 'default' }}>
               The Racing {formattedDateTime.split(' (')[0]}
             </span>
-            <span className="summary-time-inline" style={{ fontSize: '0.9em', opacity: 0.8, cursor: 'pointer' }}>
+            <span className="summary-time-inline" title={isOpen ? "Close info" : "Info / Settings"} style={{ fontSize: '0.9em', opacity: 0.8, cursor: 'pointer' }}>
               {isOpen ? '▲' : '☰'} {summaryTime}
             </span>
           </h2>

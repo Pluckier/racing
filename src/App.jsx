@@ -7,7 +7,7 @@ import SkeletonRaceTimeline from './components/skeletons/SkeletonRaceTimeline';
 import RaceTimeline from './components/race/RaceTimeline';
 import Modal from './components/common/Modal';
 import OddsMovementSummary from './components/modals/OddsMovementSummary';
-import FavoriteSelections from './components/modals/FavoriteSelections';
+import TrainerSelections from './components/modals/TrainerSelections';
 import Layout from './components/layout/Layout';
 import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
@@ -409,7 +409,7 @@ function App() {
                 setFilters={state.setFilters}
                 uniquePlaces={state.uniquePlaces}
                 onShowMovement={() => state.setActiveModal('movement')}
-                onShowFavorites={() => state.setActiveModal('favorites')}
+                onShowTrainers={() => state.setActiveModal('trainers')}
               />
             </>
           )
@@ -513,13 +513,13 @@ function App() {
             <Modal
               isOpen={!!state.activeModal}
               onClose={() => state.setActiveModal(null)}
-              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Strong Favourites"}
+              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Hot Trainers"}
             >
               {state.activeModal === 'movement' && (
                 <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
               )}
-              {state.activeModal === 'favorites' && (
-                <FavoriteSelections races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
+              {state.activeModal === 'trainers' && (
+                <TrainerSelections onClose={() => state.setActiveModal(null)} />
               )}
             </Modal>
 
