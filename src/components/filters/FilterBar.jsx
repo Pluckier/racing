@@ -33,7 +33,7 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowTr
         <button className="filter-btn movement-summary-btn" onClick={onShowMovement} title="Show odds movements">📊 Odds</button>
         <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Show Hot Trainers & Jockeys">📋 Hot T/J</button>
         <button className={`filter-btn interesting-selections-btn ${filters.value ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, value: !f.value }))} title="Highlight well rated big prices">⭐ Value</button>
-        <button className={`filter-btn fiddle-btn ${filters.fiddle ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, fiddle: !f.fiddle }))} title="Highlight well connected horses">🎻 Fiddles</button>
+        <button className={`filter-btn fiddle-btn ${filters.fiddle ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, fiddle: !f.fiddle }))} title="Highlight well connected horses">🎻 Hot</button>
         <button className={`filter-btn follow-btn ${filters.select ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, select: !f.select }))} title="Highlight top rated 1 run">🎯 Recent</button>
       </div>
     </div>
