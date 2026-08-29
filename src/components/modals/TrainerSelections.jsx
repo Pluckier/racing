@@ -99,127 +99,134 @@ const TrainerSelections = ({ races, onClose }) => {
     <div className="trainer-selections-container" style={{ padding: '10px 5px', maxHeight: '550px', overflowY: 'auto' }}>
       
       {/* Trainers Section */}
-      <h3 style={{
-        color: 'var(--text-h)',
-        borderBottom: '1px solid var(--border)',
-        paddingBottom: '6px',
-        margin: '0 0 12px 0',
-        fontSize: '1.1rem',
-        fontWeight: '600'
-      }}>
-        Trainers Today
-      </h3>
-      
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-        gap: '12px',
-        marginBottom: '24px',
-        paddingRight: '5px'
-      }}>
-        {todaysTrainers.map((trainer) => {
-          const checked = isTrainerChecked(trainer);
-          return (
-            <label
-              key={trainer}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                transition: 'all 0.2s ease',
-                userSelect: 'none',
-                boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => handleToggleTrainer(trainer)}
+      <details style={{ marginBottom: '24px' }}>
+        <summary style={{
+          color: 'var(--text-h)',
+          fontSize: '1.1rem',
+          fontWeight: '600',
+          cursor: 'pointer',
+          paddingBottom: '6px',
+          borderBottom: '1px solid var(--border)',
+          userSelect: 'none',
+          listStylePosition: 'inside'
+        }}>
+          Trainers Today
+        </summary>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: '12px',
+          marginTop: '15px',
+          paddingRight: '5px'
+        }}>
+          {todaysTrainers.map((trainer) => {
+            const checked = isTrainerChecked(trainer);
+            return (
+              <label
+                key={trainer}
                 style={{
-                  width: '18px',
-                  height: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
                   cursor: 'pointer',
-                  accentColor: '#10B981'
+                  fontSize: '0.95rem',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
+                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
+                  transition: 'all 0.2s ease',
+                  userSelect: 'none',
+                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
                 }}
-              />
-              <span style={{
-                color: checked ? 'var(--text-h)' : 'var(--text)',
-                fontWeight: checked ? '600' : 'normal',
-                opacity: checked ? 1 : 0.7
-              }}>
-                {trainer}
-              </span>
-            </label>
-          );
-        })}
-      </div>
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => handleToggleTrainer(trainer)}
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    cursor: 'pointer',
+                    accentColor: '#10B981'
+                  }}
+                />
+                <span style={{
+                  color: checked ? 'var(--text-h)' : 'var(--text)',
+                  fontWeight: checked ? '600' : 'normal',
+                  opacity: checked ? 1 : 0.7
+                }}>
+                  {trainer}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </details>
 
       {/* Jockeys Section */}
-      <h3 style={{
-        color: 'var(--text-h)',
-        borderBottom: '1px solid var(--border)',
-        paddingBottom: '6px',
-        margin: '24px 0 12px 0',
-        fontSize: '1.1rem',
-        fontWeight: '600'
-      }}>
-        Jockeys Today
-      </h3>
-      
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-        gap: '12px',
-        paddingRight: '5px'
-      }}>
-        {todaysJockeys.map((jockey) => {
-          const checked = isJockeyChecked(jockey);
-          return (
-            <label
-              key={jockey}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                transition: 'all 0.2s ease',
-                userSelect: 'none',
-                boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => handleToggleJockey(jockey)}
+      <details>
+        <summary style={{
+          color: 'var(--text-h)',
+          fontSize: '1.1rem',
+          fontWeight: '600',
+          cursor: 'pointer',
+          paddingBottom: '6px',
+          borderBottom: '1px solid var(--border)',
+          userSelect: 'none',
+          listStylePosition: 'inside'
+        }}>
+          Jockeys Today
+        </summary>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: '12px',
+          marginTop: '15px',
+          paddingRight: '5px'
+        }}>
+          {todaysJockeys.map((jockey) => {
+            const checked = isJockeyChecked(jockey);
+            return (
+              <label
+                key={jockey}
                 style={{
-                  width: '18px',
-                  height: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
                   cursor: 'pointer',
-                  accentColor: '#10B981'
+                  fontSize: '0.95rem',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
+                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
+                  transition: 'all 0.2s ease',
+                  userSelect: 'none',
+                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
                 }}
-              />
-              <span style={{
-                color: checked ? 'var(--text-h)' : 'var(--text)',
-                fontWeight: checked ? '600' : 'normal',
-                opacity: checked ? 1 : 0.7
-              }}>
-                {jockey}
-              </span>
-            </label>
-          );
-        })}
-      </div>
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => handleToggleJockey(jockey)}
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    cursor: 'pointer',
+                    accentColor: '#10B981'
+                  }}
+                />
+                <span style={{
+                  color: checked ? 'var(--text-h)' : 'var(--text)',
+                  fontWeight: checked ? '600' : 'normal',
+                  opacity: checked ? 1 : 0.7
+                }}>
+                  {jockey}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </details>
 
     </div>
   );
