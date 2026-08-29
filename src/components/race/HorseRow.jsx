@@ -152,7 +152,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
                 <strong>{horse.name}</strong>{isImprover ? '*' : ''}
                 <span className="highlight-indicators-inline">
                   {highlightSelect && <span className="indicator select" title="Recent Form" />}
-                  {highlightFiddle && <span className="indicator fiddle" title="Hot Trainer" />}
+                  {highlightFiddle && <span className="indicator fiddle" title="Hot Trainer or Jockey" />}
                   {highlightValue && (
                     <span
                       className={`indicator value ${typeof highlightValue === 'string' ? highlightValue : ''}`}
