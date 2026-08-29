@@ -1,11 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { HOT_TRAINERS } from '../../utils/racingLogic';
 
-const TrainerSelections = ({ onClose }) => {
-  // Initialize state with all hot trainers checked
-  const [checkedTrainers, setCheckedTrainers] = useState(
-    () => new Set(HOT_TRAINERS)
-  );
+const TrainerSelections = ({ races, onClose }) => {
+  // Extract all distinct trainers from today's races
+  const todaysTrainers = useMemo(() => {
+    const trainers = new Set();
+    if (races) {
+      races.forEach(race => {
+        if (race.horses) {
+          race.horses.forEach(horse => {
+            if (horse.trainer) {
+              const trimmed = horse.trainer.trim();
+              if (trimmed) {
+                trainers.add(trimmed);
+              }
+            }
+          });
+        }
+      });
+    }
+    return Array.from(trainers);
+  }, [races]);
+
+  // Merge HOT_TRAINERS and todaysTrainers, ensuring uniqueness and alphabetical sorting
+  const allTrainers = useMemo(() => {
+    const union = new Set(HOT_TRAINERS);
+    todaysTrainers.forEach(t => union.add(t));
+    return Array.from(union).sort((a, b) => a.localeCompare(b));
+  }, [todaysTrainers]);
+
+  // Initialize checked state with only the trainers that are in HOT_TRAINERS
+  const [checkedTrainers, setCheckedTrainers] = useState(() => {
+    // Only check trainers that are defined as hot
+    return new Set(HOT_TRAINERS);
+  });
 
   const handleToggle = (trainer) => {
     setCheckedTrainers(prev => {
@@ -29,7 +57,7 @@ const TrainerSelections = ({ onClose }) => {
         overflowY: 'auto',
         paddingRight: '5px'
       }}>
-        {HOT_TRAINERS.map((trainer) => {
+        {allTrainers.map((trainer) => {
           const isChecked = checkedTrainers.has(trainer);
           return (
             <label
@@ -42,10 +70,11 @@ const TrainerSelections = ({ onClose }) => {
                 fontSize: '0.95rem',
                 padding: '8px 12px',
                 borderRadius: '6px',
-                backgroundColor: 'var(--card-bg, #ffffff)',
-                border: '1px solid var(--border, #e2e8f0)',
+                backgroundColor: isChecked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
+                border: isChecked ? '1px solid #10B981' : '1px solid var(--border)',
                 transition: 'all 0.2s ease',
-                userSelect: 'none'
+                userSelect: 'none',
+                boxShadow: isChecked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
               }}
             >
               <input
@@ -59,7 +88,11 @@ const TrainerSelections = ({ onClose }) => {
                   accentColor: '#10B981'
                 }}
               />
-              <span style={{ color: isChecked ? 'var(--text, #1d2d44)' : '#a0aec0', fontWeight: isChecked ? '600' : 'normal' }}>
+              <span style={{
+                color: isChecked ? 'var(--text-h)' : 'var(--text)',
+                fontWeight: isChecked ? '600' : 'normal',
+                opacity: isChecked ? 1 : 0.7
+              }}>
                 {trainer}
               </span>
             </label>

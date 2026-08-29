@@ -519,7 +519,7 @@ function App() {
                 <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
               )}
               {state.activeModal === 'trainers' && (
-                <TrainerSelections onClose={() => state.setActiveModal(null)} />
+                <TrainerSelections races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
               )}
             </Modal>
 
