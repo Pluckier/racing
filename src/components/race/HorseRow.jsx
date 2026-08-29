@@ -3,6 +3,7 @@ import PastRace from './PastRace';
 import '../../css/HorseRow.css';
 import { useStore } from '../../store/alarmStore';
 import { SOFT_COLORS } from '../../constants/chartConstants';
+import { HOT_TRAINERS, HOT_JOCKEYS } from '../../utils/racingLogic';
 
 const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '' }) => {
   const [showForm, setShowForm] = useState(false);
@@ -31,6 +32,34 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
 
   // 1. Fetch the 3-way numerical mode state
   const aiMode = useStore((state) => state.aiMode);
+
+  const selectedTrainers = useStore((state) => state.selectedTrainers);
+  const setSelectedTrainers = useStore((state) => state.setSelectedTrainers);
+  const selectedJockeys = useStore((state) => state.selectedJockeys);
+  const setSelectedJockeys = useStore((state) => state.setSelectedJockeys);
+
+  const handleFiddleClick = (e) => {
+    e.stopPropagation(); // Prevent row toggling/collapse
+
+    const horseTrainer = horse.trainer ? horse.trainer.trim() : '';
+    const horseJockey = horse.jockey ? horse.jockey.trim() : '';
+
+    // Remove trainer from store selections
+    let currentTrainers = selectedTrainers;
+    if (currentTrainers === null) {
+      currentTrainers = HOT_TRAINERS;
+    }
+    const nextTrainers = currentTrainers.filter(t => !horseTrainer.includes(t) && !t.includes(horseTrainer));
+    setSelectedTrainers(nextTrainers);
+
+    // Remove jockey from store selections
+    let currentJockeys = selectedJockeys;
+    if (currentJockeys === null) {
+      currentJockeys = HOT_JOCKEYS;
+    }
+    const nextJockeys = currentJockeys.filter(j => !horseJockey.includes(j) && !j.includes(horseJockey));
+    setSelectedJockeys(nextJockeys);
+  };
 
   // 2. Clear helper to safely parse individual run metrics based on state
   const getRating = (run) => {
@@ -152,7 +181,14 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
                 <strong>{horse.name}</strong>{isImprover ? '*' : ''}
                 <span className="highlight-indicators-inline">
                   {highlightSelect && <span className="indicator select" title="Recent Form" />}
-                  {highlightFiddle && <span className="indicator fiddle" title="Hot Trainer or Jockey" />}
+                  {highlightFiddle && (
+                    <span
+                      className="indicator fiddle"
+                      title="Hot Trainer or Jockey - removes hot"
+                      onClick={handleFiddleClick}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  )}
                   {highlightValue && (
                     <span
                       className={`indicator value ${typeof highlightValue === 'string' ? highlightValue : ''}`}
