@@ -61,6 +61,51 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
     setSelectedJockeys(nextJockeys);
   };
 
+  const handleTrainerClick = (e) => {
+    e.stopPropagation();
+    const trainerName = horse.trainer ? horse.trainer.trim() : '';
+    if (!trainerName) return;
+
+    let currentTrainers = selectedTrainers;
+    if (currentTrainers === null) {
+      currentTrainers = HOT_TRAINERS;
+    }
+
+    if (currentTrainers.some(t => trainerName.includes(t) || t.includes(trainerName))) {
+      setSelectedTrainers(currentTrainers.filter(t => !trainerName.includes(t) && !t.includes(trainerName)));
+    } else {
+      setSelectedTrainers([...currentTrainers, trainerName]);
+    }
+  };
+
+  const handleJockeyClick = (e) => {
+    e.stopPropagation();
+    const jockeyName = horse.jockey ? horse.jockey.trim() : '';
+    if (!jockeyName) return;
+
+    let currentJockeys = selectedJockeys;
+    if (currentJockeys === null) {
+      currentJockeys = HOT_JOCKEYS;
+    }
+
+    if (currentJockeys.some(j => jockeyName.includes(j) || j.includes(jockeyName))) {
+      setSelectedJockeys(currentJockeys.filter(j => !jockeyName.includes(j) && !j.includes(jockeyName)));
+    } else {
+      setSelectedJockeys([...currentJockeys, jockeyName]);
+    }
+  };
+
+  const trainerTrimmed = horse.trainer ? horse.trainer.trim() : '';
+  const jockeyTrimmed = horse.jockey ? horse.jockey.trim() : '';
+
+  const isTrainerHighlighted = selectedTrainers !== null 
+    ? selectedTrainers.some(t => trainerTrimmed.includes(t) || t.includes(trainerTrimmed))
+    : HOT_TRAINERS.some(t => trainerTrimmed.includes(t));
+
+  const isJockeyHighlighted = selectedJockeys !== null 
+    ? selectedJockeys.some(j => jockeyTrimmed.includes(j) || j.includes(jockeyTrimmed))
+    : HOT_JOCKEYS.some(j => jockeyTrimmed.includes(j));
+
   // 2. Clear helper to safely parse individual run metrics based on state
   const getRating = (run) => {
     if (!run) return 0;
@@ -204,10 +249,30 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
           </div>
         </div>
         <div className="horse-personnel-column hide-mobile hide-mobile-medium">
-          <div className="jockey-row" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+          <div
+            className="jockey-row"
+            onClick={handleJockeyClick}
+            title={isJockeyHighlighted ? "Click to remove jockey from highlights" : "Click to highlight jockey"}
+            style={{
+              textAlign: 'right',
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+              fontWeight: isJockeyHighlighted ? 'bold' : 'normal'
+            }}
+          >
             <strong>J:</strong> {horse.jockey}
           </div>
-          <div className="trainer-row" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+          <div
+            className="trainer-row"
+            onClick={handleTrainerClick}
+            title={isTrainerHighlighted ? "Click to remove trainer from highlights" : "Click to highlight trainer"}
+            style={{
+              textAlign: 'right',
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+              fontWeight: isTrainerHighlighted ? 'bold' : 'normal'
+            }}
+          >
             <strong>T:</strong> {horse.trainer}
             {horse.breeding && <span className="cell-breeding"> • <strong>B:</strong> {horse.breeding}</span>}
           </div>
