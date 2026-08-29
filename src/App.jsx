@@ -442,7 +442,13 @@ function App() {
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === 0}
-                  style={{ flex: 1, padding: '21px 0' }}
+                  style={{ 
+                    flex: 1, 
+                    padding: '21px 0',
+                    /* Adds conditional visual styling */
+                    opacity: activeRaceIndex === 0 ? 0.5 : 1,
+                    cursor: activeRaceIndex === 0 ? 'not-allowed' : 'pointer'
+                  }}
                   onClick={() => {
                     const race = state.filteredRaces[activeRaceIndex - 1];
                     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
@@ -495,7 +501,13 @@ function App() {
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === state.filteredRaces.length - 1}
-                  style={{ flex: 1, padding: '21px 0' }}
+                  style={{ 
+                    flex: 1, 
+                    padding: '21px 0',
+                    /* Matches the same visual disabled states */
+                    opacity: activeRaceIndex >= state.filteredRaces.length - 1 ? 0.5 : 1,
+                    cursor: activeRaceIndex >= state.filteredRaces.length - 1 ? 'not-allowed' : 'pointer'
+                  }}
                   onClick={() => {
                     const race = state.filteredRaces[activeRaceIndex + 1];
                     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
