@@ -18,6 +18,8 @@ export const useStore = create(
 
             // Selected trainers list (defaults to null)
             selectedTrainers: null,
+            // Selected jockeys list (defaults to null)
+            selectedJockeys: null,
 
             // =================================================================
             // 2. ALARM ACTIONS
@@ -46,9 +48,10 @@ export const useStore = create(
             }),
 
             // =================================================================
-            // 4. TRAINER ACTIONS
+            // 4. TRAINER/JOCKEY ACTIONS
             // =================================================================
             setSelectedTrainers: (trainers) => set({ selectedTrainers: trainers }),
+            setSelectedJockeys: (jockeys) => set({ selectedJockeys: jockeys }),
 
             // =================================================================
             // 5. SLIDER ACTIONS
