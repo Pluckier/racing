@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { HOT_TRAINERS } from '../../utils/racingLogic';
 
 const TrainerSelections = ({ races, onClose }) => {
-  // Extract all distinct trainers from today's races
+  // Extract all distinct trainers from today's races and sort alphabetically
   const todaysTrainers = useMemo(() => {
     const trainers = new Set();
     if (races) {
@@ -19,20 +19,19 @@ const TrainerSelections = ({ races, onClose }) => {
         }
       });
     }
-    return Array.from(trainers);
+    return Array.from(trainers).sort((a, b) => a.localeCompare(b));
   }, [races]);
 
-  // Merge HOT_TRAINERS and todaysTrainers, ensuring uniqueness and alphabetical sorting
-  const allTrainers = useMemo(() => {
-    const union = new Set(HOT_TRAINERS);
-    todaysTrainers.forEach(t => union.add(t));
-    return Array.from(union).sort((a, b) => a.localeCompare(b));
-  }, [todaysTrainers]);
-
-  // Initialize checked state with only the trainers that are in HOT_TRAINERS
+  // Initialize checked state with only active trainers that are also HOT_TRAINERS
   const [checkedTrainers, setCheckedTrainers] = useState(() => {
-    // Only check trainers that are defined as hot
-    return new Set(HOT_TRAINERS);
+    const checked = new Set();
+    todaysTrainers.forEach(trainer => {
+      const isHot = HOT_TRAINERS.some(t => trainer.includes(t));
+      if (isHot) {
+        checked.add(trainer);
+      }
+    });
+    return checked;
   });
 
   const handleToggle = (trainer) => {
@@ -57,7 +56,7 @@ const TrainerSelections = ({ races, onClose }) => {
         overflowY: 'auto',
         paddingRight: '5px'
       }}>
-        {allTrainers.map((trainer) => {
+        {todaysTrainers.map((trainer) => {
           const isChecked = checkedTrainers.has(trainer);
           return (
             <label

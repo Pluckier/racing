@@ -166,11 +166,11 @@ function App() {
       if (!hash) {
         if (state.filteredRaces.length > 0) {
           let selectedRace = state.filteredRaces[0];
-          
+
           // Find the next race if display date is today
           const now = new Date();
           const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-          
+
           if (currentDateStr === todayStr) {
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
             const upcomingRace = state.filteredRaces.find(r => {
@@ -513,7 +513,7 @@ function App() {
             <Modal
               isOpen={!!state.activeModal}
               onClose={() => state.setActiveModal(null)}
-              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Hot Trainers"}
+              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Today's Trainers (Hot Trainer)"}
             >
               {state.activeModal === 'movement' && (
                 <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
