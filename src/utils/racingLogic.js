@@ -18,6 +18,8 @@ export const HOT_TRAINERS = [
   "Charlie Appleby", "Martin Keighley", "Ben Pauling", "Jonjo & A.J. O'Neill", "Clive Cox", "George Boughey"
 ];
 
+export const HOT_FOALED = [];
+
 export const HOT_JOCKEYS = [];
 
 /**

@@ -20,6 +20,10 @@ export const useStore = create(
             selectedTrainers: null,
             // Selected jockeys list (defaults to null)
             selectedJockeys: null,
+            // Selected owners list (defaults to null)
+            selectedOwners: null,
+            // Selected foaled list (defaults to null)
+            selectedFoaled: null,
 
             // =================================================================
             // 2. ALARM ACTIONS
@@ -52,6 +56,8 @@ export const useStore = create(
             // =================================================================
             setSelectedTrainers: (trainers) => set({ selectedTrainers: trainers }),
             setSelectedJockeys: (jockeys) => set({ selectedJockeys: jockeys }),
+            setSelectedOwners: (owners) => set({ selectedOwners: owners }),
+            setSelectedFoaled: (foaled) => set({ selectedFoaled: foaled }),
 
             // =================================================================
             // 5. SLIDER ACTIONS
