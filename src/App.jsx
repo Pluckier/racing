@@ -165,9 +165,26 @@ function App() {
 
       if (!hash) {
         if (state.filteredRaces.length > 0) {
-          const firstRace = state.filteredRaces[0];
-          const firstId = `${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
-          window.location.hash = `${currentDateStr}@${firstId}`;
+          let selectedRace = state.filteredRaces[0];
+          
+          // Find the next race if display date is today
+          const now = new Date();
+          const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          
+          if (currentDateStr === todayStr) {
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const upcomingRace = state.filteredRaces.find(r => {
+              if (!r.time) return false;
+              const [hours, minutes] = r.time.split(':').map(Number);
+              return (hours * 60 + minutes) >= currentMinutes;
+            });
+            if (upcomingRace) {
+              selectedRace = upcomingRace;
+            }
+          }
+
+          const targetId = `${selectedRace.time}${selectedRace.place.replace(/\s+/g, '')}`;
+          window.location.hash = `${currentDateStr}@${targetId}`;
         }
         return;
       }
