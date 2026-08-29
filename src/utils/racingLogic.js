@@ -21,7 +21,7 @@ export const HOT_TRAINERS = [
 /**
  * Determines if a horse is a "Fiddle" based on connections and odds.
  */
-export const isFiddleHorse = (horse) => {
+export const isFiddleHorse = (horse, activeTrainersList = null) => {
   if (!horse) return false;
   const oddsArray = horse.odds || [];
   const latestOddRaw = oddsArray[oddsArray.length - 1];
@@ -34,15 +34,18 @@ export const isFiddleHorse = (horse) => {
 
   const owner = (horse.owner || "");
   const trainer = (horse.trainer || "");
+
+  const trainersToUse = activeTrainersList !== null ? activeTrainersList : HOT_TRAINERS;
+
   return HOT_OWNERS.some(o => owner.includes(o)) ||
-    HOT_TRAINERS.some(t => trainer.includes(t));
+    trainersToUse.some(t => trainer.includes(t));
 };
 
 /**
  * Injects 'isValue' and 'isFiddle' flags into horse objects within a race.
  * NOW ACCEPTS aiMode AS A SECOND PARAMETER
  */
-export const augmentRaceWithStats = (race, aiMode = 0) => {
+export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null) => {
   const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
   const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
 
@@ -81,7 +84,7 @@ export const augmentRaceWithStats = (race, aiMode = 0) => {
 
       return {
         ...h,
-        isFiddle: isFiddleHorse(h),
+        isFiddle: isFiddleHorse(h, activeTrainersList),
         isValue: isValue
       };
     })

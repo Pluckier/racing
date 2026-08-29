@@ -11,10 +11,13 @@ export const useStore = create(
             // 0 = Off, 1 = Basic/Mode A, 2 = Advanced/Mode B
             aiMode: 0,
 
-            // W/D/G slider values (0-100)
+             // W/D/G slider values (0-100)
             wValue: 0,
             dValue: 0,
             gValue: 0,
+
+            // Selected trainers list (defaults to null)
+            selectedTrainers: null,
 
             // =================================================================
             // 2. ALARM ACTIONS
@@ -43,7 +46,12 @@ export const useStore = create(
             }),
 
             // =================================================================
-            // 4. SLIDER ACTIONS
+            // 4. TRAINER ACTIONS
+            // =================================================================
+            setSelectedTrainers: (trainers) => set({ selectedTrainers: trainers }),
+
+            // =================================================================
+            // 5. SLIDER ACTIONS
             // =================================================================
             setW: (v) => set({ wValue: Math.min(100, Math.max(0, v)) }),
             setD: (v) => set({ dValue: Math.min(100, Math.max(0, v)) }),

@@ -5,6 +5,7 @@ import { useStore } from '../store/alarmStore';
 export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
   const aiMode = useStore((state) => state.aiMode);
   const toggleAi = useStore((state) => state.toggleAi);
+  const selectedTrainers = useStore((state) => state.selectedTrainers);
 
   return useMemo(() => {
     const today = new Date();
@@ -19,7 +20,7 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
     const pool = Array.isArray(races) ? races : [];
 
     return pool
-      .map(race => augmentRaceWithStats(race, aiMode))
+      .map(race => augmentRaceWithStats(race, aiMode, selectedTrainers))
       .filter(race => {
         if (!race?.time) return false;
 
@@ -34,5 +35,5 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
         const matchesFollow = !filters.follow || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
         return matchesPlace && matchesTricast && matchesFollow;
       });
-  }, [races, filters, currentTime, displayDate, aiMode]);
+  }, [races, filters, currentTime, displayDate, aiMode, selectedTrainers]);
 };
