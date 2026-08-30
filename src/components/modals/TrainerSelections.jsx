@@ -97,6 +97,16 @@ const TrainerSelections = ({ races, onClose }) => {
   }, [races]);
   
 
+  const handleDeselectAll = () => {
+    // Pass an empty array (or null, depending on your store preference)
+    setSelectedTrainers([]); 
+  };
+
+  const handleSetToDefaults = () => {
+    // Pass your default HOT_TRAINERS array directly into the state setter
+    setSelectedTrainers(HOT_TRAINERS);
+  };
+
   // Trainer checking logic
   const isTrainerChecked = (trainer) => {
     if (selectedTrainers === null) {
@@ -192,70 +202,121 @@ const TrainerSelections = ({ races, onClose }) => {
   return (
     <div className="trainer-selections-container" style={{ padding: '10px 5px', maxHeight: '550px', overflowY: 'auto' }}>
       
-      {/* Trainers Section */}
-      <details style={{ marginBottom: '24px' }}>
-        <summary style={{
-          color: 'var(--text-h)',
-          fontSize: '1.1rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          paddingBottom: '6px',
-          borderBottom: '1px solid var(--border)',
-          userSelect: 'none',
-          listStylePosition: 'inside'
-        }}>
-          Trainers Today
-        </summary>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '12px',
-          marginTop: '15px',
-          paddingRight: '5px'
-        }}>
-          {todaysTrainers.map((trainer) => {
-            const checked = isTrainerChecked(trainer);
-            return (
-              <label
-                key={trainer}
+    {/* Trainers Section */}
+    <details style={{ marginBottom: '24px' }}>
+      <summary style={{
+        color: 'var(--text-h)',
+        fontSize: '1.1rem',
+        fontWeight: '600',
+        cursor: 'pointer',
+        paddingBottom: '6px',
+        borderBottom: '1px solid var(--border)',
+        userSelect: 'none',
+        listStylePosition: 'inside'
+      }}>
+        Trainers Today
+      </summary>
+
+      {/* New Actions/Controls Bar */}
+      <div style={{
+        display: 'flex',
+        gap: '16px',
+        marginTop: '12px',
+        paddingLeft: '4px',
+        fontSize: '0.85rem',
+        color: 'var(--text-muted, var(--text))'
+      }}>
+      <button 
+          type="button"
+          onClick={handleDeselectAll} 
+          style={{
+            background: 'none',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted, var(--text))',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          Deselect All
+        </button>
+
+        <button 
+          type="button"
+          onClick={handleSetToDefaults} 
+          style={{
+            background: 'none',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted, var(--text))',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          Set to Defaults
+        </button>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+        gap: '12px',
+        marginTop: '12px', // Slightly reduced to balance the new action bar
+        paddingRight: '5px'
+      }}>
+        {todaysTrainers.map((trainer) => {
+          const checked = isTrainerChecked(trainer);
+          return (
+            <label
+              key={trainer}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
+                border: checked ? '1px solid #10B981' : '1px solid var(--border)',
+                transition: 'all 0.2s ease',
+                userSelect: 'none',
+                boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => handleToggleTrainer(trainer)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
+                  width: '18px',
+                  height: '18px',
                   cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none',
-                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
+                  accentColor: '#10B981'
                 }}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => handleToggleTrainer(trainer)}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    accentColor: '#10B981'
-                  }}
-                />
-                <span style={{
-                  color: checked ? 'var(--text-h)' : 'var(--text)',
-                  fontWeight: checked ? '600' : 'normal',
-                  opacity: checked ? 1 : 0.7
-                }}>
-                  {trainer}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </details>
+              />
+              <span style={{
+                color: checked ? 'var(--text-h)' : 'var(--text)',
+                fontWeight: checked ? '600' : 'normal',
+                opacity: checked ? 1 : 0.7
+              }}>
+                {trainer}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </details>
 
       {/* Jockeys Section */}
       <details>

@@ -25,7 +25,7 @@ export const HOT_JOCKEYS = [];
 /**
  * Determines if a horse is a "Fiddle" based on connections and odds.
  */
-export const isFiddleHorse = (horse, activeTrainersList = null, activeJockeysList = null) => {
+export const isFiddleHorse = (horse, activeTrainersList = null, activeJockeysList = null, activeOwnersList = null, activeFoaledList = null) => {
   if (!horse) return false;
   const oddsArray = horse.odds || [];
   const latestOddRaw = oddsArray[oddsArray.length - 1];
@@ -37,22 +37,26 @@ export const isFiddleHorse = (horse, activeTrainersList = null, activeJockeysLis
   if (isNaN(currentOdds) || currentOdds <= 1) return false;
 
   const owner = (horse.owner || "");
+  const foaled = (horse.foaled || "");
   const trainer = (horse.trainer || "");
   const jockey = (horse.jockey || "");
 
   const trainersToUse = activeTrainersList !== null ? activeTrainersList : HOT_TRAINERS;
   const jockeysToUse = activeJockeysList !== null ? activeJockeysList : HOT_JOCKEYS;
+  const ownersToUse = activeOwnersList !== null ? activeOwnersList : HOT_OWNERS;
+  const foaledToUse = activeFoaledList !== null ? activeFoaledList : HOT_FOALED;
 
-  return HOT_OWNERS.some(o => owner.includes(o)) ||
+  return ownersToUse.some(o => owner.includes(o)) ||
     trainersToUse.some(t => trainer.includes(t)) ||
-    jockeysToUse.some(j => jockey.includes(j));
+    jockeysToUse.some(j => jockey.includes(j)) ||
+    foaledToUse.some(f => foaled.includes(f));
 };
 
 /**
  * Injects 'isValue' and 'isFiddle' flags into horse objects within a race.
  * NOW ACCEPTS aiMode AS A SECOND PARAMETER
  */
-export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null, activeJockeysList = null) => {
+export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null, activeJockeysList = null, activeOwnersList = null, activeFoaledList = null) => {
   const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
   const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
 
@@ -91,7 +95,7 @@ export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null
 
       return {
         ...h,
-        isFiddle: isFiddleHorse(h, activeTrainersList, activeJockeysList),
+        isFiddle: isFiddleHorse(h, activeTrainersList, activeJockeysList, activeOwnersList, activeFoaledList),
         isValue: isValue
       };
     })

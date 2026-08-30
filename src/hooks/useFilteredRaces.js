@@ -7,6 +7,8 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
   const toggleAi = useStore((state) => state.toggleAi);
   const selectedTrainers = useStore((state) => state.selectedTrainers);
   const selectedJockeys = useStore((state) => state.selectedJockeys);
+  const selectedOwners = useStore((state) => state.selectedOwners);
+  const selectedFoaled = useStore((state) => state.selectedFoaled);
 
   return useMemo(() => {
     const today = new Date();
@@ -21,7 +23,7 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
     const pool = Array.isArray(races) ? races : [];
 
     return pool
-      .map(race => augmentRaceWithStats(race, aiMode, selectedTrainers, selectedJockeys))
+      .map(race => augmentRaceWithStats(race, aiMode, selectedTrainers, selectedJockeys, selectedOwners, selectedFoaled))
       .filter(race => {
         if (!race?.time) return false;
 
@@ -36,5 +38,5 @@ export const useFilteredRaces = (races, filters, currentTime, displayDate) => {
         const matchesFollow = !filters.follow || isFuture || !isToday || nowMinutes <= (raceMinutes + 3);
         return matchesPlace && matchesTricast && matchesFollow;
       });
-  }, [races, filters, currentTime, displayDate, aiMode, selectedTrainers, selectedJockeys]);
+  }, [races, filters, currentTime, displayDate, aiMode, selectedTrainers, selectedJockeys, selectedOwners, selectedFoaled]);
 };

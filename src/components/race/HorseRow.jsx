@@ -37,12 +37,18 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const setSelectedTrainers = useStore((state) => state.setSelectedTrainers);
   const selectedJockeys = useStore((state) => state.selectedJockeys);
   const setSelectedJockeys = useStore((state) => state.setSelectedJockeys);
+  const selectedOwners = useStore((state) => state.selectedOwners);
+  const setSelectedOwners = useStore((state) => state.setSelectedOwners);
+  const selectedFoaled = useStore((state) => state.selectedFoaled);
+  const setSelectedFoaled = useStore((state) => state.setSelectedFoaled);
 
   const handleFiddleClick = (e) => {
     e.stopPropagation(); // Prevent row toggling/collapse
 
     const horseTrainer = horse.trainer ? horse.trainer.trim() : '';
     const horseJockey = horse.jockey ? horse.jockey.trim() : '';
+    const horseOwner = horse.owner ? horse.owner.trim() : '';
+    const horseFoaled = horse.foaled ? horse.foaled.trim() : '';
 
     // Remove trainer from store selections
     let currentTrainers = selectedTrainers;
@@ -59,6 +65,24 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
     }
     const nextJockeys = currentJockeys.filter(j => !horseJockey.includes(j) && !j.includes(horseJockey));
     setSelectedJockeys(nextJockeys);
+
+    // Remove owner from store selections
+    let currentOwners = selectedOwners;
+    if (currentOwners === null) {
+      currentOwners = HOT_OWNERS;
+    }
+    const nextOwners = currentOwners.filter(o => !horseOwner.includes(o) && !o.includes(horseOwner));
+    setSelectedOwners(nextOwners);
+
+    // Remove foaled from store selections
+    let currentFoaled = selectedFoaled;
+    if (currentFoaled === null) {
+      currentFoaled = HOT_FOALED;
+    }
+    const nextFoaled = currentFoaled.filter(f => !horseFoaled.includes(f) && !f.includes(horseFoaled));
+    setSelectedFoaled(nextFoaled);
+
+
   };
 
   const handleTrainerClick = (e) => {
@@ -229,7 +253,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
                   {highlightFiddle && (
                     <span
                       className="indicator fiddle"
-                      title="Hot Trainer or Jockey - removes hot"
+                      title="Hot Connection - removes hot"
                       onClick={handleFiddleClick}
                       style={{ cursor: 'pointer' }}
                     />

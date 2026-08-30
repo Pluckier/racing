@@ -525,7 +525,7 @@ function App() {
             <Modal
               isOpen={!!state.activeModal}
               onClose={() => state.setActiveModal(null)}
-              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Today's Trainers & Jockeys (Hot 🟠)"}
+              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Today's Connections (Hot 🟠)"}
             >
               {state.activeModal === 'movement' && (
                 <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
