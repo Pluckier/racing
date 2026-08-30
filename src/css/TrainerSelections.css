@@ -1,0 +1,58 @@
+.category-summary {
+  color: var(--text-h);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+  list-style-position: inside;
+}
+
+.category-buttons {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    padding-left: 4px;
+    font-size: 0.85rem;
+    color: var(--text-muted, var(--text));
+}
+
+.theButton{
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted, var(--text));
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 12px; 
+    padding-right: 5px
+}
+
+.theCheck {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.check {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #10B981;
+}

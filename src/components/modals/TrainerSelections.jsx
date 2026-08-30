@@ -1,218 +1,84 @@
 import React, { useMemo } from 'react';
 import { HOT_TRAINERS, HOT_JOCKEYS, HOT_FOALED, HOT_OWNERS } from '../../utils/racingLogic';
 import { useStore } from '../../store/alarmStore';
+import '../../css/TrainerSelections.css';
 
-const TrainerSelections = ({ races, onClose }) => {
-  const selectedTrainers = useStore((state) => state.selectedTrainers);
-  const setSelectedTrainers = useStore((state) => state.setSelectedTrainers);
+const extractUniqueHorseProperty = (races, propertyKey) => {
+    const uniqueSet = new Set();
+    
+    races?.forEach(race => {
+      race.horses?.forEach(horse => {
+        const value = horse[propertyKey]?.trim();
+        if (value) {
+          uniqueSet.add(value);
+        }
+      });
+    });
+
+    return Array.from(uniqueSet).sort((a, b) => a.localeCompare(b));
+  };
+
   
+const TrainerSelections = ({ races, onClose }) => {
+
+// Selected lists (arrays)
+  const selectedTrainers = useStore((state) => state.selectedTrainers);
   const selectedJockeys = useStore((state) => state.selectedJockeys);
-  const setSelectedJockeys = useStore((state) => state.setSelectedJockeys);
-
   const selectedOwners = useStore((state) => state.selectedOwners);
-  const setSelectedOwners = useStore((state) => state.setSelectedOwners);
-
   const selectedFoaled = useStore((state) => state.selectedFoaled);
+
+  // State setters (functions)
+  const setSelectedTrainers = useStore((state) => state.setSelectedTrainers);
+  const setSelectedJockeys = useStore((state) => state.setSelectedJockeys);
+  const setSelectedOwners = useStore((state) => state.setSelectedOwners);
   const setSelectedFoaled = useStore((state) => state.setSelectedFoaled);
 
-  // Extract all distinct trainers from today's races
-  const todaysTrainers = useMemo(() => {
-    const trainers = new Set();
-    if (races) {
-      races.forEach(race => {
-        if (race.horses) {
-          race.horses.forEach(horse => {
-            if (horse.trainer) {
-              const trimmed = horse.trainer.trim();
-              if (trimmed) {
-                trainers.add(trimmed);
-              }
-            }
-          });
-        }
-      });
-    }
-    return Array.from(trainers).sort((a, b) => a.localeCompare(b));
+  // 2. Compute all four lists efficiently in a single useMemo loop
+  const { todaysTrainers, todaysJockeys, todaysOwners, todaysFoaled } = useMemo(() => {
+    return {
+      todaysTrainers: extractUniqueHorseProperty(races, 'trainer'),
+      todaysJockeys:  extractUniqueHorseProperty(races, 'jockey'),
+      todaysOwners:   extractUniqueHorseProperty(races, 'owner'),
+      todaysFoaled:   extractUniqueHorseProperty(races, 'foaled'),
+    };
   }, [races]);
 
-  // Extract all distinct jockeys from today's races
-  const todaysJockeys = useMemo(() => {
-    const jockeys = new Set();
-    if (races) {
-      races.forEach(race => {
-        if (race.horses) {
-          race.horses.forEach(horse => {
-            if (horse.jockey) {
-              const trimmed = horse.jockey.trim();
-              if (trimmed) {
-                jockeys.add(trimmed);
-              }
-            }
-          });
-        }
-      });
-    }
-    return Array.from(jockeys).sort((a, b) => a.localeCompare(b));
-  }, [races]);
-
-  // Extract all distinct jockeys from today's races
-  const todaysOwners = useMemo(() => {
-    const owners = new Set();
-    if (races) {
-      races.forEach(race => {
-        if (race.horses) {
-          race.horses.forEach(horse => {
-            if (horse.owner) {
-              const trimmed = horse.owner.trim();
-              if (trimmed) {
-                owners.add(trimmed);
-              }
-            }
-          });
-        }
-      });
-    }
-    return Array.from(owners).sort((a, b) => a.localeCompare(b));
-  }, [races]);
-
-  //"foaled": "D: Moon Of Love (Kodiac) S: Cotai Glory",
-  // Extract all distinct jockeys from today's races
-  const todaysFoaled = useMemo(() => {
-    const foaled = new Set();
-    if (races) {
-      races.forEach(race => {
-        if (race.horses) {
-          race.horses.forEach(horse => {
-            if (horse.foaled) {
-              const trimmed = horse.foaled.trim();
-              if (trimmed) {
-                foaled.add(trimmed);
-              }
-            }
-          });
-        }
-      });
-    }
-    return Array.from(foaled).sort((a, b) => a.localeCompare(b));
-  }, [races]);
-  
+  const RACING_CONFIG = {
+    trainers: { selected: selectedTrainers, setter: setSelectedTrainers, todays: todaysTrainers, hot: HOT_TRAINERS },
+    jockeys:  { selected: selectedJockeys,  setter: setSelectedJockeys,  todays: todaysJockeys,  hot: HOT_JOCKEYS },
+    owners:   { selected: selectedOwners,   setter: setSelectedOwners,   todays: todaysOwners,   hot: HOT_OWNERS },
+    parents:  { selected: selectedFoaled,   setter: setSelectedFoaled,   todays: todaysFoaled,   hot: HOT_FOALED }
+  };
 
   const handleDeselectAll = (key) => {
-    // Pass an empty array (or null, depending on your store preference)
-    if(key === 'trainers') {
-      setSelectedTrainers([]); 
-    } else if(key === 'jockeys') {
-      setSelectedJockeys([]); 
-    } else if(key === 'owners') {
-      setSelectedOwners([]); 
-    } else if(key === 'parents') {
-      setSelectedFoaled([]); 
-    }
+    RACING_CONFIG[key]?.setter([]);
   };
 
   const handleSetToDefaults = (key) => {
-    // Pass your default arrays directly into the state setter
-    if(key === 'trainers') {
-      setSelectedTrainers(HOT_TRAINERS);
-    } else if(key === 'jockeys') {
-      setSelectedJockeys(HOT_JOCKEYS);
-    } else if(key === 'owners') {
-      setSelectedOwners(HOT_OWNERS);
-    } else if(key === 'parents') {
-      setSelectedFoaled(HOT_FOALED);
-    }
+    const config = RACING_CONFIG[key];
+    if (config) config.setter(config.hot);
   };
 
-  // Trainer checking logic
-  const isTrainerChecked = (trainer) => {
-    if (selectedTrainers === null) {
-      return HOT_TRAINERS.some(t => trainer.includes(t));
-    }
-    return selectedTrainers.includes(trainer);
+  const isItemChecked = (item, key) => {
+    const config = RACING_CONFIG[key];
+    if (!config) return false;
+    return config.selected === null 
+      ? config.hot.some(h => item.includes(h)) 
+      : config.selected.includes(item);
   };
 
-  const handleToggleTrainer = (trainer) => {
-    let currentCheckedList;
-    if (selectedTrainers === null) {
-      currentCheckedList = todaysTrainers.filter(t => HOT_TRAINERS.some(hot => t.includes(hot)));
-    } else {
-      currentCheckedList = [...selectedTrainers];
-    }
+  const handleToggleItem = (item, key) => {
+    const config = RACING_CONFIG[key];
+    if (!config) return;
 
-    if (currentCheckedList.includes(trainer)) {
-      setSelectedTrainers(currentCheckedList.filter(t => t !== trainer));
-    } else {
-      setSelectedTrainers([...currentCheckedList, trainer]);
-    }
-  };
+    const { selected, setter, todays, hot } = config;
+    const currentList = selected === null ? todays.filter(t => hot.some(h => t.includes(h))) : [...selected];
 
-  // Jockey checking logic
-  const isJockeyChecked = (jockey) => {
-    if (selectedJockeys === null) {
-      return HOT_JOCKEYS.some(j => jockey.includes(j));
-    }
-    return selectedJockeys.includes(jockey);
-  };
-
-  // Jockey checking logic
-  const isOwnerChecked = (owner) => {
-    if (selectedOwners === null) {
-      return HOT_OWNERS.some(o => owner.includes(o));
-    }
-    return selectedOwners.includes(owner);
-  };
-
-  const handleToggleOwner = (owner) => {
-    let currentCheckedList;
-    if (selectedOwners === null) {
-      currentCheckedList = todaysOwners.filter(o => HOT_OWNERS.some(hot => o.includes(hot)));
-    } else {
-      currentCheckedList = [...selectedOwners];
-    }
-
-    if (currentCheckedList.includes(owner)) {
-      setSelectedOwners(currentCheckedList.filter(o => o !== owner));
-    } else {
-      setSelectedOwners([...currentCheckedList, owner]);
-    }
-  };
-
-  // Jockey checking logic
-  const isFoaledChecked = (foaled) => {
-    if (selectedFoaled === null) {
-      return HOT_FOALED.some(f => foaled.includes(f));
-    }
-    return selectedFoaled.includes(foaled);
-  };
-
-  const handleToggleFoaled = (foaled) => {
-    let currentCheckedList;
-    if (selectedFoaled === null) {
-      currentCheckedList = todaysFoaled.filter(f => HOT_FOALED.some(hot => f.includes(hot)));
-    } else {
-      currentCheckedList = [...selectedFoaled];
-    }
-
-    if (currentCheckedList.includes(foaled)) {
-      setSelectedFoaled(currentCheckedList.filter(f => f !== foaled));
-    } else {
-      setSelectedFoaled([...currentCheckedList, foaled]);
-    }
-  };
-
-  const handleToggleJockey = (jockey) => {
-    let currentCheckedList;
-    if (selectedJockeys === null) {
-      currentCheckedList = todaysJockeys.filter(j => HOT_JOCKEYS.some(hot => j.includes(hot)));
-    } else {
-      currentCheckedList = [...selectedJockeys];
-    }
-
-    if (currentCheckedList.includes(jockey)) {
-      setSelectedJockeys(currentCheckedList.filter(j => j !== jockey));
-    } else {
-      setSelectedJockeys([...currentCheckedList, jockey]);
-    }
+    setter(
+      currentList.includes(item) 
+        ? currentList.filter(i => i !== item) 
+        : [...currentList, item]
+    );
   };
 
   return (
@@ -220,42 +86,16 @@ const TrainerSelections = ({ races, onClose }) => {
       
     {/* Trainers Section */}
     <details style={{ marginBottom: '24px' }}>
-      <summary style={{
-        color: 'var(--text-h)',
-        fontSize: '1.1rem',
-        fontWeight: '600',
-        cursor: 'pointer',
-        paddingBottom: '6px',
-        borderBottom: '1px solid var(--border)',
-        userSelect: 'none',
-        listStylePosition: 'inside'
-      }}>
+      <summary className='category-summary'>
         Trainers Today
       </summary>
 
       {/* New Actions/Controls Bar */}
-      <div style={{
-        display: 'flex',
-        gap: '16px',
-        marginTop: '12px',
-        paddingLeft: '4px',
-        fontSize: '0.85rem',
-        color: 'var(--text-muted, var(--text))'
-      }}>
+      <div className='category-buttons'>
       <button 
           type="button"
           onClick={() => handleDeselectAll('trainers')} 
-          style={{
-            background: 'none',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted, var(--text))',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
+          className='theButton'
           onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
@@ -265,17 +105,7 @@ const TrainerSelections = ({ races, onClose }) => {
         <button 
           type="button"
           onClick={() => handleSetToDefaults('trainers')} 
-          style={{
-            background: 'none',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted, var(--text))',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
+          className='theButton'
           onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
@@ -283,43 +113,24 @@ const TrainerSelections = ({ races, onClose }) => {
         </button>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-        gap: '12px',
-        marginTop: '12px', // Slightly reduced to balance the new action bar
-        paddingRight: '5px'
-      }}>
+      <div className='check-grid'>
         {todaysTrainers.map((trainer) => {
-          const checked = isTrainerChecked(trainer);
+          const checked = isItemChecked(trainer, "trainers");
           return (
             <label
               key={trainer}
+              className='theCheck'
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-                padding: '8px 12px',
-                borderRadius: '6px',
                 backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
                 border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                transition: 'all 0.2s ease',
-                userSelect: 'none',
                 boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
               }}
             >
               <input
                 type="checkbox"
                 checked={checked}
-                onChange={() => handleToggleTrainer(trainer)}
-                style={{
-                  width: '18px',
-                  height: '18px',
-                  cursor: 'pointer',
-                  accentColor: '#10B981'
-                }}
+                onChange={() => handleToggleItem(trainer, "trainers")}
+                className='check'
               />
               <span style={{
                 color: checked ? 'var(--text-h)' : 'var(--text)',
@@ -335,43 +146,16 @@ const TrainerSelections = ({ races, onClose }) => {
     </details>
 
       {/* Jockeys Section */}
-      <details>
-        <summary style={{
-          color: 'var(--text-h)',
-          fontSize: '1.1rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          marginBottom: '24px',
-          paddingBottom: '6px',
-          borderBottom: '1px solid var(--border)',
-          userSelect: 'none',
-          listStylePosition: 'inside'
-        }}>
+      <details style={{ marginBottom: '24px' }}>
+        <summary className='category-summary'>
           Jockeys Today
         </summary>
 
-         <div style={{
-        display: 'flex',
-        gap: '16px',
-        marginTop: '12px',
-        paddingLeft: '4px',
-        fontSize: '0.85rem',
-        color: 'var(--text-muted, var(--text))'
-      }}>
+      <div className='category-buttons'>
       <button 
           type="button"
           onClick={() => handleDeselectAll('jockeys')} 
-          style={{
-            background: 'none',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted, var(--text))',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
+          className='theButton'
           onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
@@ -381,17 +165,7 @@ const TrainerSelections = ({ races, onClose }) => {
         <button 
           type="button"
           onClick={() => handleSetToDefaults('jockeys')} 
-          style={{
-            background: 'none',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted, var(--text))',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
+          className='theButton'
           onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
@@ -399,44 +173,24 @@ const TrainerSelections = ({ races, onClose }) => {
         </button>
       </div>
 
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '12px',
-          marginTop: '15px',
-          paddingRight: '5px'
-        }}>
+        <div className='check-grid'>
           {todaysJockeys.map((jockey) => {
-            const checked = isJockeyChecked(jockey);
+            const checked = isItemChecked(jockey, "jockeys");
             return (
               <label
                 key={jockey}
+                className='theCheck'
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
                   backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
                   border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none',
                   boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
                 }}
               >
                 <input
                   type="checkbox"
                   checked={checked}
-                  onChange={() => handleToggleJockey(jockey)}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    accentColor: '#10B981'
-                  }}
+                  onChange={() => handleToggleItem(jockey, "jockeys")}
+                  className='check'
                 />
                 <span style={{
                   color: checked ? 'var(--text-h)' : 'var(--text)',
@@ -451,46 +205,17 @@ const TrainerSelections = ({ races, onClose }) => {
         </div>
       </details>
 
-
-
       {/* Owners Section */}
       <details style={{ marginBottom: '24px' }}>
-        <summary style={{
-          color: 'var(--text-h)',
-          fontSize: '1.1rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          paddingBottom: '6px',
-          borderBottom: '1px solid var(--border)',
-          userSelect: 'none',
-          listStylePosition: 'inside'
-        }}>
+        <summary className='category-summary'>
           Owners Today
         </summary>
 
-
-         <div style={{
-        display: 'flex',
-        gap: '16px',
-        marginTop: '12px',
-        paddingLeft: '4px',
-        fontSize: '0.85rem',
-        color: 'var(--text-muted, var(--text))'
-      }}>
+      <div className='category-buttons'>
       <button 
           type="button"
           onClick={() => handleDeselectAll('owners')} 
-          style={{
-            background: 'none',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted, var(--text))',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
+          className='theButton'
           onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
@@ -500,17 +225,7 @@ const TrainerSelections = ({ races, onClose }) => {
         <button 
           type="button"
           onClick={() => handleSetToDefaults('owners')} 
-          style={{
-            background: 'none',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted, var(--text))',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
+          className='theButton'
           onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
@@ -518,45 +233,24 @@ const TrainerSelections = ({ races, onClose }) => {
         </button>
       </div>
 
-
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '12px',
-          marginTop: '15px',
-          paddingRight: '5px'
-        }}>
+       <div className='check-grid'>
           {todaysOwners.map((owner) => {
-            const checked = isOwnerChecked(owner);
+            const checked = isItemChecked(owner, "owners");
             return (
               <label
                 key={owner}
+                className='theCheck'
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
                   backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
                   border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none',
                   boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
                 }}
               >
                 <input
                   type="checkbox"
                   checked={checked}
-                  onChange={() => handleToggleOwner(owner)}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    accentColor: '#10B981'
-                  }}
+                  onChange={() => handleToggleItem(owner, "owners")}
+                  className='check'
                 />
                 <span style={{
                   color: checked ? 'var(--text-h)' : 'var(--text)',
@@ -573,41 +267,15 @@ const TrainerSelections = ({ races, onClose }) => {
 
       {/* Foaled Section */}
       <details style={{ marginBottom: '24px' }}>
-        <summary style={{
-          color: 'var(--text-h)',
-          fontSize: '1.1rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          paddingBottom: '6px',
-          borderBottom: '1px solid var(--border)',
-          userSelect: 'none',
-          listStylePosition: 'inside'
-        }}>
+       <summary className='category-summary'>
           Parents Today
         </summary>
 
-         <div style={{
-        display: 'flex',
-        gap: '16px',
-        marginTop: '12px',
-        paddingLeft: '4px',
-        fontSize: '0.85rem',
-        color: 'var(--text-muted, var(--text))'
-      }}>
+      <div className='category-buttons'>
       <button 
           type="button"
           onClick={() => handleDeselectAll('parents')} 
-          style={{
-            background: 'none',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted, var(--text))',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
+          className='theButton'
           onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
@@ -617,17 +285,7 @@ const TrainerSelections = ({ races, onClose }) => {
         <button 
           type="button"
           onClick={() => handleSetToDefaults('parents')} 
-          style={{
-            background: 'none',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted, var(--text))',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
+          className='theButton'
           onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         >
@@ -637,46 +295,24 @@ const TrainerSelections = ({ races, onClose }) => {
 
 
 
-        <div style={{
-
-
-
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '12px',
-          marginTop: '15px',
-          paddingRight: '5px'
-        }}>
+       <div className='check-grid'>
           {todaysFoaled.map((foaled) => {
-            const checked = isFoaledChecked(foaled);
+            const checked = isItemChecked(foaled, "parents");
             return (
               <label
                 key={foaled}
+                className='theCheck'
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
                   backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
                   border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  transition: 'all 0.2s ease',
-                  userSelect: 'none',
                   boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none'
                 }}
               >
                 <input
                   type="checkbox"
                   checked={checked}
-                  onChange={() => handleToggleFoaled(foaled)}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    accentColor: '#10B981'
-                  }}
+                  onChange={() => handleToggleItem(foaled, "parents")}
+                  className='check'
                 />
                 <span style={{
                   color: checked ? 'var(--text-h)' : 'var(--text)',
