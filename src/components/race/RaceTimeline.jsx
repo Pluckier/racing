@@ -12,6 +12,22 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
     { type: 'date', id: 'End' },
   ];
 
+  const getRaceIcon = (r) => {
+      if (!r) return '';
+      const d = (r.detail || '').toLowerCase();
+      const isH = d.includes('handicap') || d.includes('nursery');
+      const isC1 = d.includes('class 1') || d.includes('class 2');
+      const count = r.horses?.length || 0;
+
+      const icons = [];
+      if (isC1) icons.push('👑');
+      if (isH) icons.push('⚖️');
+      if ((isH || isC1) && count >= 8) icons.push('🏆');
+
+      return icons.length > 0 ? icons.join(' ') : '🚫';
+  };
+
+
   // Detect if the user is in dark mode to adjust chart colors dynamically
   const isDark = currentTheme === 'dark';
   const theme = {
@@ -21,6 +37,56 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
   };
 
   const rows = races.map((race) => {
+
+
+
+
+
+
+
+
+
+
+    // Math.min(horse.past?.length || 0, 6) caps each individual horse at 6
+    const totalPastRuns = race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
+    const maxPossibleRuns = (race.horses?.length || 0) * 6;
+
+    // 1. Calculate percentage as a number
+    const formPercentage = maxPossibleRuns > 0
+      ? Math.round((totalPastRuns / maxPossibleRuns) * 100)
+      : 0;
+
+    // 2. Determine which emoji to use based on the tier
+    let emoji = "";
+
+    if (formPercentage >= 0 && formPercentage <= 33) {
+      emoji = " ❌";
+    } else if (formPercentage >= 34 && formPercentage <= 55) {
+      emoji = " ⚠️";
+    } else if (formPercentage >= 56 && formPercentage <= 74) {
+      emoji = " 👎";
+    } else if (formPercentage >= 75 && formPercentage <= 87) {
+      emoji = " 👍";
+    } else if (formPercentage >= 88 && formPercentage <= 99) {
+      emoji = " 👌";
+    } else if (formPercentage === 100) {
+      emoji = " ✅💯";
+    }
+
+    // 3. Create final output string
+    const finalDisplay = `${formPercentage}%${emoji}`;
+
+
+    const icon = getRaceIcon(race);
+
+
+
+
+
+
+
+
+
     const [hours, minutes] = race.time.split(':').map(Number);
 
     // Extract distance from detail (e.g., "2m 4f", "5f") to determine duration
@@ -45,7 +111,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
       : race.detail || '';
 
     // Create an HTML string for the tooltip and match the theme
-    const tooltipHtml = `<div style="padding: 10px; ${theme.tooltip} font-family: sans-serif; font-size: 13px; line-height: 1.4;">${displayDetail}</div>`;
+    const tooltipHtml = `<div style="padding: 10px; ${theme.tooltip} font-family: sans-serif; font-size: 13px; line-height: 1.4;">${icon} ${displayDetail} FORM:${finalDisplay}</div>`;
 
     return [race.place, race.time, tooltipHtml, start, end];
   });
