@@ -97,14 +97,30 @@ const TrainerSelections = ({ races, onClose }) => {
   }, [races]);
   
 
-  const handleDeselectAll = () => {
+  const handleDeselectAll = (key) => {
     // Pass an empty array (or null, depending on your store preference)
-    setSelectedTrainers([]); 
+    if(key === 'trainers') {
+      setSelectedTrainers([]); 
+    } else if(key === 'jockeys') {
+      setSelectedJockeys([]); 
+    } else if(key === 'owners') {
+      setSelectedOwners([]); 
+    } else if(key === 'parents') {
+      setSelectedFoaled([]); 
+    }
   };
 
-  const handleSetToDefaults = () => {
-    // Pass your default HOT_TRAINERS array directly into the state setter
-    setSelectedTrainers(HOT_TRAINERS);
+  const handleSetToDefaults = (key) => {
+    // Pass your default arrays directly into the state setter
+    if(key === 'trainers') {
+      setSelectedTrainers(HOT_TRAINERS);
+    } else if(key === 'jockeys') {
+      setSelectedJockeys(HOT_JOCKEYS);
+    } else if(key === 'owners') {
+      setSelectedOwners(HOT_OWNERS);
+    } else if(key === 'parents') {
+      setSelectedFoaled(HOT_FOALED);
+    }
   };
 
   // Trainer checking logic
@@ -228,7 +244,7 @@ const TrainerSelections = ({ races, onClose }) => {
       }}>
       <button 
           type="button"
-          onClick={handleDeselectAll} 
+          onClick={() => handleDeselectAll('trainers')} 
           style={{
             background: 'none',
             border: '1px solid var(--border)',
@@ -248,7 +264,7 @@ const TrainerSelections = ({ races, onClose }) => {
 
         <button 
           type="button"
-          onClick={handleSetToDefaults} 
+          onClick={() => handleSetToDefaults('trainers')} 
           style={{
             background: 'none',
             border: '1px solid var(--border)',
@@ -333,6 +349,57 @@ const TrainerSelections = ({ races, onClose }) => {
         }}>
           Jockeys Today
         </summary>
+
+         <div style={{
+        display: 'flex',
+        gap: '16px',
+        marginTop: '12px',
+        paddingLeft: '4px',
+        fontSize: '0.85rem',
+        color: 'var(--text-muted, var(--text))'
+      }}>
+      <button 
+          type="button"
+          onClick={() => handleDeselectAll('jockeys')} 
+          style={{
+            background: 'none',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted, var(--text))',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          Deselect All
+        </button>
+
+        <button 
+          type="button"
+          onClick={() => handleSetToDefaults('jockeys')} 
+          style={{
+            background: 'none',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted, var(--text))',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          Set to Defaults
+        </button>
+      </div>
+
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
@@ -400,6 +467,59 @@ const TrainerSelections = ({ races, onClose }) => {
         }}>
           Owners Today
         </summary>
+
+
+         <div style={{
+        display: 'flex',
+        gap: '16px',
+        marginTop: '12px',
+        paddingLeft: '4px',
+        fontSize: '0.85rem',
+        color: 'var(--text-muted, var(--text))'
+      }}>
+      <button 
+          type="button"
+          onClick={() => handleDeselectAll('owners')} 
+          style={{
+            background: 'none',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted, var(--text))',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          Deselect All
+        </button>
+
+        <button 
+          type="button"
+          onClick={() => handleSetToDefaults('owners')} 
+          style={{
+            background: 'none',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted, var(--text))',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          Set to Defaults
+        </button>
+      </div>
+
+
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
@@ -465,7 +585,62 @@ const TrainerSelections = ({ races, onClose }) => {
         }}>
           Parents Today
         </summary>
+
+         <div style={{
+        display: 'flex',
+        gap: '16px',
+        marginTop: '12px',
+        paddingLeft: '4px',
+        fontSize: '0.85rem',
+        color: 'var(--text-muted, var(--text))'
+      }}>
+      <button 
+          type="button"
+          onClick={() => handleDeselectAll('parents')} 
+          style={{
+            background: 'none',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted, var(--text))',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          Deselect All
+        </button>
+
+        <button 
+          type="button"
+          onClick={() => handleSetToDefaults('parents')} 
+          style={{
+            background: 'none',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted, var(--text))',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10B981'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
+          Set to Defaults
+        </button>
+      </div>
+
+
+
         <div style={{
+
+
+
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
           gap: '12px',
