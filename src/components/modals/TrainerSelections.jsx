@@ -4,17 +4,16 @@ import { useStore } from '../../store/alarmStore';
 import '../../css/TrainerSelections.css';
 
 const CONFIG = {
-  trainers: { title: 'Trainers Today', prop: 'trainer', hot: HOT_TRAINERS, selector: s => s.selectedTrainers, setter: s => s.setSelectedTrainers },
-  jockeys:  { title: 'Jockeys Today',  prop: 'jockey',  hot: HOT_JOCKEYS,  selector: s => s.selectedJockeys,  setter: s => s.setSelectedJockeys },
-  owners:   { title: 'Owners Today',   prop: 'owner',   hot: HOT_OWNERS,   selector: s => s.selectedOwners,   setter: s => s.setSelectedOwners },
-  parents:  { title: 'Parents Today',  prop: 'foaled',  hot: HOT_FOALED,   selector: s => s.selectedFoaled,   setter: s => s.setSelectedFoaled }
+  // CHANGED: Replaced the setter function with the direct string action name
+  trainers: { title: 'Trainers Today', prop: 'trainer', hot: HOT_TRAINERS, selector: s => s.selectedTrainers, setterName: 'setSelectedTrainers' },
+  jockeys:  { title: 'Jockeys Today',  prop: 'jockey',  hot: HOT_JOCKEYS,  selector: s => s.selectedJockeys,  setterName: 'setSelectedJockeys' },
+  owners:   { title: 'Owners Today',   prop: 'owner',   hot: HOT_OWNERS,   selector: s => s.selectedOwners,   setterName: 'setSelectedOwners' },
+  parents:  { title: 'Parents Today',  prop: 'foaled',  hot: HOT_FOALED,   selector: s => s.selectedFoaled,   setterName: 'setSelectedFoaled' }
 };
 
 const TrainerSelections = ({ races }) => {
-  // 1. Pull all store slices dynamically using a single useStore call
   const store = useStore((s) => s);
 
-  // 2. TRUE Single-Pass Iteration: Loops through races/horses exactly ONCE
   const todaysData = useMemo(() => {
     const sets = { trainers: new Set(), jockeys: new Set(), owners: new Set(), parents: new Set() };
     
@@ -37,21 +36,23 @@ const TrainerSelections = ({ races }) => {
   };
 
   const handleToggleItem = (item, key) => {
-    const { selector, setter, hot } = CONFIG[key];
+    const { selector, setterName, hot } = CONFIG[key];
     const selected = selector(store);
     const current = selected === null ? todaysData[key].filter(t => hot.some(h => t.includes(h))) : [...selected];
     
-    store[setter.name](current.includes(item) ? current.filter(i => i !== item) : [...current, item]);
+    // CHANGED: Access the store using the direct string action name safely
+    store[setterName](current.includes(item) ? current.filter(i => i !== item) : [...current, item]);
   };
 
   return (
     <div className="trainer-selections-container" style={{ padding: '10px 5px', maxHeight: '550px', overflowY: 'auto' }}>
-      {Object.entries(CONFIG).map(([key, { title }]) => (
+      {Object.entries(CONFIG).map(([key, { title, setterName }]) => (
         <details key={key} style={{ marginBottom: '24px' }}>
           <summary className="category-summary">{title}</summary>
           <div className="category-buttons">
-            <button type="button" className="theButton" onClick={() => CONFIG[key].setter(store)([])}>Deselect All</button>
-            <button type="button" className="theButton" onClick={() => CONFIG[key].setter(store)(CONFIG[key].hot)}>Set to Defaults</button>
+            {/* CHANGED: Adjusted buttons below to use setterName string properties */}
+            <button type="button" className="theButton" onClick={() => store[setterName]([])}>Deselect All</button>
+            <button type="button" className="theButton" onClick={() => store[setterName](CONFIG[key].hot)}>Set to Defaults</button>
           </div>
           <div className="check-grid">
             {todaysData[key].map((item) => {
