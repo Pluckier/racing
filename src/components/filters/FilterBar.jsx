@@ -29,7 +29,6 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowTr
       </div>
 
       <div className="summary-controls" style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
-        <button className={`filter-btn follow-btn ${filters.follow ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, follow: !f.follow }))} title="Only show races that haven't run yet">⏱️ Follow</button>
         <button className="filter-btn movement-summary-btn" onClick={onShowMovement} title="Show odds movements">📊 Odds</button>
         <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Show Hot Trainers & Jockeys">🔥 Connections</button>
         <button className={`filter-btn interesting-selections-btn ${filters.value ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, value: !f.value }))} title="Highlight well rated big prices">⭐ Value</button>

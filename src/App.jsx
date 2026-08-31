@@ -468,7 +468,7 @@ function App() {
                     minWidth: '10viewMode0px'
                   }}
                 >
-                  {viewMode === 'all' ? 'All 👀' : 'One 👀'}
+                  {viewMode === 'all' ? 'One 👀' : 'All 👀'}
                 </button>
 
                 {/* Counter only renders here below the button if viewMode is 'single' */}
