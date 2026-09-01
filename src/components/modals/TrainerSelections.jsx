@@ -3,52 +3,120 @@ import { HOT_TRAINERS, HOT_JOCKEYS, HOT_FOALED, HOT_OWNERS } from '../../utils/r
 import { useStore } from '../../store/alarmStore';
 import '../../css/TrainerSelections.css';
 
-const CONFIG = {
-  trainers: { title: 'Trainers Today', prop: 'trainer', hot: HOT_TRAINERS, selector: s => s.selectedTrainers, setterName: 'setSelectedTrainers' },
-  jockeys:  { title: 'Jockeys Today',  prop: 'jockey',  hot: HOT_JOCKEYS,  selector: s => s.selectedJockeys,  setterName: 'setSelectedJockeys' },
-  owners:   { title: 'Owners Today',   prop: 'owner',   hot: HOT_OWNERS,   selector: s => s.selectedOwners,   setterName: 'setSelectedOwners' },
-  parents:  { title: 'Parents Today',  prop: 'foaled',  hot: HOT_FOALED,   selector: s => s.selectedFoaled,   setterName: 'setSelectedFoaled' }
+const parseFoaled = (str) => {
+  if (!str) return { dam: '', broodmareSire: '', sire: '' };
+  const match = str.match(/D:\s*(.*?)\s*\((.*?)\)\s*S:\s*(.*)/i);
+  return match 
+    ? { dam: match[1].trim(), broodmareSire: match[2].trim(), sire: match[3].trim() }
+    : { dam: str.trim(), broodmareSire: '', sire: '' };
 };
 
-// Optimization: Pre-extract keys and property mappings to protect the horse iterator loop
+const CONFIG = {
+  trainers:       { title: 'Trainers Today',         prop: 'trainer', hot: HOT_TRAINERS, setterName: 'setSelectedTrainers' },
+  jockeys:        { title: 'Jockeys Today',          prop: 'jockey',  hot: HOT_JOCKEYS,  setterName: 'setSelectedJockeys' },
+  owners:         { title: 'Owners Today',           prop: 'owner',   hot: HOT_OWNERS,   setterName: 'setSelectedOwners' },
+  dams:           { title: 'Dams Today',   prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'dam' },
+  broodmareSires: { title: 'Broodmare Sires Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'broodmareSire' },
+  sires:          { title: 'Sires Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'sire' }
+};
+
 const CONFIG_ENTRIES = Object.entries(CONFIG);
 
 const TrainerSelections = ({ races }) => {
-  // Fixes the render trap: Selects only the specific state keys and actions needed
-  const store = useStore((s) => ({
-    trainers: s.selectedTrainers, setSelectedTrainers: s.setSelectedTrainers,
-    jockeys: s.selectedJockeys,   setSelectedJockeys: s.setSelectedJockeys,
-    owners: s.selectedOwners,     setSelectedOwners: s.setSelectedOwners,
-    parents: s.selectedFoaled,    setSelectedFoaled: s.setSelectedFoaled
-  }));
+  const trainers = useStore((s) => s.selectedTrainers);
+  const jockeys = useStore((s) => s.selectedJockeys);
+  const owners = useStore((s) => s.selectedOwners);
+  const parents = useStore((s) => s.selectedFoaled);
+  
+  const setSelectedTrainers = useStore((s) => s.setSelectedTrainers);
+  const setSelectedJockeys = useStore((s) => s.setSelectedJockeys);
+  const setSelectedOwners = useStore((s) => s.setSelectedOwners);
+  const setSelectedFoaled = useStore((s) => s.setSelectedFoaled);
 
-  const todaysData = useMemo(() => {
-    const sets = { trainers: new Set(), jockeys: new Set(), owners: new Set(), parents: new Set() };
+  const store = {
+    trainers, jockeys, owners, parents,
+    setSelectedTrainers, setSelectedJockeys, setSelectedOwners, setSelectedFoaled
+  };
+
+  // Computes sorted lists AND contextual metadata tooltip arrays concurrently
+  const { todaysData, tooltips } = useMemo(() => {
+    const sets = { trainers: new Set(), jockeys: new Set(), owners: new Set(), dams: new Set(), broodmareSires: new Set(), sires: new Set() };
+    const tooltipMap = {};
+
+    const addMetadata = (key, value, horseName, raceTime, raceName) => {
+      if (!value) return;
+      if (!tooltipMap[key]) tooltipMap[key] = {};
+      if (!tooltipMap[key][value]) tooltipMap[key][value] = [];
+      tooltipMap[key][value].push(`• ${horseName} (${raceTime} ${raceName})`);
+    };
     
-    races?.forEach(race => race.horses?.forEach(horse => {
-      CONFIG_ENTRIES.forEach(([key, cfg]) => {
-        const val = horse[cfg.prop]?.trim();
-        if (val) sets[key].add(val);
-      });
-    }));
+    races?.forEach(race => {
+      const raceTime = race.time || '';
+      const raceName = race.place || '';
 
-    return Object.fromEntries(
+      race.horses?.forEach(horse => {
+        const hName = horse.name || 'Unknown Horse';
+        const tVal = horse.trainer?.trim();
+        const jVal = horse.jockey?.trim();
+        const oVal = horse.owner?.trim();
+
+        if (tVal) { sets.trainers.add(tVal); addMetadata('trainers', tVal, hName, raceTime, raceName); }
+        if (jVal) { sets.jockeys.add(jVal);  addMetadata('jockeys', jVal, hName, raceTime, raceName); }
+        if (oVal) { sets.owners.add(oVal);   addMetadata('owners', oVal, hName, raceTime, raceName); }
+        
+        const rawFoaled = horse.foaled?.trim();
+        if (rawFoaled) {
+          const { dam, broodmareSire, sire } = parseFoaled(rawFoaled);
+          if (dam) { sets.dams.add(dam); addMetadata('dams', dam, hName, raceTime, raceName); }
+          if (broodmareSire) { sets.broodmareSires.add(broodmareSire); addMetadata('broodmareSires', broodmareSire, hName, raceTime, raceName); }
+          if (sire) { sets.sires.add(sire); addMetadata('sires', sire, hName, raceTime, raceName); }
+        }
+      });
+    });
+
+    const sortedData = Object.fromEntries(
       Object.entries(sets).map(([k, set]) => [k, Array.from(set).sort((a, b) => a.localeCompare(b))])
     );
+
+    return { todaysData: sortedData, tooltips: tooltipMap };
   }, [races]);
 
+  const getSelectedArray = (key) => (CONFIG[key].isSubParent ? store.parents : store[key]);
+
   const isItemChecked = (item, key) => {
-    // Looks up the specific slice directly using our scoped store object keys
-    const selected = store[key]; 
-    return selected === null ? CONFIG[key].hot.some(h => item.includes(h)) : selected.includes(item);
+    const cfg = CONFIG[key];
+    const selected = getSelectedArray(key);
+
+    if (cfg.isSubParent) {
+      return selected === null 
+        ? cfg.hot.some(h => item.includes(h)) 
+        : selected.some(s => s.includes(item));
+    }
+    return selected === null ? cfg.hot.some(h => item.includes(h)) : selected.includes(item);
   };
 
   const handleToggleItem = (item, key) => {
-    const { setterName, hot } = CONFIG[key];
-    const selected = store[key];
-    const current = selected === null ? todaysData[key].filter(t => hot.some(h => t.includes(h))) : [...selected];
-    
-    store[setterName](current.includes(item) ? current.filter(i => i !== item) : [...current, item]);
+    const cfg = CONFIG[key];
+    const selected = getSelectedArray(key);
+    const { setterName, hot } = cfg;
+
+    const globalSourceData = races?.flatMap(r => r.horses?.map(h => h.foaled?.trim()).filter(Boolean)) || [];
+    const uniqueFoaled = Array.from(new Set(globalSourceData));
+
+    if (cfg.isSubParent) {
+      const matchingCombos = uniqueFoaled.filter(f => f.includes(item));
+      const current = selected === null ? uniqueFoaled.filter(t => hot.some(h => t.includes(h))) : [...selected];
+      const isCurrentlyChecked = current.some(s => s.includes(item));
+
+      const updated = isCurrentlyChecked
+        ? current.filter(f => !f.includes(item))
+        : Array.from(new Set([...current, ...matchingCombos]));
+
+      store[setterName](updated);
+    } else {
+      const current = selected === null ? todaysData[key].filter(t => hot.some(h => t.includes(h))) : [...selected];
+      store[setterName](current.includes(item) ? current.filter(i => i !== item) : [...current, item]);
+    }
   };
 
   return (
@@ -63,12 +131,21 @@ const TrainerSelections = ({ races }) => {
           <div className="check-grid">
             {todaysData[key].map((item) => {
               const checked = isItemChecked(item, key);
+              // Extract matching entries and join them with structured newlines
+              const lines = tooltips[key]?.[item] || [];
+              const tooltipText = lines.length ? `Horses Today:\n${lines.join('\n')}` : '';
+
               return (
-                <label key={item} className="theCheck" style={{
-                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none',
-                }}>
+                <label 
+                  key={item} 
+                  className="theCheck" 
+                  title={tooltipText} // ✅ Native browser tooltip injection
+                  style={{
+                    backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
+                    border: checked ? '1px solid #10B981' : '1px solid var(--border)',
+                    boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none',
+                  }}
+                >
                   <input type="checkbox" checked={checked} onChange={() => handleToggleItem(item, key)} className="check" />
                   <span style={{ color: checked ? 'var(--text-h)' : 'var(--text)', fontWeight: checked ? '600' : 'normal', opacity: checked ? 1 : 0.7 }}>
                     {item}
