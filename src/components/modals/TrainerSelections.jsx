@@ -16,9 +16,9 @@ const CONFIG = {
   trainers:       { title: 'Trainers Today',         prop: 'trainer', hot: HOT_TRAINERS, setterName: 'setSelectedTrainers' },
   jockeys:        { title: 'Jockeys Today',          prop: 'jockey',  hot: HOT_JOCKEYS,  setterName: 'setSelectedJockeys' },
   owners:         { title: 'Owners Today',           prop: 'owner',   hot: HOT_OWNERS,   setterName: 'setSelectedOwners' },
-  dams:           { title: 'Dams (Mothers) Today',   prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'dam' },
+  dams:           { title: 'Dams Today',   prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'dam' },
   broodmareSires: { title: 'Broodmare Sires Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'broodmareSire' },
-  sires:          { title: 'Sires (Fathers) Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'sire' }
+  sires:          { title: 'Sires Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'sire' }
 };
 
 const CONFIG_ENTRIES = Object.entries(CONFIG);
