@@ -16,9 +16,9 @@ const CONFIG = {
   trainers:       { title: 'Trainers Today',         prop: 'trainer', hot: HOT_TRAINERS, setterName: 'setSelectedTrainers' },
   jockeys:        { title: 'Jockeys Today',          prop: 'jockey',  hot: HOT_JOCKEYS,  setterName: 'setSelectedJockeys' },
   owners:         { title: 'Owners Today',           prop: 'owner',   hot: HOT_OWNERS,   setterName: 'setSelectedOwners' },
-  dams:           { title: 'Dams Today',   prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'dam' },
+  dams:           { title: 'Dams Today',             prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'dam' },
   broodmareSires: { title: 'Broodmare Sires Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'broodmareSire' },
-  sires:          { title: 'Sires Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'sire' }
+  sires:          { title: 'Sires Today',            prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'sire' }
 };
 
 const CONFIG_ENTRIES = Object.entries(CONFIG);
@@ -47,7 +47,11 @@ const TrainerSelections = ({ races }) => {
       if (!value) return;
       if (!tooltipMap[key]) tooltipMap[key] = {};
       if (!tooltipMap[key][value]) tooltipMap[key][value] = [];
-      tooltipMap[key][value].push(`• ${horseName} (${raceTime} ${raceName})`);
+      // Prevent duplicating the exact same horse entry in the tooltip array
+      const entry = `• ${horseName} (${raceTime} ${raceName})`;
+      if (!tooltipMap[key][value].includes(entry)) {
+        tooltipMap[key][value].push(entry);
+      }
     };
     
     races?.forEach(race => {
@@ -87,13 +91,11 @@ const TrainerSelections = ({ races }) => {
     const cfg = CONFIG[key];
     const selected = getSelectedArray(key);
 
-    // If defaults apply (null state)
     if (selected === null) {
       return cfg.hot.some(h => item.includes(h));
     }
 
     if (cfg.isSubParent) {
-      // ✅ FIX: Parse every full string inside selectedFoaled to check only our specific sub-type segment
       return selected.some(comboString => {
         const parsed = parseFoaled(comboString);
         return parsed[cfg.isSubParent] === item;
@@ -112,16 +114,13 @@ const TrainerSelections = ({ races }) => {
     const uniqueFoaled = Array.from(new Set(globalSourceData));
 
     if (cfg.isSubParent) {
-      // ✅ FIX: Find matching global strings where the specific component matches exactly
       const matchingCombos = uniqueFoaled.filter(f => parseFoaled(f)[cfg.isSubParent] === item);
       const current = selected === null ? uniqueFoaled.filter(t => hot.some(h => t.includes(h))) : [...selected];
-
-      // Determine checked status using the precise segment comparison rules
       const isCurrentlyChecked = current.some(combo => parseFoaled(combo)[cfg.isSubParent] === item);
 
       const updated = isCurrentlyChecked
-        ? current.filter(combo => parseFoaled(combo)[cfg.isSubParent] !== item) // Turn off only this segment matching items
-        : Array.from(new Set([...current, ...matchingCombos])); // Add matches safely
+        ? current.filter(combo => parseFoaled(combo)[cfg.isSubParent] !== item)
+        : Array.from(new Set([...current, ...matchingCombos]));
 
       store[setterName](updated);
     } else {
@@ -142,6 +141,8 @@ const TrainerSelections = ({ races }) => {
           <div className="check-grid">
             {todaysData[key].map((item) => {
               const checked = isItemChecked(item, key);
+              
+              // Key lookups are normalized directly to key strings ('trainers', 'jockeys', etc.)
               const lines = tooltips[key]?.[item] || [];
               const tooltipText = lines.length ? `Horses Today:\n${lines.join('\n')}` : '';
 
