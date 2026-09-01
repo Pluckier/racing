@@ -4,21 +4,29 @@ import { useStore } from '../../store/alarmStore';
 import '../../css/TrainerSelections.css';
 
 const CONFIG = {
-  // CHANGED: Replaced the setter function with the direct string action name
   trainers: { title: 'Trainers Today', prop: 'trainer', hot: HOT_TRAINERS, selector: s => s.selectedTrainers, setterName: 'setSelectedTrainers' },
   jockeys:  { title: 'Jockeys Today',  prop: 'jockey',  hot: HOT_JOCKEYS,  selector: s => s.selectedJockeys,  setterName: 'setSelectedJockeys' },
   owners:   { title: 'Owners Today',   prop: 'owner',   hot: HOT_OWNERS,   selector: s => s.selectedOwners,   setterName: 'setSelectedOwners' },
   parents:  { title: 'Parents Today',  prop: 'foaled',  hot: HOT_FOALED,   selector: s => s.selectedFoaled,   setterName: 'setSelectedFoaled' }
 };
 
+// Optimization: Pre-extract keys and property mappings to protect the horse iterator loop
+const CONFIG_ENTRIES = Object.entries(CONFIG);
+
 const TrainerSelections = ({ races }) => {
-  const store = useStore((s) => s);
+  // Fixes the render trap: Selects only the specific state keys and actions needed
+  const store = useStore((s) => ({
+    trainers: s.selectedTrainers, setSelectedTrainers: s.setSelectedTrainers,
+    jockeys: s.selectedJockeys,   setSelectedJockeys: s.setSelectedJockeys,
+    owners: s.selectedOwners,     setSelectedOwners: s.setSelectedOwners,
+    parents: s.selectedFoaled,    setSelectedFoaled: s.setSelectedFoaled
+  }));
 
   const todaysData = useMemo(() => {
     const sets = { trainers: new Set(), jockeys: new Set(), owners: new Set(), parents: new Set() };
     
     races?.forEach(race => race.horses?.forEach(horse => {
-      Object.entries(CONFIG).forEach(([key, cfg]) => {
+      CONFIG_ENTRIES.forEach(([key, cfg]) => {
         const val = horse[cfg.prop]?.trim();
         if (val) sets[key].add(val);
       });
@@ -30,29 +38,27 @@ const TrainerSelections = ({ races }) => {
   }, [races]);
 
   const isItemChecked = (item, key) => {
-    const { selector, hot } = CONFIG[key];
-    const selected = selector(store);
-    return selected === null ? hot.some(h => item.includes(h)) : selected.includes(item);
+    // Looks up the specific slice directly using our scoped store object keys
+    const selected = store[key]; 
+    return selected === null ? CONFIG[key].hot.some(h => item.includes(h)) : selected.includes(item);
   };
 
   const handleToggleItem = (item, key) => {
-    const { selector, setterName, hot } = CONFIG[key];
-    const selected = selector(store);
+    const { setterName, hot } = CONFIG[key];
+    const selected = store[key];
     const current = selected === null ? todaysData[key].filter(t => hot.some(h => t.includes(h))) : [...selected];
     
-    // CHANGED: Access the store using the direct string action name safely
     store[setterName](current.includes(item) ? current.filter(i => i !== item) : [...current, item]);
   };
 
   return (
     <div className="trainer-selections-container" style={{ padding: '10px 5px', maxHeight: '550px', overflowY: 'auto' }}>
-      {Object.entries(CONFIG).map(([key, { title, setterName }]) => (
+      {CONFIG_ENTRIES.map(([key, { title, setterName, hot }]) => (
         <details key={key} style={{ marginBottom: '24px' }}>
           <summary className="category-summary">{title}</summary>
           <div className="category-buttons">
-            {/* CHANGED: Adjusted buttons below to use setterName string properties */}
             <button type="button" className="theButton" onClick={() => store[setterName]([])}>Deselect All</button>
-            <button type="button" className="theButton" onClick={() => store[setterName](CONFIG[key].hot)}>Set to Defaults</button>
+            <button type="button" className="theButton" onClick={() => store[setterName](hot)}>Set to Defaults</button>
           </div>
           <div className="check-grid">
             {todaysData[key].map((item) => {
