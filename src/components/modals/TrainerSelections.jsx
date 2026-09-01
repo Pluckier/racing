@@ -3,6 +3,7 @@ import { HOT_TRAINERS, HOT_JOCKEYS, HOT_FOALED, HOT_OWNERS } from '../../utils/r
 import { useStore } from '../../store/alarmStore';
 import '../../css/TrainerSelections.css';
 
+// Safe parser that separates Dam, Broodmare Sire, and Sire explicitly
 const parseFoaled = (str) => {
   if (!str) return { dam: '', broodmareSire: '', sire: '' };
   const match = str.match(/D:\s*(.*?)\s*\((.*?)\)\s*S:\s*(.*)/i);
@@ -15,9 +16,9 @@ const CONFIG = {
   trainers:       { title: 'Trainers Today',         prop: 'trainer', hot: HOT_TRAINERS, setterName: 'setSelectedTrainers' },
   jockeys:        { title: 'Jockeys Today',          prop: 'jockey',  hot: HOT_JOCKEYS,  setterName: 'setSelectedJockeys' },
   owners:         { title: 'Owners Today',           prop: 'owner',   hot: HOT_OWNERS,   setterName: 'setSelectedOwners' },
-  dams:           { title: 'Dams Today',   prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'dam' },
+  dams:           { title: 'Dams (Mothers) Today',   prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'dam' },
   broodmareSires: { title: 'Broodmare Sires Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'broodmareSire' },
-  sires:          { title: 'Sires Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'sire' }
+  sires:          { title: 'Sires (Fathers) Today',  prop: 'foaled',  hot: HOT_FOALED,   setterName: 'setSelectedFoaled', isSubParent: 'sire' }
 };
 
 const CONFIG_ENTRIES = Object.entries(CONFIG);
@@ -38,7 +39,6 @@ const TrainerSelections = ({ races }) => {
     setSelectedTrainers, setSelectedJockeys, setSelectedOwners, setSelectedFoaled
   };
 
-  // Computes sorted lists AND contextual metadata tooltip arrays concurrently
   const { todaysData, tooltips } = useMemo(() => {
     const sets = { trainers: new Set(), jockeys: new Set(), owners: new Set(), dams: new Set(), broodmareSires: new Set(), sires: new Set() };
     const tooltipMap = {};
@@ -52,7 +52,7 @@ const TrainerSelections = ({ races }) => {
     
     races?.forEach(race => {
       const raceTime = race.time || '';
-      const raceName = race.place || '';
+      const raceName = race.name || '';
 
       race.horses?.forEach(horse => {
         const hName = horse.name || 'Unknown Horse';
@@ -87,12 +87,20 @@ const TrainerSelections = ({ races }) => {
     const cfg = CONFIG[key];
     const selected = getSelectedArray(key);
 
-    if (cfg.isSubParent) {
-      return selected === null 
-        ? cfg.hot.some(h => item.includes(h)) 
-        : selected.some(s => s.includes(item));
+    // If defaults apply (null state)
+    if (selected === null) {
+      return cfg.hot.some(h => item.includes(h));
     }
-    return selected === null ? cfg.hot.some(h => item.includes(h)) : selected.includes(item);
+
+    if (cfg.isSubParent) {
+      // ✅ FIX: Parse every full string inside selectedFoaled to check only our specific sub-type segment
+      return selected.some(comboString => {
+        const parsed = parseFoaled(comboString);
+        return parsed[cfg.isSubParent] === item;
+      });
+    }
+
+    return selected.includes(item);
   };
 
   const handleToggleItem = (item, key) => {
@@ -104,13 +112,16 @@ const TrainerSelections = ({ races }) => {
     const uniqueFoaled = Array.from(new Set(globalSourceData));
 
     if (cfg.isSubParent) {
-      const matchingCombos = uniqueFoaled.filter(f => f.includes(item));
+      // ✅ FIX: Find matching global strings where the specific component matches exactly
+      const matchingCombos = uniqueFoaled.filter(f => parseFoaled(f)[cfg.isSubParent] === item);
       const current = selected === null ? uniqueFoaled.filter(t => hot.some(h => t.includes(h))) : [...selected];
-      const isCurrentlyChecked = current.some(s => s.includes(item));
+
+      // Determine checked status using the precise segment comparison rules
+      const isCurrentlyChecked = current.some(combo => parseFoaled(combo)[cfg.isSubParent] === item);
 
       const updated = isCurrentlyChecked
-        ? current.filter(f => !f.includes(item))
-        : Array.from(new Set([...current, ...matchingCombos]));
+        ? current.filter(combo => parseFoaled(combo)[cfg.isSubParent] !== item) // Turn off only this segment matching items
+        : Array.from(new Set([...current, ...matchingCombos])); // Add matches safely
 
       store[setterName](updated);
     } else {
@@ -131,21 +142,15 @@ const TrainerSelections = ({ races }) => {
           <div className="check-grid">
             {todaysData[key].map((item) => {
               const checked = isItemChecked(item, key);
-              // Extract matching entries and join them with structured newlines
               const lines = tooltips[key]?.[item] || [];
               const tooltipText = lines.length ? `Horses Today:\n${lines.join('\n')}` : '';
 
               return (
-                <label 
-                  key={item} 
-                  className="theCheck" 
-                  title={tooltipText} // ✅ Native browser tooltip injection
-                  style={{
-                    backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
-                    border: checked ? '1px solid #10B981' : '1px solid var(--border)',
-                    boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none',
-                  }}
-                >
+                <label key={item} className="theCheck" title={tooltipText} style={{
+                  backgroundColor: checked ? 'var(--accent-bg, var(--bg-card))' : 'var(--bg-card)',
+                  border: checked ? '1px solid #10B981' : '1px solid var(--border)',
+                  boxShadow: checked ? '0 0 4px rgba(16, 185, 129, 0.2)' : 'none',
+                }}>
                   <input type="checkbox" checked={checked} onChange={() => handleToggleItem(item, key)} className="check" />
                   <span style={{ color: checked ? 'var(--text-h)' : 'var(--text)', fontWeight: checked ? '600' : 'normal', opacity: checked ? 1 : 0.7 }}>
                     {item}
