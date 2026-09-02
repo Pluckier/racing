@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { HOT_TRAINERS, HOT_JOCKEYS, HOT_FOALED, HOT_OWNERS } from '../../utils/racingLogic';
 import { useStore } from '../../store/alarmStore';
 import '../../css/TrainerSelections.css';
@@ -24,6 +24,9 @@ const CONFIG = {
 const CONFIG_ENTRIES = Object.entries(CONFIG);
 
 const TrainerSelections = ({ races }) => {
+  // 1. Add the state line for tracking independent text filters per category block
+  const [searchQueries, setSearchQueries] = useState({});
+
   // Bind directly to global individual tracks in Zustand
   const trainers = useStore((s) => s.selectedTrainers);
   const jockeys = useStore((s) => s.selectedJockeys);
@@ -118,6 +121,10 @@ const TrainerSelections = ({ races }) => {
     }
 
     // 2. Pink Highlight Evaluation: Check if any other relation in this horse's combo is active
+    const activeDams = store.dams || [];
+    const activeBMSires = store.broodmareSires || [];
+    const activeSires = store.sires || [];
+
     const hasActiveRelative = bloodlineConnections.some(conn => {
       // Ensure this connection row matches the specific name item being evaluated
       if (conn[cfg.isSubParent] !== item) return false;
@@ -168,18 +175,51 @@ const TrainerSelections = ({ races }) => {
 
 
 
-   return (
-    <div className="trainer-selections-container" style={{ padding: '10px 5px', maxHeight: '550px', overflowY: 'auto' }}>
-      {CONFIG_ENTRIES.map(([key, { title, setterName, hot, isSubParent }]) => (
+
+// 1. Add this single state line right at the very top of your TrainerSelections component body:
+// const [searchQueries, setSearchQueries] = React.useState({});
+
+return (
+  <div className="trainer-selections-container" style={{ padding: '10px 5px', maxHeight: '550px', overflowY: 'auto' }}>
+    {CONFIG_ENTRIES.map(([key, { title, setterName, hot, isSubParent }]) => {
+      // Get the current search text for this specific section, fallback to empty string
+      const currentQuery = searchQueries[key] || '';
+      
+      // Filter the items list dynamically on the fly based on what's typed
+      const filteredItems = todaysData[key].filter(item => 
+        item.toLowerCase().includes(currentQuery.toLowerCase())
+      );
+
+      return (
         <details key={key} style={{ marginBottom: '24px' }}>
           <summary className="category-summary">{title}</summary>
+          
+          {/* Search box input container */}
+          <div className="category-search-container" style={{ margin: '10px 0' }}>
+            <input
+              type="text"
+              placeholder={`Search ${title.toLowerCase()}...`}
+              value={currentQuery}
+              onChange={(e) => setSearchQueries(prev => ({ ...prev, [key]: e.target.value }))}
+              className="theSearchInput"
+              style={{
+                width: '100%',
+                padding: '6px 10px',
+                borderRadius: '4px',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--bg-card)',
+                color: 'var(--text)',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
           <div className="category-buttons">
             <button type="button" className="theButton" onClick={() => store[setterName]([], races)}>
               Deselect All
             </button>
             <button type="button" className="theButton" onClick={() => {
               if (isSubParent) {
-                // Set default individual values extracted from hot strings rules
                 const restoredDefaults = todaysData[key].filter(item => hot.some(h => item.includes(h)));
                 store[setterName](restoredDefaults, races);
               } else {
@@ -189,8 +229,9 @@ const TrainerSelections = ({ races }) => {
               Set to Defaults
             </button>
           </div>
+
           <div className="check-grid">
-            {todaysData[key].map((item) => {
+            {filteredItems.map((item) => {
               const { checked, highlighted } = getItemSelectionState(item, key);
               const lines = tooltips[key]?.[item] || [];
               const tooltipText = lines.length ? `Horses Today:\n${lines.join('\n')}` : '';
@@ -234,9 +275,11 @@ const TrainerSelections = ({ races }) => {
             })}
           </div>
         </details>
-      ))}
-    </div>
-  );
+      );
+    })}
+  </div>
+);
+
 };
 
 export default TrainerSelections;
