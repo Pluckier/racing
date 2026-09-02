@@ -1,9 +1,18 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+// Internal parser matching your component logic exactly
+const parseFoaled = (str) => {
+    if (!str) return { dam: '', broodmareSire: '', sire: '' };
+    const match = str.match(/D:\s*(.*?)\s*\((.*?)\)\s*S:\s*(.*)/i);
+    return match 
+        ? { dam: match[1].trim(), broodmareSire: match[2].trim(), sire: match[3].trim() }
+        : { dam: str.trim(), broodmareSire: '', sire: '' };
+};
+
 export const useStore = create(
     persist(
-        (set) => ({
+        (set, get) => ({
             // =================================================================
             // 1. STATE DEFINITIONS
             // =================================================================
@@ -11,7 +20,7 @@ export const useStore = create(
             // 0 = Off, 1 = Basic/Mode A, 2 = Advanced/Mode B
             aiMode: 0,
 
-             // W/D/G slider values (0-100)
+            // W/D/G slider values (0-100)
             wValue: 0,
             dValue: 0,
             gValue: 0,
@@ -22,8 +31,14 @@ export const useStore = create(
             selectedJockeys: null,
             // Selected owners list (defaults to null)
             selectedOwners: null,
-            // Selected foaled list (defaults to null)
+            
+            // Legacy selected foaled list (automatically updated & synced)
             selectedFoaled: null,
+
+            // New separate lineage tracks (defaults to null)
+            selectedDams: null,
+            selectedBroodmareSires: null,
+            selectedSires: null,
 
             // =================================================================
             // 2. ALARM ACTIONS
@@ -57,7 +72,58 @@ export const useStore = create(
             setSelectedTrainers: (trainers) => set({ selectedTrainers: trainers }),
             setSelectedJockeys: (jockeys) => set({ selectedJockeys: jockeys }),
             setSelectedOwners: (owners) => set({ selectedOwners: owners }),
+            
+            // Left intact for direct overrides if legacy code updates it from outside
             setSelectedFoaled: (foaled) => set({ selectedFoaled: foaled }),
+
+            // ✅ CHANGED: Setters now receive 'races' data to rebuild full combo strings
+            setSelectedDams: (dams, races) => set((state) => {
+                const nextState = { selectedDams: dams };
+                nextState.selectedFoaled = state.deriveLegacyFoaled(dams, state.selectedBroodmareSires, state.selectedSires, races);
+                return nextState;
+            }),
+
+            setSelectedBroodmareSires: (bms, races) => set((state) => {
+                const nextState = { selectedBroodmareSires: bms };
+                nextState.selectedFoaled = state.deriveLegacyFoaled(state.selectedDams, bms, state.selectedSires, races);
+                return nextState;
+            }),
+
+            setSelectedSires: (sires, races) => set((state) => {
+                const nextState = { selectedSires: sires };
+                nextState.selectedFoaled = state.deriveLegacyFoaled(state.selectedDams, state.selectedBroodmareSires, sires, races);
+                return nextState;
+            }),
+
+            // ✅ CHANGED: Scans today's races to find full text strings for backwards-compatibility
+            deriveLegacyFoaled: (dams, bms, sires, races) => {
+                if (dams === null && bms === null && sires === null) return null;
+
+                const activeDams = dams || [];
+                const activeBms = bms || [];
+                const activeSires = sires || [];
+
+                const matchingFullStrings = new Set();
+
+                races?.forEach(race => {
+                    race.horses?.forEach(horse => {
+                        const rawFoaled = horse.foaled?.trim();
+                        if (rawFoaled) {
+                            const parsed = parseFoaled(rawFoaled);
+                            // If ANY component is checked in its panel, save the entire combination string!
+                            if (
+                                activeDams.includes(parsed.dam) || 
+                                activeBms.includes(parsed.broodmareSire) || 
+                                activeSires.includes(parsed.sire)
+                            ) {
+                                matchingFullStrings.add(rawFoaled);
+                            }
+                        }
+                    });
+                });
+
+                return Array.from(matchingFullStrings);
+            },
 
             // =================================================================
             // 5. SLIDER ACTIONS
