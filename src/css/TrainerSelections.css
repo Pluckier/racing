@@ -32,22 +32,26 @@
 
 .check-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 12px;
     margin-top: 12px; 
-    padding-right: 5px
+    padding-right: 5px;
+    overflow-x: hidden;
 }
 
 .theCheck {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
     cursor: pointer;
     font-size: 0.95rem;
     padding: 8px 12px;
     border-radius: 6px;
     transition: all 0.2s ease;
     user-select: none;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .check {
