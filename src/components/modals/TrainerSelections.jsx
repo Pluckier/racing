@@ -26,6 +26,7 @@ const CONFIG_ENTRIES = Object.entries(CONFIG);
 const TrainerSelections = ({ races }) => {
   // 1. Add the state line for tracking independent text filters per category block
   const [searchQueries, setSearchQueries] = useState({});
+  const [showOnlyActive, setShowOnlyActive] = useState({});
 
   // Bind directly to global individual tracks in Zustand
   const trainers = useStore((s) => s.selectedTrainers);
@@ -187,9 +188,17 @@ const TrainerSelections = ({ races }) => {
         const currentQuery = searchQueries[key] || '';
 
         // Filter the items list dynamically on the fly based on what's typed
-        const filteredItems = todaysData[key].filter(item =>
+        let filteredItems = todaysData[key].filter(item =>
           item.toLowerCase().includes(currentQuery.toLowerCase())
         );
+
+        // If Show Only Active is on, further filter to checked or highlighted items
+        if (showOnlyActive[key]) {
+          filteredItems = filteredItems.filter(item => {
+            const { checked, highlighted } = getItemSelectionState(item, key);
+            return checked || highlighted;
+          });
+        }
 
         return (
           <details key={key} style={{ marginBottom: '24px' }}>
@@ -228,6 +237,11 @@ const TrainerSelections = ({ races }) => {
                 }
               }}>
                 Set to Defaults
+              </button>
+              <button type="button" className="theButton" onClick={() =>
+                setShowOnlyActive(prev => ({ ...prev, [key]: !prev[key] }))
+              } style={showOnlyActive[key] ? { borderColor: '#10B981', color: '#10B981' } : {}}>
+                {showOnlyActive[key] ? 'Show All' : 'Show Only Active'}
               </button>
             </div>
 
