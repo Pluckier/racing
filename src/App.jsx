@@ -23,8 +23,6 @@ import './css/Notifications.css';
 function App() {
   const state = useAppState();
   const [refreshMinutes, setRefreshMinutes] = useState(15);
-  const aiMode = useStore((store) => store.aiMode);
-  const toggleAi = useStore((store) => store.toggleAi);
   const aiNames = { 0: 0, 1: 1, 2: 2 };
 
   // Handle the countdown timer for the Auto-Refresh UI
@@ -255,55 +253,6 @@ function App() {
     const activeRace = state.filteredRaces[activeRaceIndex] || state.filteredRaces[0];
     const activeRaceId = activeRace ? `${activeRace.time}${activeRace.place.replace(/\s+/g, '')}` : null;
 
-    const CpuIcon = () => (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect width="16" height="16" x="4" y="4" rx="2" />
-        <rect width="6" height="6" x="9" y="9" rx="1" />
-        <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
-      </svg>
-    );
-
-    const ClaudeIcon = () => (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2a1 1 0 0 1 1 1v4.757l3.364-3.364a1 1 0 1 1 1.414 1.414L14.414 9H19a1 1 0 1 1 0 2h-4.757l3.364 3.364a1 1 0 0 1-1.414 1.414L13 12.414V17a1 1 0 1 1-2 0v-4.757l-3.364 3.364a1 1 0 0 1-1.414-1.414L9.586 11H5a1 1 0 1 1 0-2h4.757L6.393 5.636a1 1 0 0 1 1.414-1.414L11 7.586V3a1 1 0 0 1 1-1z" />
-      </svg>
-    );
-
-    const ChatGptIcon = () => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        width="24"
-        height="24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {/* Center Core */}
-        <circle cx="12" cy="12" r="2.5" fill="currentColor" />
-
-        {/* Symmetrical Swirl Loops */}
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(0 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(60 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(120 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(180 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(240 12 12)" />
-        <ellipse cx="12" cy="7.5" rx="3.5" ry="2" transform="rotate(300 12 12)" />
-      </svg>
-    );
-
-    // 2. Updated clean mapping object utilizing the local SVG components
-    const aiButtonConfig = {
-      0: { icon: <CpuIcon />, color: '#374151', title: "Turn on AI" },
-      1: { icon: <ClaudeIcon />, color: '#F59E0B', title: "Using Claude" },
-      2: { icon: <ChatGptIcon />, color: '#10B981', title: "Using ChatGPT" }
-    };
-
-    const currentConfig = aiButtonConfig[aiMode] || aiButtonConfig[0];
-
-
     return (
       <Layout
         navProps={{
@@ -326,26 +275,6 @@ function App() {
                   title={state.showChat ? "Close Chat" : "Open Chat"}
                 >
                   💬
-                </button>
-
-                <button
-                  onClick={() => toggleAi()}
-                  className="race-analytics-btn"
-                  title={currentConfig.title} // Dynamically updates tooltip text too!
-                  style={{
-                    display: 'inline-flex',    // Centers the icon perfectly
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: currentConfig.color,
-                    color: 'white',
-                    padding: '4px 4px',        // Adjusted padding slightly to fit icons nicely
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s ease'
-                  }}
-                >
-                  {currentConfig.icon}
                 </button>
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -442,8 +371,8 @@ function App() {
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === 0}
-                  style={{ 
-                    flex: 1, 
+                  style={{
+                    flex: 1,
                     padding: '21px 0',
                     /* Adds conditional visual styling */
                     opacity: activeRaceIndex === 0 ? 0.5 : 1,
@@ -501,8 +430,8 @@ function App() {
                 <button
                   className="race-analytics-btn"
                   disabled={activeRaceIndex === state.filteredRaces.length - 1}
-                  style={{ 
-                    flex: 1, 
+                  style={{
+                    flex: 1,
                     padding: '21px 0',
                     /* Matches the same visual disabled states */
                     opacity: activeRaceIndex >= state.filteredRaces.length - 1 ? 0.5 : 1,
