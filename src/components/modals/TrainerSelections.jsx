@@ -267,7 +267,7 @@ const TrainerSelections = ({ races }) => {
                   borderColor = '#10B981'; // Green Checked Border
                   shadow = '0 0 4px rgba(16, 185, 129, 0.2)';
                 } else if (highlighted) {
-                  bgColor = '#FFF0F5'; // Soft Pink background tint
+                  bgColor = '#6e97c6ff'; // Soft Pink background tint
                   borderColor = '#FF69B4'; // Hot Pink relation border
                   shadow = '0 0 4px rgba(255, 105, 180, 0.2)';
                 }
