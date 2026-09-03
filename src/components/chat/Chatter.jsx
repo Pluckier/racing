@@ -9,7 +9,7 @@ const Chatter = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isFlashing, setIsFlashing] = useState(false);
-  
+
   const socket = useRef(null);
   const scrollRef = useRef(null);
   const workerRef = useRef(null); // Ref for the heartbeat worker
@@ -72,7 +72,7 @@ const Chatter = ({ onClose }) => {
 
     socket.current.onclose = () => {
       workerRef.current?.postMessage('STOP');
-      
+
       // Auto-reconnect after 5 seconds if still joined
       setTimeout(() => {
         if (isJoined) connectWebSocket();
@@ -115,17 +115,23 @@ const Chatter = ({ onClose }) => {
       {!isMinimized && (
         <div className="chat-body">
           {!isJoined ? (
-            <form className="join-form" onSubmit={(e) => { e.preventDefault(); setIsJoined(true); }}>
-              <p>Pick a chat nickname:</p>
-              <input 
-                autoFocus
-                value={username} 
-                onChange={(e) => setUsername(e.target.value)} 
-                placeholder="Anonymous name..." 
-                required 
-              />
-              <button type="submit">Join</button>
-            </form>
+            <div>
+              <form className="join-form" onSubmit={(e) => { e.preventDefault(); setIsJoined(true); }}>
+                <p>Pick a chat nickname:</p>
+                <input
+                  autoFocus
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Anonymous name..."
+                  required
+                />
+                <button type="submit">Join</button>
+              </form>
+              <div class="discord-banner dark-theme">
+                ... or <a href="https://discord.gg/Zs6TgGKxJR" target="_blank" rel="noreferrer" class="discord-btn-dark">Join Discord</a>
+                for results, advice, suggestions, racing commands and more.
+              </div>
+            </div>
           ) : (
             <>
               <div className="messages-container" ref={scrollRef}>
@@ -137,10 +143,10 @@ const Chatter = ({ onClose }) => {
                 ))}
               </div>
               <form className="input-area" onSubmit={sendMessage}>
-                <input 
-                  value={input} 
-                  onChange={(e) => setInput(e.target.value)} 
-                  placeholder="Type message..." 
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type message..."
                 />
                 <button type="submit">Send</button>
               </form>
