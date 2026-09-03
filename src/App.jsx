@@ -8,6 +8,7 @@ import RaceTimeline from './components/race/RaceTimeline';
 import Modal from './components/common/Modal';
 import OddsMovementSummary from './components/modals/OddsMovementSummary';
 import TrainerSelections from './components/modals/TrainerSelections';
+import GridDarkSocialShareDropdown from './components/layout/DropShare';
 import Layout from './components/layout/Layout';
 import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
@@ -276,6 +277,8 @@ function App() {
                 >
                   💬
                 </button>
+
+                <GridDarkSocialShareDropdown url={'https://pluckier.github.io/racing'} title={'Be Luckier, Pick Pluckier 🏇'} />
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
