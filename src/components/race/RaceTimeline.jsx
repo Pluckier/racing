@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Chart } from 'react-google-charts';
 import SkeletonRaceTimeline from '../skeletons/SkeletonRaceTimeline';
 import '../../css/RaceTimeline.css';
 
 const RaceTimeline = ({ races, theme: currentTheme }) => {
+  // State to hold the current time, updating every minute
+  const [now, setNow] = useState(new Date());
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 60000); // Update every 60 seconds
+    return () => clearInterval(timer);
+  }, []);
+
   const columns = [
     { type: 'string', id: 'Venue' },
     { type: 'string', id: 'Race' },
@@ -13,22 +24,20 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
   ];
 
   const getRaceIcon = (r) => {
-      if (!r) return '';
-      const d = (r.detail || '').toLowerCase();
-      const isH = d.includes('handicap') || d.includes('nursery');
-      const isC1 = d.includes('class 1') || d.includes('class 2');
-      const count = r.horses?.length || 0;
+    if (!r) return '';
+    const d = (r.detail || '').toLowerCase();
+    const isH = d.includes('handicap') || d.includes('nursery');
+    const isC1 = d.includes('class 1') || d.includes('class 2');
+    const count = r.horses?.length || 0;
 
-      const icons = [];
-      if (isC1) icons.push('👑');
-      if (isH) icons.push('⚖️');
-      if ((isH || isC1) && count >= 8) icons.push('🏆');
+    const icons = [];
+    if (isC1) icons.push('👑');
+    if (isH) icons.push('⚖️');
+    if ((isH || isC1) && count >= 8) icons.push('🏆');
 
-      return icons.length > 0 ? icons.join(' ') : '🚫';
+    return icons.length > 0 ? icons.join(' ') : '🚫';
   };
 
-
-  // Detect if the user is in dark mode to adjust chart colors dynamically
   const isDark = currentTheme === 'dark';
   const theme = {
     bg: isDark ? '#2a2a2a' : '#ffffff',
@@ -36,91 +45,76 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
     tooltip: isDark ? 'background-color: #595656; color: #ffffff; border: 1px solid #444;' : 'background-color: #ffffff; color: #333333; border: 1px solid #ccc;'
   };
 
+  // Keep track of the earliest start and latest end times to calculate line placement boundaries
+  let globalMinTime = null;
+  let globalMaxTime = null;
+
   const rows = races.map((race) => {
-
-
-
-
-
-
-
-
-
-
-    // Math.min(horse.past?.length || 0, 6) caps each individual horse at 6
     const totalPastRuns = race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
     const maxPossibleRuns = (race.horses?.length || 0) * 6;
 
-    // 1. Calculate percentage as a number
-    const formPercentage = maxPossibleRuns > 0
-      ? Math.round((totalPastRuns / maxPossibleRuns) * 100)
-      : 0;
-
-    // 2. Determine which emoji to use based on the tier
+    const formPercentage = maxPossibleRuns > 0 ? Math.round((totalPastRuns / maxPossibleRuns) * 100) : 0;
     let emoji = "";
+    if (formPercentage >= 0 && formPercentage <= 33) emoji = " ❌";
+    else if (formPercentage >= 34 && formPercentage <= 55) emoji = " ⚠️";
+    else if (formPercentage >= 56 && formPercentage <= 74) emoji = " 👎";
+    else if (formPercentage >= 75 && formPercentage <= 87) emoji = " 👍";
+    else if (formPercentage >= 88 && formPercentage <= 99) emoji = " 👌";
+    else if (formPercentage === 100) emoji = " ✅💯";
 
-    if (formPercentage >= 0 && formPercentage <= 33) {
-      emoji = " ❌";
-    } else if (formPercentage >= 34 && formPercentage <= 55) {
-      emoji = " ⚠️";
-    } else if (formPercentage >= 56 && formPercentage <= 74) {
-      emoji = " 👎";
-    } else if (formPercentage >= 75 && formPercentage <= 87) {
-      emoji = " 👍";
-    } else if (formPercentage >= 88 && formPercentage <= 99) {
-      emoji = " 👌";
-    } else if (formPercentage === 100) {
-      emoji = " ✅💯";
-    }
-
-    // 3. Create final output string
     const finalDisplay = `${formPercentage}%${emoji}`;
-
-
     const icon = getRaceIcon(race);
-
-
-
-
-
-
-
-
-
     const [hours, minutes] = race.time.split(':').map(Number);
 
-    // Extract distance from detail (e.g., "2m 4f", "5f") to determine duration
     const milesMatch = race.detail?.match(/(\d+)m/);
     const furlongsMatch = race.detail?.match(/(\d+)f/);
     const m = milesMatch ? parseInt(milesMatch[1], 10) : 0;
     const f = furlongsMatch ? parseInt(furlongsMatch[1], 10) : 0;
     const totalMiles = m + (f / 8);
 
-    // Heuristic based on user request: 1m -> 2m, 3m -> 9m
-    // Formula: duration = 1.5 * miles + 0.5 * miles^2
     const duration = totalMiles > 0 ? (1.5 * totalMiles + 0.5 * Math.pow(totalMiles, 2)) : 10;
 
-    // We create a date object for today at the specific race time
     const start = new Date(0, 0, 0, hours, minutes);
     const end = new Date(0, 0, 0, hours, minutes + Math.max(2, duration));
 
-    // Break the detail into two lines if it contains a '(' (e.g., "Handicap Chase (Class 4)")
+    // Update global boundary frames
+    if (!globalMinTime || start < globalMinTime) globalMinTime = start;
+    if (!globalMaxTime || end > globalMaxTime) globalMaxTime = end;
+
     const detailParts = (race.detail || '').split('(');
     const displayDetail = detailParts.length > 1
       ? `${detailParts[0].trim()}<br/>(${detailParts.slice(1).join('(')}`
       : race.detail || '';
 
-    // Create an HTML string for the tooltip and match the theme
     const tooltipHtml = `<div style="padding: 10px; ${theme.tooltip} font-family: sans-serif; font-size: 13px; line-height: 1.4;">${icon} ${displayDetail} FORM:${finalDisplay}</div>`;
 
     return [race.place, race.time, tooltipHtml, start, end];
   });
 
   const data = [columns, ...rows];
-
-  // Calculate unique meetings to determine the number of rows
   const rowCount = new Set(races.map(r => r.place)).size;
-  const computedHeight = (rowCount * 40) + 60; // 40px per row + 60px for the time axis/padding
+  const computedHeight = (rowCount * 40) + 60;
+
+  // --- CURRENT TIME LINE CALCULATIONS ---
+  let linePositionLeft = null;
+
+  if (globalMinTime && globalMaxTime) {
+    // Standardize current time to match the chart date structure (Year 0, Month 0, Day 0)
+    const normalizedNow = new Date(0, 0, 0, now.getHours(), now.getMinutes());
+
+    // Check if the current time actually falls within the racing timeline frame
+    if (normalizedNow >= globalMinTime && normalizedNow <= globalMaxTime) {
+      const totalTimelineRange = globalMaxTime.getTime() - globalMinTime.getTime();
+      const currentTimelineElapsed = normalizedNow.getTime() - globalMinTime.getTime();
+
+      // Convert to an initial percentage position
+      const percentage = (currentTimelineElapsed / totalTimelineRange) * 100;
+
+      // Account for Google Chart's default layout paddings (Roughly ~10% offset for the Left Row Labels)
+      const labelPaddingOffset = 11;
+      linePositionLeft = labelPaddingOffset + (percentage * (1 - labelPaddingOffset / 100));
+    }
+  }
 
   const chartEvents = [
     {
@@ -147,7 +141,6 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
       barLabelStyle: { fontSize: 10, color: theme.text },
     },
     tooltip: { isHtml: true },
-    // 1st venue = Blue, 2nd venue = Red, others follow...
     colors: ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043'],
     backgroundColor: theme.bg,
     height: computedHeight,
@@ -156,7 +149,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
   if (!races.length) return null;
 
   return (
-    <div className="race-timeline-container">
+    <div className="race-timeline-container" ref={containerRef} style={{ position: 'relative' }}>
       <Chart
         chartType="Timeline"
         data={data}
@@ -167,6 +160,46 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
         options={options}
         chartEvents={chartEvents}
       />
+
+      {/* Absolute Overlaid Vertical Indicator Line */}
+      {linePositionLeft !== null && (
+        <div
+          className="timeline-now-indicator"
+          style={{
+            position: 'absolute',
+            left: `${linePositionLeft}%`,
+            top: '11px', // Pushes it right below the timeline header labels
+            height: `${computedHeight - 99}px`, // Stops right above the bottom horizontal axis
+            width: '2px',
+            backgroundColor: '#ffffffff', // Crimson warning line style
+            boxShadow: '0 0 6px rgba(11, 10, 10, 0.6)',
+            opacity: 0.7,
+            zIndex: 10,
+            pointerEvents: 'none' // Allows users to click "through" the line onto chart bars
+          }}
+        >
+          {/* Subtle indicator bulb element on top of the line */}
+          <div style={{
+            position: 'absolute',
+            top: '-4px',
+            left: '-3px',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: '#ffffffff'
+          }} />
+          {/* Subtle indicator bulb element on top of the line */}
+          <div style={{
+            position: 'absolute',
+            top: `${computedHeight - 99}px`,
+            left: '-3px',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: '#ffffffff'
+          }} />
+        </div>
+      )}
     </div>
   );
 };
