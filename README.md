@@ -2,9 +2,6 @@
 
 A modern web application showing today's horse racing entries from the UK & Ireland, featuring advanced sorting and performance analytics.
 
-## 🚀 Hosted Site
-
-You need a "[pluckier](https://www.pluckier.co.uk)" login to check out the live application: [https://tonykennah.github.io/racing/](https://tonykennah.github.io/racing/)
 
 ## ✨ Key Features
 
@@ -19,7 +16,6 @@ You need a "[pluckier](https://www.pluckier.co.uk)" login to check out the live 
     - **⏱️ Follow:** Real-time filtering to show only upcoming races, automatically removing finished events.
     - **📊 Odds Movement:** A summary view of price changes across the entire card.
     - **⭐ Value Finder:** Highlights horses with high form ratings (>80) that are priced at double digits (>9/1).
-    - **🎯 Short Prices:** Identify the strongest favorites based on rating consistency and market position.
     - **� Fiddle Detection:** Identifies "well-connected" horses from high-profile owners and trainers when they are running at larger odds.
 - **Detailed Form:** Comprehensive breakdown of past performances including date, time, course conditions (distance/going), finishing position, and weight carried.
 - **Mobile Optimized:** Responsive design with a theme-aware interface (optimized for Dark Mode).
@@ -31,11 +27,6 @@ The application implements a robust security layer using an `AuthGuard` pattern:
 - **Third-Party Integration:** Seamless authentication flow through a centralized login service.
 - **Session Persistence & Validation:** Secure cookie handling with periodic background session pings to the `authservice` to ensure account validity.
 
-## 📈 SEO & Social Sharing
-
-The application is optimized for social platforms:
-- **Open Graph & Twitter Cards:** Custom metadata for rich link previews on Twitter, Facebook, and Discord.
-- **Dynamic Content Support:** Configured to handle sharing of specific race meeting views.
 
 ## 🛠 Tech Stack
 
@@ -43,31 +34,6 @@ The application is optimized for social platforms:
 - **Build Tool:** Vite
 - **Visualization:** Recharts
 - **Deployment:** GitHub Pages
-
-## 💻 Local Development
-
-To run this project locally:
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/tonykennah/racing.git
-   cd racing
-   ```
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-## 📦 Deployment
-
-This project is configured for easy deployment to GitHub Pages. Run the following command to build and push the latest version:
-```bash
-npm run deploy
-```
 
 # Examples
 Timeline and Chart
