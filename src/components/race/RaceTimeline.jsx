@@ -178,25 +178,33 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
             pointerEvents: 'none' // Allows users to click "through" the line onto chart bars
           }}
         >
-          {/* Subtle indicator bulb element on top of the line */}
+          {/* White downward-pointing triangle at the TOP of the line */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '-10px',           /* Pushes it right above the line start */
+              left: '-5px',           /* Centers the 12px wide base exactly over the 2px line */
+              width: '0',
+              height: '0',
+              cursor: 'pointer',
+              /* CSS Downward Triangle */
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '10px solid #ffffff'
+            }}
+          />
+
+          {/* White upward-pointing triangle at the BOTTOM of the line */}
           <div style={{
             position: 'absolute',
-            top: '-4px',
-            left: '-3px',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#ffffffff'
-          }} />
-          {/* Subtle indicator bulb element on top of the line */}
-          <div style={{
-            position: 'absolute',
-            top: `${computedHeight - 99}px`,
-            left: '-3px',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#ffffffff'
+            top: `${computedHeight - 99}px`, /* Keeps your exact custom dynamic height alignment */
+            left: '-5px',                    /* Centers the 12px wide base exactly over the 2px line */
+            width: '0',
+            height: '0',
+            /* CSS Upward Triangle */
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderBottom: '10px solid #ffffff'
           }} />
         </div>
       )}
