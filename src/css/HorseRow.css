@@ -153,14 +153,18 @@
 
 .indicator.select {
   background-color: #f10505;
+  width: 9px;
+  /* Increased from 8px */
+  height: 9px;
+  /* Increased from 8px */
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-  outline: 1px solid transparent;
-  border-radius: 0;
+  border-radius: 0 !important;
 }
 
 .indicator.fiddle {
   background-color: #ff9f43;
   border-radius: 0%;
+
 }
 
 .indicator.value {
