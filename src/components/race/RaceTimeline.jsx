@@ -3,6 +3,42 @@ import { Chart } from 'react-google-charts';
 import SkeletonRaceTimeline from '../skeletons/SkeletonRaceTimeline';
 import '../../css/RaceTimeline.css';
 
+const wrapTextAtSpaces = (text, maxLength = 60) => {
+  if (!text) return '';
+
+  // .filter(Boolean) removes empty strings caused by extra spaces
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  let lines = [];
+  let currentLine = '';
+
+  words.forEach((word) => {
+    // If a single word is somehow longer than maxLength, let it sit on its own line
+    if (word.length > maxLength) {
+      if (currentLine) lines.push(currentLine);
+      lines.push(word);
+      currentLine = '';
+      return;
+    }
+
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+    if (testLine.length > maxLength) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.join('<br/>');
+};
+
+
+
 const RaceTimeline = ({ races, theme: currentTheme }) => {
   // State to hold the current time, updating every minute
   const [now, setNow] = useState(new Date());
@@ -82,10 +118,8 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
     if (!globalMinTime || start < globalMinTime) globalMinTime = start;
     if (!globalMaxTime || end > globalMaxTime) globalMaxTime = end;
 
-    const detailParts = (race.detail || '').split('(');
-    const displayDetail = detailParts.length > 1
-      ? `${detailParts[0].trim()}<br/>(${detailParts.slice(1).join('(')}`
-      : race.detail || '';
+    const rawFullDetail = `${race.detail || ''} (${race.runners || 0} run)`;
+    const displayDetail = wrapTextAtSpaces(rawFullDetail, 50);
 
     const tooltipHtml = `<div style="padding: 10px; ${theme.tooltip} font-family: sans-serif; font-size: 13px; line-height: 1.4;">${icon} ${displayDetail} FORM:${finalDisplay}</div>`;
 
