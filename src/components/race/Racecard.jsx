@@ -186,18 +186,33 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
   const valueRunnersRanked = useMemo(() => {
     if (!highlightValues) return new Map();
-    const runners = race.horses.filter(h => h.isValue);
-    const uniqueRatings = [...new Set(runners.map(getMax))].sort((a, b) => b - a);
+
+    // Use active runners (ignore NR/non-price) so slider changes affect selection
+    const activeRunners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
+
+    // Compute unique peak ratings using current slider-adjusted getMax
+    const uniqueRatings = [...new Set(activeRunners.map(getMax))].sort((a, b) => b - a);
 
     const ranks = new Map();
-    runners.forEach(h => {
+    if (uniqueRatings.length === 0) return ranks;
+
+    const top1 = uniqueRatings[0];
+    const top2 = uniqueRatings[1];
+
+    activeRunners.forEach(h => {
       const rtg = getMax(h);
       const horseId = h.number === 'NR' ? h.name : h.number;
-      if (rtg === uniqueRatings[0]) ranks.set(horseId, 'top');
-      else if (rtg === uniqueRatings[1]) ranks.set(horseId, 'second');
+      if (top1 !== undefined && rtg === top1) ranks.set(horseId, 'top');
+      else if (top2 !== undefined && rtg === top2) ranks.set(horseId, 'second');
     });
+
     return ranks;
   }, [race.horses, highlightValues, aiMode, wValue, dValue, gValue]);
+
+  useEffect(() => {
+    console.log('valueRunnersRanked', Array.from(valueRunnersRanked.entries()));
+  }, [valueRunnersRanked]);
+
 
   const massiveSpikeHorseNumber = useMemo(() => {
     const activeRunners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
