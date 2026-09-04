@@ -211,8 +211,8 @@ const HelpPage = ({ theme: currentTheme }) => {
                     <li>
                         <strong>Odds & Movement Arrow:</strong> Current market price with directional movement indicators:
                         <ul>
-                            <li><strong style={{ color: '#10b981' }}>▲ Green Arrow:</strong> Price shortened (backed in the market).</li>
-                            <li><strong style={{ color: '#ef4444' }}>▼ Red Arrow:</strong> Price lengthened (drifted).</li>
+                            <li><strong style={{ color: '#ef4444' }}>▲ Red Arrow:</strong> Price shortened (backed in the market).</li>
+                            <li><strong style={{ color: '#1d4ab3ff' }}>▼ Blue Arrow:</strong> Price lengthened (drifted).</li>
                             <li><strong>~ Tilde:</strong> Stable price with no significant movement.</li>
                         </ul>
                     </li>
