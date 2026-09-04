@@ -70,6 +70,40 @@ const HelpPage = ({ theme: currentTheme }) => {
                 </ul>
             </section>
 
+            {/* Section: Hot Connections */}
+            <section className="help-section">
+                <h2>🔥 Hot Connections & Pedigree Panel</h2>
+                <p>Click the <strong>🔥 Connections</strong> button in the filter bar to open <em>Today's Connections</em> modal. This panel lets you manage exactly which connections and bloodlines are flagged across all racecards:</p>
+                <ul>
+                    <li>
+                        <strong>6 Tracked Categories:</strong>
+                        <ul>
+                            <li><strong>Trainers Today:</strong> Leading stables and in-form yards.</li>
+                            <li><strong>Jockeys Today:</strong> Top pilots and claiming riders.</li>
+                            <li><strong>Owners Today:</strong> Prominent racing operations and silks.</li>
+                            <li><strong>Dams Today:</strong> Maternal parentage of today's runners.</li>
+                            <li><strong>Broodmare Sires Today:</strong> Maternal grandsires (stamina and going influence).</li>
+                            <li><strong>Sires Today:</strong> Paternal stallion lineage.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Quick Actions & Search:</strong> Every section has its own instant search filter, a <em>"Show Only Active"</em> checkbox, and quick buttons to <strong>Select All</strong>, <strong>Clear All</strong>, or <strong>Reset to Hot</strong> (restores the default curated in-form shortlist).
+                    </li>
+                    <li>
+                        <strong>Runner Tooltips:</strong> Hover over any trainer, jockey, owner, or sire to see every horse they are connected with today, including race times and tracks.
+                    </li>
+                    <li>
+                        <strong>Pedigree Family Linking (Pink Highlight):</strong> For breeding tracks, if any part of a horse's pedigree (Dam, Broodmare Sire, or Sire) is selected, its relatives automatically highlight in pink to reveal breeding patterns.
+                    </li>
+                    <li>
+                        <strong>Visual Markers on Cards:</strong> When the <strong>🔥 Hot</strong> toggle in the filter bar is active, any runner matching your selected connections displays the <strong>🟨 Hot</strong> square. Selected Jockeys (<strong>J:</strong>) and Trainers (<strong>T:</strong>) appear in bold.
+                    </li>
+                    <li>
+                        <strong>Interactive On-the-Fly Toggling:</strong> Click any Jockey or Trainer name directly on a racecard row to toggle them in or out of your Hot list. Clicking the 🟨 icon directly removes that runner's connection.
+                    </li>
+                </ul>
+            </section>
+
             {/* Section 2: Race Importance Icons */}
             <section className="help-section">
                 <h2>🏷️ Race Classification Icons</h2>
