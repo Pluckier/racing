@@ -471,7 +471,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
           return (
             <HorseRow
-              key={`${horse.name}-${horse.number}`}
+              key={`${horse.name}-${horse.number}-${wValue}-${dValue}-${gValue}`}
               horse={horse}
               sortBy={sortBy}
               highlightFiddle={highlightFiddles && horse.isFiddle}
