@@ -10,6 +10,45 @@ const HelpPage = ({ theme: currentTheme }) => {
         <div className={`help-container ${isDark ? 'dark-mode' : 'light-mode'}`}>
             <p className="help-lead">Welcome to The Racing (from Pluckier). Here is a breakdown of how to read the data, classification icons, and form percentage indicators.</p>
 
+            {/* Header Navigation & Toolbar Controls */}
+            <section className="help-section">
+                <h2>🧭 Header Bar & Toolbar Controls</h2>
+                <p>The top navigation and expandable toolbar provide instant access to global platform utilities:</p>
+                <ul>
+                    <li>
+                        <strong>🔍 Quick Search:</strong> Fast lookup by horse name, trainer, or jockey. Selecting any search match instantly jumps or scrolls directly to that race.
+                    </li>
+                    <li>
+                        <strong>💡 Help & Guide:</strong> Opens this comprehensive guide, documentation, and visual legend.
+                    </li>
+                    <li>
+                        <strong>🧍 Live Presence Counter:</strong> Displays the live number of active users currently browsing the board.
+                    </li>
+                    <li>
+                        <strong>💬 Community Chat:</strong> Toggles the live racing discussion room and chat drawer.
+                    </li>
+                    <li>
+                        <strong>🔗 Social Share:</strong> Share current cards, tips, and race links directly to X / Twitter, WhatsApp, Facebook, or copy to clipboard.
+                    </li>
+                    <li>
+                        <strong>↻ Auto-Refresh & Non-Runners:</strong> Automatically refreshes latest market odds and race states every 15 minutes. When non-runners are detected, a red badge shows the count (e.g. <code>3</code>); click to review non-runner notifications.
+                    </li>
+                    <li>
+                        <strong>⛶ Fullscreen Mode:</strong> Toggles borderless fullscreen display — ideal for dedicated multi-screen workstations or TV displays.
+                    </li>
+                    <li>
+                        <strong>☕ Donate:</strong> Support Pluckier development, server hosting, and new analytics features via PayPal.
+                    </li>
+                    <li>
+                        <strong>☀️ / 🌙 Theme Toggle:</strong> Instantly switch between clean high-visibility Light Mode and sleek Dark Mode.
+                    </li>
+                    <li>
+                        <strong>📅 Date Selector:</strong> Click the calendar icon (📅) in the header to travel to previous historical race days or browse upcoming scheduled cards.
+                    </li>
+                </ul>
+            </section>
+
+
             {/* Section 1: The Live Timeline Line */}
             <section className="help-section">
                 <h2>⏱️ Live Race Timeline Indicator</h2>
