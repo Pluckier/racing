@@ -22,14 +22,19 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
 
+  const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
+  const raceKey = currentDateStr ? `${currentDateStr}_${raceId}` : raceId;
+
   const aiMode = useStore((store) => store.aiMode);
   const toggleAi = useStore((store) => store.toggleAi);
-  const wValue = useStore((store) => store.wValue);
-  const dValue = useStore((store) => store.dValue);
-  const gValue = useStore((store) => store.gValue);
-  const setW = useStore((store) => store.setW);
-  const setD = useStore((store) => store.setD);
-  const setG = useStore((store) => store.setG);
+  const wValue = useStore((store) => store.raceSliders?.[raceKey]?.w ?? 0);
+  const dValue = useStore((store) => store.raceSliders?.[raceKey]?.d ?? 0);
+  const gValue = useStore((store) => store.raceSliders?.[raceKey]?.g ?? 0);
+  const setRaceSlider = useStore((store) => store.setRaceSlider);
+
+  const setW = (v) => setRaceSlider(raceKey, 'w', v);
+  const setD = (v) => setRaceSlider(raceKey, 'd', v);
+  const setG = (v) => setRaceSlider(raceKey, 'g', v);
 
   // Math.min(horse.past?.length || 0, 6) caps each individual horse at 6
   const totalPastRuns = race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
@@ -192,7 +197,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       else if (rtg === uniqueRatings[1]) ranks.set(horseId, 'second');
     });
     return ranks;
-  }, [race.horses, highlightValues, aiMode]);
+  }, [race.horses, highlightValues, aiMode, wValue, dValue, gValue]);
 
   const massiveSpikeHorseNumber = useMemo(() => {
     const activeRunners = race.horses.filter(h => getLatestOdds(h) !== Infinity);
@@ -223,7 +228,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     }
 
     return (topPeak > 0 && topPeak >= nextPeak * 1.9 && peakDistValid) ? (winner.number === 'NR' ? winner.name : winner.number) : null;
-  }, [race.horses, aiMode]);
+  }, [race.horses, aiMode, wValue, dValue, gValue]);
 
   const selectHorseNumber = useMemo(() => {
     // 1. Filter out Non-Runners and invalid odds immediately
@@ -239,7 +244,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     // 3. Return the winning horse's number
     return winner.number === 'NR' ? winner.name : winner.number;
-  }, [race.horses, aiMode]);
+  }, [race.horses, aiMode, wValue, dValue, gValue]);
 
 
   const getRaceIcon = (r) => {
@@ -256,8 +261,6 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     return icons.length > 0 ? icons.join(' ') : '🚫';
   };
-
-  const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
 
   // Navigation logic for the FormChart Modal
   const currentIndex = allRaces.findIndex(r => r.time === activeChartRace.time && r.place === activeChartRace.place);

@@ -20,10 +20,13 @@ export const useStore = create(
             // 0 = Off, 1 = Basic/Mode A, 2 = Advanced/Mode B
             aiMode: 0,
 
-            // W/D/G slider values (0-100)
+            // W/D/G slider values (0-100) - legacy / fallback
             wValue: 0,
             dValue: 0,
             gValue: 0,
+
+            // Per-race slider values { [raceKey]: { w: 0, d: 0, g: 0 } }
+            raceSliders: {},
 
             // Selected trainers list (defaults to null)
             selectedTrainers: null,
@@ -131,6 +134,19 @@ export const useStore = create(
             setW: (v) => set({ wValue: Math.min(100, Math.max(0, v)) }),
             setD: (v) => set({ dValue: Math.min(100, Math.max(0, v)) }),
             setG: (v) => set({ gValue: Math.min(100, Math.max(0, v)) }),
+
+            setRaceSlider: (raceKey, key, value) => set((state) => ({
+                raceSliders: {
+                    ...(state.raceSliders || {}),
+                    [raceKey]: {
+                        w: 0,
+                        d: 0,
+                        g: 0,
+                        ...(state.raceSliders?.[raceKey] || {}),
+                        [key]: Math.min(100, Math.max(0, value))
+                    }
+                }
+            })),
         }),
         {
             name: 'alarm-storage',

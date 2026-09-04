@@ -36,7 +36,7 @@ const CustomDot = React.memo((props) => {
   );
 });
 
-const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode }) => {
+const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode, currentDateStr }) => {
 
   const GOING_OPTIONS = [
     { code: 'Hvy', label: 'Hvy' },
@@ -48,12 +48,17 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
     { code: 'Fm', label: 'Fm-' }
   ];
 
-  const wValue = useStore((state) => state.wValue);
-  const dValue = useStore((state) => state.dValue);
-  const gValue = useStore((state) => state.gValue);
-  const setW = useStore((state) => state.setW);
-  const setD = useStore((state) => state.setD);
-  const setG = useStore((state) => state.setG);
+  const chartRaceId = raceTime && racePlace ? `${raceTime}${racePlace.replace(/\s+/g, '')}` : '';
+  const chartRaceKey = chartRaceId ? (currentDateStr ? `${currentDateStr}_${chartRaceId}` : chartRaceId) : '';
+
+  const wValue = useStore((state) => chartRaceKey ? (state.raceSliders?.[chartRaceKey]?.w ?? 0) : 0);
+  const dValue = useStore((state) => chartRaceKey ? (state.raceSliders?.[chartRaceKey]?.d ?? 0) : 0);
+  const gValue = useStore((state) => chartRaceKey ? (state.raceSliders?.[chartRaceKey]?.g ?? 0) : 0);
+  const setRaceSlider = useStore((state) => state.setRaceSlider);
+
+  const setW = (v) => chartRaceKey && setRaceSlider(chartRaceKey, 'w', v);
+  const setD = (v) => chartRaceKey && setRaceSlider(chartRaceKey, 'd', v);
+  const setG = (v) => chartRaceKey && setRaceSlider(chartRaceKey, 'g', v);
 
   const parseDistanceToFurlongs = (distStr) => {
     if (!distStr || typeof distStr !== 'string') return 0;
