@@ -209,9 +209,6 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     return ranks;
   }, [race.horses, highlightValues, aiMode, wValue, dValue, gValue]);
 
-  useEffect(() => {
-    console.log('valueRunnersRanked', Array.from(valueRunnersRanked.entries()));
-  }, [valueRunnersRanked]);
 
 
   const massiveSpikeHorseNumber = useMemo(() => {
