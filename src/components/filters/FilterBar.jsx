@@ -30,10 +30,10 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowTr
 
       <div className="summary-controls" style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
         <button className="filter-btn movement-summary-btn" onClick={onShowMovement} title="Show odds movements">📊 Odds</button>
-        <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Show Hot Trainers & Jockeys">🔥 Connections</button>
-        <button className={`filter-btn interesting-selections-btn ${filters.value ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, value: !f.value }))} title="Highlight well rated big prices">⭐ Value</button>
+        <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Set hot connections">🔥 Connections</button>
+        <button className={`filter-btn interesting-selections-btn ${filters.value ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, value: !f.value }))} title="Highlight best past performance">⭐ Performance</button>
         <button className={`filter-btn fiddle-btn ${filters.fiddle ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, fiddle: !f.fiddle }))} title="Highlight well connected horses">🔥 Hot</button>
-        <button className={`filter-btn follow-btn ${filters.select ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, select: !f.select }))} title="Highlight top rated 1 run">🎯 Recent</button>
+        <button className={`filter-btn follow-btn ${filters.select ? 'active' : ''}`} onClick={() => setFilters(f => ({ ...f, select: !f.select }))} title="Highlight best recent run">🎯 Recent</button>
       </div>
     </div>
   );
