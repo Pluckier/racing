@@ -42,7 +42,8 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
   const theme = {
     bg: isDark ? '#2a2a2a' : '#ffffff',
     text: isDark ? '#e0e0e0' : '#333333',
-    tooltip: isDark ? 'background-color: #595656; color: #ffffff; border: 1px solid #444;' : 'background-color: #ffffff; color: #333333; border: 1px solid #ccc;'
+    tooltip: isDark ? 'background-color: #595656; color: #ffffff; border: 1px solid #444;' : 'background-color: #ffffff; color: #333333; border: 1px solid #ccc;',
+    lineColor: isDark ? '#ffffff' : '#000000'
   };
 
   // Keep track of the earliest start and latest end times to calculate line placement boundaries
@@ -171,14 +172,14 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
             top: '11px', // Pushes it right below the timeline header labels
             height: `${computedHeight - 99}px`, // Stops right above the bottom horizontal axis
             width: '2px',
-            backgroundColor: '#ffffffff', // Crimson warning line style
-            boxShadow: '0 0 6px rgba(11, 10, 10, 0.6)',
+            backgroundColor: theme.lineColor,
+            boxShadow: isDark ? '0 0 6px rgba(11, 10, 10, 0.6)' : '0 0 6px rgba(0, 0, 0, 0.3)',
             opacity: 0.7,
             zIndex: 10,
             pointerEvents: 'none' // Allows users to click "through" the line onto chart bars
           }}
         >
-          {/* White downward-pointing triangle at the TOP of the line */}
+          {/* Downward-pointing triangle at the TOP of the line */}
           <div
             style={{
               position: 'absolute',
@@ -190,11 +191,11 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
               /* CSS Downward Triangle */
               borderLeft: '6px solid transparent',
               borderRight: '6px solid transparent',
-              borderTop: '10px solid #ffffff'
+              borderTop: `10px solid ${theme.lineColor}`
             }}
           />
 
-          {/* White upward-pointing triangle at the BOTTOM of the line */}
+          {/* Upward-pointing triangle at the BOTTOM of the line */}
           <div style={{
             position: 'absolute',
             top: `${computedHeight - 99}px`, /* Keeps your exact custom dynamic height alignment */
@@ -204,7 +205,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
             /* CSS Upward Triangle */
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
-            borderBottom: '10px solid #ffffff'
+            borderBottom: `10px solid ${theme.lineColor}`
           }} />
         </div>
       )}
