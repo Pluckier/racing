@@ -20,11 +20,13 @@ import TrackWorker from './components/obs/TrackWorker'; // Import TrackWorker
 import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchOverlay
 import './css/App.css';
 import './css/Notifications.css';
+import HelpPage from './components/common/HelpPage';
 
 function App() {
   const state = useAppState();
   const [refreshMinutes, setRefreshMinutes] = useState(15);
   const aiNames = { 0: 0, 1: 1, 2: 2 };
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Handle the countdown timer for the Auto-Refresh UI
   useEffect(() => {
@@ -269,6 +271,15 @@ function App() {
                   viewMode={viewMode}
                   currentDateStr={currentDateStr}
                 />
+
+                <button
+                  className={`filter-btn help-btn ${isHelpOpen ? 'active' : ''}`}
+                  onClick={() => setIsHelpOpen(!isHelpOpen)}
+                  title={isHelpOpen ? "Close Help" : "HELP & Guide"}
+                >
+                  💡
+                </button>
+
                 <TrackWorker />
                 <button
                   className={`filter-btn chat-btn ${state.showChat ? 'active' : ''}`}
@@ -453,6 +464,14 @@ function App() {
                 🕒 Race finished. Moved to next scheduled off...
               </div>
             )}
+
+            <Modal
+              isOpen={isHelpOpen}
+              onClose={() => setIsHelpOpen(false)}
+              title="Help, Guide, Icons"
+            >
+              <HelpPage theme={state.theme} />
+            </Modal>
 
             <Modal
               isOpen={!!state.activeModal}
