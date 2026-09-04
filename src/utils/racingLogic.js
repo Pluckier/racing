@@ -1,7 +1,7 @@
 import { useStore } from '../store/alarmStore'; // You can delete this import line entirely if it's not used anywhere else in this file
 
 export const HOT_OWNERS = [
-  "John P McManus", "Mrs J Donnelly"
+  "John P McManus", "Mrs J Donnelly", "John P Mcmanus"
 ];
 
 export const HOT_TRAINERS = [
