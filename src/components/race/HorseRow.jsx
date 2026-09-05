@@ -122,11 +122,11 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const trainerTrimmed = horse.trainer ? horse.trainer.trim() : '';
   const jockeyTrimmed = horse.jockey ? horse.jockey.trim() : '';
 
-  const isTrainerHighlighted = selectedTrainers !== null 
+  const isTrainerHighlighted = selectedTrainers !== null
     ? selectedTrainers.some(t => trainerTrimmed.includes(t) || t.includes(trainerTrimmed))
     : HOT_TRAINERS.some(t => trainerTrimmed.includes(t));
 
-  const isJockeyHighlighted = selectedJockeys !== null 
+  const isJockeyHighlighted = selectedJockeys !== null
     ? selectedJockeys.some(j => jockeyTrimmed.includes(j) || j.includes(jockeyTrimmed))
     : HOT_JOCKEYS.some(j => jockeyTrimmed.includes(j));
 
@@ -231,6 +231,11 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const colorIndex = !isNaN(num) ? (num - 1) % SOFT_COLORS.length : SOFT_COLORS.length - 1;
   const rowBg = `${SOFT_COLORS[colorIndex]}40`; // 25% opacity
 
+  const isFieldMatching = (fieldValue, storeArray) => {
+    if (!fieldValue || !storeArray) return false;
+    return storeArray.includes(fieldValue.trim());
+  };
+
   return (
     <div
       className={`horse-row ${isNR ? 'non-runner' : ''}`}
@@ -311,11 +316,47 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
 
       {showForm && (
         <div className="past-races-container">
+
+          {/* 1. Horse Metadata Header Box (Shown Before Past Runs) */}
+          <div className="horse-meta-header" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '10px',
+            padding: '12px',
+            marginBottom: '15px',
+            backgroundColor: '#1c1c1c',
+            borderLeft: '4px solid #4a90e2',
+            borderRadius: '4px',
+            fontSize: '0.9rem',
+            color: '#fff'
+          }}>
+            <div>
+              <span style={{ color: '#888' }}>Sex: </span>
+              <strong>{horse.breeding || 'N/A'}</strong>
+            </div>
+            <div>
+              <span style={{ color: '#888' }}>Owner: </span>
+              <strong>{horse.owner || 'N/A'}</strong>
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <span style={{ color: '#888' }}>Breeding: </span>
+              {/* If breeding contains Sadler's Wells, we give it a subtle highlight gold color */}
+              <strong style={{
+                color: isFieldMatching(horse.foaled, useStore.getState().selectedFoaled) ? '#ffd700' : '#fff'
+              }}>
+                {horse.foaled || 'N/A'}
+              </strong>
+            </div>
+          </div>
+
+          {/* 2. Your Existing Past Race Iteration Loop */}
           {horse.past.map((race, idx) => (
             <PastRace key={idx} race={race} adjustedRating={getAdjustedRating(race)} />
           ))}
+
         </div>
       )}
+
     </div>
   );
 };
