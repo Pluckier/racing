@@ -21,6 +21,7 @@ import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchO
 import './css/App.css';
 import './css/Notifications.css';
 import HelpPage from './components/common/HelpPage';
+import AntiSpamWrapper from './components/security/AntiSpamWrapper'; // Import AntiSpamWrapper
 
 function App() {
   const state = useAppState();
@@ -529,13 +530,16 @@ function App() {
     );
   };
 
-  // 2. Return the UI wrapped ONLY if auth is active
-  if (!AUTH_ACTIVE) return content();
-
   return (
-    <AuthGuard>
-      {(authData) => content(authData)}
-    </AuthGuard>
+    <AntiSpamWrapper>
+      {!AUTH_ACTIVE ? (
+        content()
+      ) : (
+        <AuthGuard>
+          {(authData) => content(authData)}
+        </AuthGuard>
+      )}
+    </AntiSpamWrapper>
   );
 }
 
