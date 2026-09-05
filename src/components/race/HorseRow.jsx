@@ -231,12 +231,6 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const colorIndex = !isNaN(num) ? (num - 1) % SOFT_COLORS.length : SOFT_COLORS.length - 1;
   const rowBg = `${SOFT_COLORS[colorIndex]}40`; // 25% opacity
 
-  const [storeReady, setStoreReady] = useState(false);
-
-  useEffect(() => {
-    // This fires immediately after the component mounts on the production client
-    setStoreReady(true);
-  }, []);
 
   const isFieldMatching = (fieldValue, storeArray) => {
     if (!fieldValue || !storeArray || !Array.isArray(storeArray)) return false;
@@ -251,7 +245,6 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
     });
   };
 
-  if (!storeReady) return null;
   return (
     <div
       className={`horse-row ${isNR ? 'non-runner' : ''}`}
