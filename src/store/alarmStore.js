@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 const parseFoaled = (str) => {
     if (!str) return { dam: '', broodmareSire: '', sire: '' };
     const match = str.match(/D:\s*(.*?)\s*\((.*?)\)\s*S:\s*(.*)/i);
-    return match 
+    return match
         ? { dam: match[1].trim(), broodmareSire: match[2].trim(), sire: match[3].trim() }
         : { dam: str.trim(), broodmareSire: '', sire: '' };
 };
@@ -34,7 +34,7 @@ export const useStore = create(
             selectedJockeys: null,
             // Selected owners list (defaults to null)
             selectedOwners: null,
-            
+
             // Legacy selected foaled list (automatically updated & synced)
             selectedFoaled: null,
 
@@ -75,7 +75,7 @@ export const useStore = create(
             setSelectedTrainers: (trainers) => set({ selectedTrainers: trainers }),
             setSelectedJockeys: (jockeys) => set({ selectedJockeys: jockeys }),
             setSelectedOwners: (owners) => set({ selectedOwners: owners }),
-            
+
             // Left intact for direct overrides if legacy code updates it from outside
             setSelectedFoaled: (foaled) => set({ selectedFoaled: foaled }),
 
@@ -98,6 +98,15 @@ export const useStore = create(
                 return nextState;
             }),
 
+            refreshFoaled: (races) => set((state) => ({
+                selectedFoaled: state.deriveLegacyFoaled(
+                    state.selectedDams,
+                    state.selectedBroodmareSires,
+                    state.selectedSires,
+                    races
+                )
+            })),
+
             // ✅ CHANGED: Scans today's races to find full text strings for backwards-compatibility
             deriveLegacyFoaled: (dams, bms, sires, races) => {
                 if (dams === null && bms === null && sires === null) return null;
@@ -115,8 +124,8 @@ export const useStore = create(
                             const parsed = parseFoaled(rawFoaled);
                             // If ANY component is checked in its panel, save the entire combination string!
                             if (
-                                activeDams.includes(parsed.dam) || 
-                                activeBms.includes(parsed.broodmareSire) || 
+                                activeDams.includes(parsed.dam) ||
+                                activeBms.includes(parsed.broodmareSire) ||
                                 activeSires.includes(parsed.sire)
                             ) {
                                 matchingFullStrings.add(rawFoaled);

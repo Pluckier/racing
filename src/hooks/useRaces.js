@@ -31,7 +31,7 @@ export const useRaces = (displayDate) => {
       try {
         const response = await fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' });
         if (!response.ok) throw new Error('Races for this date are not available');
-        
+
         const data = await response.json();
         if (Array.isArray(data)) {
           setRaces(data);

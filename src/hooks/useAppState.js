@@ -6,6 +6,7 @@ import { useFilteredRaces } from './useFilteredRaces';
 import { useNextRaceBanner } from './useNextRaceBanner';
 import { useAutoScroll } from './useAutoScroll';
 import { formatDisplayDateTime } from '../utils/dateUtils';
+import { useStore } from '../store/alarmStore';
 
 export function useAppState() {
   const [displayDate, setDisplayDate] = useState(() => {
@@ -20,7 +21,7 @@ export function useAppState() {
   const currentTime = useClock();
   const [showChat, setShowChat] = useState(false);
   const { races, loading, error, handleManualRefresh, lastRefreshTime } = useRaces(displayDate);
-  
+
   const [filters, setFilters] = useState({
     places: [],
     tricast: false,
@@ -28,7 +29,9 @@ export function useAppState() {
     value: false,
     fiddle: false
   });
-  
+
+  const refreshFoaled = useStore(state => state.refreshFoaled);
+
   const [theme, setTheme] = useTheme();
   const [activeModal, setActiveModal] = useState(null); // 'movement', 'favorites', or null
 
@@ -43,19 +46,26 @@ export function useAppState() {
     }
   }, [currentTime, lastRefreshTime, handleManualRefresh]);
 
-  const formattedDateTime = useMemo(() => 
-    formatDisplayDateTime(displayDate, currentTime), 
+  useEffect(() => {
+    if (!refreshFoaled) return;
+    if (!Array.isArray(races)) return;
+    // Recompute legacy 'selectedFoaled' for the newly-loaded races
+    refreshFoaled(races);
+  }, [races, refreshFoaled]);
+
+  const formattedDateTime = useMemo(() =>
+    formatDisplayDateTime(displayDate, currentTime),
     [currentTime, displayDate]
   );
 
-  const uniquePlaces = useMemo(() => 
+  const uniquePlaces = useMemo(() =>
     [...new Set((Array.isArray(races) ? races : []).map(r => r.place))].sort(),
     [races]
   );
 
   const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
   const showNextRaceBanner = useNextRaceBanner(filteredRaces.length, currentTime, filters.follow, displayDate);
-  
+
   useAutoScroll(loading, filteredRaces);
 
   return {
