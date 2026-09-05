@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PastRace from './PastRace';
 import '../../css/HorseRow.css';
 import { useStore } from '../../store/alarmStore';
@@ -231,11 +231,27 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const colorIndex = !isNaN(num) ? (num - 1) % SOFT_COLORS.length : SOFT_COLORS.length - 1;
   const rowBg = `${SOFT_COLORS[colorIndex]}40`; // 25% opacity
 
+  const [storeReady, setStoreReady] = useState(false);
+
+  useEffect(() => {
+    // This fires immediately after the component mounts on the production client
+    setStoreReady(true);
+  }, []);
+
   const isFieldMatching = (fieldValue, storeArray) => {
-    if (!fieldValue || !storeArray) return false;
-    return storeArray.includes(fieldValue.trim());
+    if (!fieldValue || !storeArray || !Array.isArray(storeArray)) return false;
+
+    // Clean the live horse value: convert to lowercase and strip ALL hidden whitespace characters
+    const cleanField = fieldValue.toLowerCase().replace(/\s+/g, '');
+
+    // Scan the array using a strict normalized lookup
+    return storeArray.some(item => {
+      if (!item) return false;
+      return item.toLowerCase().replace(/\s+/g, '') === cleanField;
+    });
   };
 
+  if (!storeReady) return null;
   return (
     <div
       className={`horse-row ${isNR ? 'non-runner' : ''}`}
@@ -335,14 +351,18 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
               <strong>{horse.breeding || 'N/A'}</strong>
             </div>
             <div>
-              <span style={{ color: '#888' }}>Owner: </span>
-              <strong>{horse.owner || 'N/A'}</strong>
+              <span style={{ color: '#888', display: 'block', fontSize: '0.8rem' }}>Owner:</span>
+              <strong style={{
+                color: isFieldMatching(horse.owner, selectedOwners) ? '#ffd700' : '#fff'
+              }}>
+                {horse.owner || 'N/A'}
+              </strong>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <span style={{ color: '#888' }}>Breeding: </span>
               {/* If breeding contains Sadler's Wells, we give it a subtle highlight gold color */}
               <strong style={{
-                color: isFieldMatching(horse.foaled, useStore.getState().selectedFoaled) ? '#ffd700' : '#fff'
+                color: isFieldMatching(horse.foaled, selectedFoaled) ? '#ffd700' : '#fff'
               }}>
                 {horse.foaled || 'N/A'}
               </strong>
