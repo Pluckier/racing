@@ -232,6 +232,49 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const rowBg = `${SOFT_COLORS[colorIndex]}40`; // 25% opacity
 
 
+  const expandSexAndColour = (rawString) => {
+    if (!rawString) return 'N/A';
+
+    // 1. Clean the text, convert to lowercase, and drop trailing artifact bits like " f."
+    const cleanInput = rawString.toLowerCase().replace(/\s*[a-zA-Z]\.$/, '').trim();
+
+    // 2. Define the exact dictionary map matching UK/Irish data definitions
+    const translations = {
+      // Categories
+      gelding: 'Gelding',
+      colt: 'Colt',
+      filly: 'Filly',
+      mare: 'Mare',
+      horse: 'Horse',
+      rig: 'Rig',
+      // Colours
+      b: 'Bay',
+      bay: 'Bay',
+      ch: 'Chestnut',
+      br: 'Brown',
+      gr: 'Grey',
+      grey: 'Grey',
+      bl: 'Black',
+      blk: 'Black',
+      ro: 'Roan'
+    };
+
+    // 3. Break individual words apart ("gelding", "ch")
+    const words = cleanInput.split(/\s+/);
+
+    // 4. Translate found abbreviations or fallback to the raw word capitalized
+    const longFormWords = words.map(word => {
+      return translations[word] || (word.charAt(0).toUpperCase() + word.slice(1));
+    });
+
+    // 5. Join words cleanly with a comma separating category and color
+    if (longFormWords.length > 1) {
+      return `${longFormWords[0]}, ${longFormWords.slice(1).join(' ')}`;
+    }
+    return longFormWords[0] || 'N/A';
+  };
+
+
   const isFieldMatching = (fieldValue, storeArray) => {
     if (!fieldValue || !storeArray || !Array.isArray(storeArray)) return false;
 
@@ -340,8 +383,10 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             color: '#fff'
           }}>
             <div>
-              <span style={{ color: '#888' }}>Sex: </span>
-              <strong>{horse.breeding || 'N/A'}</strong>
+              <span style={{ color: '#888' }}>Type: </span>
+              <strong>
+                {expandSexAndColour(horse.breeding)}
+              </strong>
             </div>
             <div>
               <span style={{ color: '#888', display: 'block', fontSize: '0.8rem' }}>Owner:</span>
