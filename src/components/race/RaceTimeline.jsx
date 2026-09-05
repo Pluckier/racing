@@ -130,6 +130,9 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
   const rowCount = new Set(races.map(r => r.place)).size;
   const computedHeight = (rowCount * 40) + 60;
 
+  // Ensure we reserve enough wrapper height so the document scroll height includes the timeline
+  const wrapperHeight = Math.max(140, computedHeight);
+
   // --- CURRENT TIME LINE CALCULATIONS ---
   let linePositionLeft = null;
 
@@ -178,19 +181,23 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
     tooltip: { isHtml: true },
     colors: ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043'],
     backgroundColor: theme.bg,
-    height: computedHeight,
+    height: wrapperHeight,
   };
 
   if (!races.length) return null;
 
   return (
-    <div className="race-timeline-container" ref={containerRef} style={{ position: 'relative' }}>
+    <div
+      className="race-timeline-container"
+      ref={containerRef}
+      style={{ position: 'relative', height: `${wrapperHeight}px`, boxSizing: 'border-box' }}
+    >
       <Chart
         chartType="Timeline"
         data={data}
         chartVersion="51"
-        height={computedHeight - 40}
-        loader={<SkeletonRaceTimeline height={computedHeight - 40} />}
+        height={Math.max(120, wrapperHeight - 40)}
+        loader={<SkeletonRaceTimeline height={Math.max(120, wrapperHeight - 40)} />}
         width="100%"
         options={options}
         chartEvents={chartEvents}
@@ -204,7 +211,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
             position: 'absolute',
             left: `${linePositionLeft}%`,
             top: '11px', // Pushes it right below the timeline header labels
-            height: `${computedHeight - 99}px`, // Stops right above the bottom horizontal axis
+            height: `${wrapperHeight - 99}px`, // Stops right above the bottom horizontal axis
             width: '2px',
             backgroundColor: theme.lineColor,
             boxShadow: isDark ? '0 0 6px rgba(11, 10, 10, 0.6)' : '0 0 6px rgba(0, 0, 0, 0.3)',
@@ -232,7 +239,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
           {/* Upward-pointing triangle at the BOTTOM of the line */}
           <div style={{
             position: 'absolute',
-            top: `${computedHeight - 99}px`, /* Keeps your exact custom dynamic height alignment */
+            top: `${wrapperHeight - 99}px`, /* Keeps your exact custom dynamic height alignment */
             left: '-5px',                    /* Centers the 12px wide base exactly over the 2px line */
             width: '0',
             height: '0',
