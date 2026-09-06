@@ -2,7 +2,7 @@ import React from 'react';
 
 const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowTrainers }) => {
   return (
-    <div className="filter-section" style={{ marginTop: '2px' }}>
+    <div className="filter-section" style={{ marginTop: '20px' }}>
       <div className="place-filters">
         <button className="filter-btn movement-summary-btn" onClick={onShowMovement} title="Show odds movements">📊 Odds</button>
         <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Set hot connections">🔥 Connections</button>

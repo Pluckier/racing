@@ -347,7 +347,6 @@ function App() {
                 </div>
               </div>
 
-              <RaceTimeline races={state.filteredRaces} theme={state.theme} />
               <FilterBar
                 filters={state.filters}
                 setFilters={state.setFilters}
@@ -355,6 +354,7 @@ function App() {
                 onShowMovement={() => state.setActiveModal('movement')}
                 onShowTrainers={() => state.setActiveModal('trainers')}
               />
+              <RaceTimeline races={state.filteredRaces} theme={state.theme} />
             </>
           )
         }}
