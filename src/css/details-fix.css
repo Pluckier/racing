@@ -1,0 +1,17 @@
+/* Make expanded details content and the tables inside participate in normal flow */
+.details-expanded-content,
+.details-expanded-content > * {
+  position: static !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.details-expanded-content table,
+.details-expanded-content .help-table,
+.details-expanded-content .favorite-table,
+.details-expanded-content .odds-summary-table {
+  position: relative !important;
+  display: table !important;
+  height: auto !important;
+  overflow: visible !important;
+}
