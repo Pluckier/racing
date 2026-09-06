@@ -220,6 +220,15 @@ const HelpPage = ({ theme: currentTheme }) => {
                 </ul>
             </section>
 
+            {/* Section 8: Version number and date */}
+            <section
+                className="help-section"
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', textAlign: 'right' }}
+            >
+                <p>Version: 3.0</p>
+                <p>Last Updated: 07 Aug 2026 00:51 BST</p>
+            </section>
+
 
         </div>
     );
