@@ -184,35 +184,39 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
     height: wrapperHeight,
   };
 
+  // Measure actual rendered chart area and set indicator bounds so the "now" line spans the plotted area precisely
+  const [indicatorBox, setIndicatorBox] = useState({ top: 11, height: Math.max(120, wrapperHeight - 40) });
+
   useEffect(() => {
-    // Guard: ensure the google-chart a11y table does not affect document scroll height
-    const applyA11yGuard = () => {
-      try {
-        const el = containerRef.current && containerRef.current.querySelector('div[aria-label="A tabular representation of the data in the chart."]');
-        if (!el) return;
-        Object.assign(el.style, {
-          position: 'fixed',
-          left: '-10000px',
-          top: '0px',
-          width: '1px',
-          height: '1px',
-          overflow: 'hidden',
-          pointerEvents: 'none',
-          transform: 'none'
-        });
-      } catch (err) {
-        // swallow any errors — this is only a defensive accessibility guard
-        // eslint-disable-next-line no-console
-        console.warn('a11y guard failed', err);
+    const measure = () => {
+      if (!containerRef.current) return;
+      // Prefer the rendered SVG (Google Charts tends to render as SVG)
+      const svg = containerRef.current.querySelector('svg');
+      const contRect = containerRef.current.getBoundingClientRect();
+
+      if (svg) {
+        const svgRect = svg.getBoundingClientRect();
+        setIndicatorBox({ top: Math.round(svgRect.top - contRect.top), height: Math.round(svgRect.height) });
+        return;
       }
+
+      // Fallback: look for chart divs
+      const chartDiv = containerRef.current.querySelector('div.google-visualization-chart');
+      if (chartDiv) {
+        const r = chartDiv.getBoundingClientRect();
+        setIndicatorBox({ top: Math.round(r.top - contRect.top), height: Math.round(r.height) });
+        return;
+      }
+
+      // As a last resort keep prior heuristic
+      setIndicatorBox({ top: 11, height: Math.max(120, wrapperHeight - 40) });
     };
 
-    // Run immediately and again after short delays in case chart mutates or re-inserts the node
-    applyA11yGuard();
-    const t1 = setTimeout(applyA11yGuard, 50);
-    const t2 = setTimeout(applyA11yGuard, 300);
-
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    measure();
+    const t1 = setTimeout(measure, 50);
+    const t2 = setTimeout(measure, 300);
+    window.addEventListener('resize', measure);
+    return () => { clearTimeout(t1); clearTimeout(t2); window.removeEventListener('resize', measure); };
   }, [races, wrapperHeight]);
 
   if (!races.length) return null;
@@ -241,8 +245,8 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
           style={{
             position: 'absolute',
             left: `${linePositionLeft}%`,
-            top: '11px', // Pushes it right below the timeline header labels
-            height: `${wrapperHeight - 99}px`, // Stops right above the bottom horizontal axis
+            top: `${indicatorBox.top}px`,
+            height: `${indicatorBox.height}px`,
             width: '2px',
             backgroundColor: theme.lineColor,
             boxShadow: isDark ? '0 0 6px rgba(11, 10, 10, 0.6)' : '0 0 6px rgba(0, 0, 0, 0.3)',
@@ -270,7 +274,7 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
           {/* Upward-pointing triangle at the BOTTOM of the line */}
           <div style={{
             position: 'absolute',
-            top: `${wrapperHeight - 99}px`, /* Keeps your exact custom dynamic height alignment */
+            top: `${indicatorBox.height}px`, /* position at the bottom of the indicator */
             left: '-5px',                    /* Centers the 12px wide base exactly over the 2px line */
             width: '0',
             height: '0',
