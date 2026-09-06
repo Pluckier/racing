@@ -376,31 +376,29 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             gap: '10px',
             padding: '12px',
             marginBottom: '15px',
-            backgroundColor: '#1c1c1c',
             borderLeft: '4px solid #4a90e2',
             borderRadius: '4px',
             fontSize: '0.9rem',
-            color: '#fff'
           }}>
             <div>
-              <span style={{ color: '#888' }}>Type: </span>
+              <span>Type: </span>
               <strong>
                 {expandSexAndColour(horse.breeding)}
               </strong>
             </div>
             <div>
-              <span style={{ color: '#888', display: 'block', fontSize: '0.8rem' }}>Owner:</span>
+              <span style={{ display: 'block', fontSize: '0.8rem' }}>Owner:</span>
               <strong style={{
-                color: isFieldMatching(horse.owner, selectedOwners) ? '#ffd700' : '#fff'
+                color: isFieldMatching(horse.owner, selectedOwners) ? '#ffd700' : 'var(--text)'
               }}>
                 {horse.owner || 'N/A'}
               </strong>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <span style={{ color: '#888' }}>Breeding: </span>
+              <span>Breeding: </span>
               {/* If breeding contains Sadler's Wells, we give it a subtle highlight gold color */}
               <strong style={{
-                color: isFieldMatching(horse.foaled, selectedFoaled) ? '#ffd700' : '#fff'
+                color: isFieldMatching(horse.foaled, selectedFoaled) ? '#ffd700' : 'var(--text)'
               }}>
                 {horse.foaled || 'N/A'}
               </strong>
