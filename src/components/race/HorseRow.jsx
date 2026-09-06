@@ -389,7 +389,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             <div>
               <span style={{ display: 'block', fontSize: '0.8rem' }}>Owner:</span>
               <strong style={{
-                color: isFieldMatching(horse.owner, selectedOwners) ? '#ffd700' : 'var(--text)'
+                color: isFieldMatching(horse.owner, selectedOwners) ? '#ff9f43' : 'var(--text)'
               }}>
                 {horse.owner || 'N/A'}
               </strong>
@@ -398,7 +398,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
               <span>Breeding: </span>
               {/* If breeding contains Sadler's Wells, we give it a subtle highlight gold color */}
               <strong style={{
-                color: isFieldMatching(horse.foaled, selectedFoaled) ? '#ffd700' : 'var(--text)'
+                color: isFieldMatching(horse.foaled, selectedFoaled) ? '#ff9f43' : 'var(--text)'
               }}>
                 {horse.foaled || 'N/A'}
               </strong>
