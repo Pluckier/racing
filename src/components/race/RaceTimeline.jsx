@@ -184,6 +184,37 @@ const RaceTimeline = ({ races, theme: currentTheme }) => {
     height: wrapperHeight,
   };
 
+  useEffect(() => {
+    // Guard: ensure the google-chart a11y table does not affect document scroll height
+    const applyA11yGuard = () => {
+      try {
+        const el = containerRef.current && containerRef.current.querySelector('div[aria-label="A tabular representation of the data in the chart."]');
+        if (!el) return;
+        Object.assign(el.style, {
+          position: 'fixed',
+          left: '-10000px',
+          top: '0px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+          pointerEvents: 'none',
+          transform: 'none'
+        });
+      } catch (err) {
+        // swallow any errors — this is only a defensive accessibility guard
+        // eslint-disable-next-line no-console
+        console.warn('a11y guard failed', err);
+      }
+    };
+
+    // Run immediately and again after short delays in case chart mutates or re-inserts the node
+    applyA11yGuard();
+    const t1 = setTimeout(applyA11yGuard, 50);
+    const t2 = setTimeout(applyA11yGuard, 300);
+
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [races, wrapperHeight]);
+
   if (!races.length) return null;
 
   return (
