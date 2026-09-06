@@ -623,7 +623,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
           <YAxis
             domain={['auto', dataMax => Math.round(dataMax * 1.05)]}
             tick={{ fill: 'var(--text)', fontSize: 12 }}
-            label={{ value: 'Rating', angle: -90, position: 'insideLeft', fill: 'var(--text)' }}
+            label={{ value: 'Rtg', angle: -90, position: 'insideLeft', fill: 'var(--text)' }}
           />
           <Tooltip
             itemSorter={(item) => -item.value}
