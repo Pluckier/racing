@@ -15,3 +15,17 @@
   height: auto !important;
   overflow: visible !important;
 }
+
+/* Target google-charts accessibility table that is injected off-screen
+   Make it fixed and clipped so it doesn't affect document scrollHeight
+   (keeps it available to assistive tech while removing it from layout). */
+div[aria-label="A tabular representation of the data in the chart."] {
+  position: fixed !important;
+  left: -10000px !important;
+  top: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
