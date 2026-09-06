@@ -351,7 +351,6 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
   return (
     <div id={raceId} className="race-card">
-      <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
       <header className="race-header">
         <div className="race-title-group">
           <h2 className="race-title">
@@ -444,6 +443,8 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           </button>
         </div>
       </header>
+
+      <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
 
       <Modal
         isOpen={showOdds}

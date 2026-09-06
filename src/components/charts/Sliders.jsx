@@ -78,7 +78,7 @@ function SliderField({ label, value, onChange }) {
 // Accept control values and setters directly from FormChart
 export default function ThreeSliders({ wValue, setW, dValue, setD, gValue, setG }) {
   return (
-    <div style={{ padding: '10px', paddingTop: '0px', display: 'flex', flexDirection: 'row', gap: '20px', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ padding: '10px', paddingTop: '10px', display: 'flex', flexDirection: 'row', gap: '20px', width: '100%', boxSizing: 'border-box' }}>
       <SliderField label="W" value={wValue} onChange={(e) => setW(Number(e.target.value))} />
       <SliderField label="D" value={dValue} onChange={(e) => setD(Number(e.target.value))} />
       <SliderField label="G" value={gValue} onChange={(e) => setG(Number(e.target.value))} />
