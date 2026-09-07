@@ -14,29 +14,54 @@ import SkeletonRaceTimeline from '../skeletons/SkeletonRaceTimeline';
 const ROW_HEIGHT = 35;    // per-row pixels (tweak for density)
 const HEADER_HEIGHT = 50; // reserved top area (labels/header)
 
-const wrapTextAtSpaces = (text, maxLength = 60) => {
+const wrapTextAtSpaces = (text, maxLength = 30) => {
   if (!text) return '';
+
   const words = text.trim().split(/\s+/).filter(Boolean);
   let lines = [];
   let currentLine = '';
-  words.forEach((word) => {
-    if (word.length > maxLength) {
-      if (currentLine) lines.push(currentLine);
+
+  // Helper to accurately count visual characters (including complex emojis)
+  const getVisualLength = (str) => {
+    return [...new Intl.Segmenter().segment(str)].length;
+  };
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+
+    // Handle individual words that are somehow longer than the max limit
+    if (getVisualLength(word) > maxLength) {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = '';
+      }
       lines.push(word);
-      currentLine = '';
-      return;
+      continue;
     }
+
+    // Formulate what the line would look like if we add this word
     const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (testLine.length > maxLength) {
+
+    if (getVisualLength(testLine) > maxLength) {
+      // The test line is too long! Push what we have accumulated so far
       lines.push(currentLine);
+      // Start the next fresh line with the current word
       currentLine = word;
     } else {
+      // It fits perfectly, continue accumulating the line
       currentLine = testLine;
     }
-  });
-  if (currentLine) lines.push(currentLine);
+  }
+
+  // Push the final remaining line if it exists
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
   return lines.join('<br/>');
 };
+
+
 
 const RaceTimeline = ({ races = [], theme: currentTheme }) => {
   const containerRef = useRef(null);
@@ -84,9 +109,10 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       const icon = icons.length ? icons.join(' ') : '🚫';
 
       const rawFullDetail = `${race.detail || ''} (${race.runners || 0} run)`;
-      const displayDetail = wrapTextAtSpaces(rawFullDetail, 50);
-      const tooltipHtml = `<div style="padding:10px; font-family:sans-serif; font-size:13px; line-height:1.4; ${currentTheme === 'dark' ? 'background:#595656;color:#fff;border:1px solid #444;' : 'background:#fff;color:#333;border:1px solid #ccc;'
-        }">${icon} ${displayDetail} FORM:${formPercentage}%</div>`;
+      const displayDetail = wrapTextAtSpaces(icon + " " + rawFullDetail + " FORM:" + formPercentage, 40);
+
+      const tooltipHtml = `<div style="padding:10px; min-width: 280px !important; width: max-content !important; font-family:sans-serif; font-size:13px; line-height:1.4; ${currentTheme === 'dark' ? 'background:#595656;color:#fff;border:1px solid #444;' : 'background:#fff;color:#333;border:1px solid #ccc;'
+        }">${displayDetail}</div>`;
 
       return [race.place, race.time, tooltipHtml, start, end];
     });
@@ -101,7 +127,32 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       { type: 'date', id: 'Start' },
       { type: 'date', id: 'End' },
     ];
-    return [cols, ...rows];
+
+    // Map and correct the raw rows directly inside the hook calculation block
+    const correctedRows = rows.map((row) => {
+      if (!Array.isArray(row)) return row;
+
+      const oldStart = row[3];
+      const oldEnd = row[4];
+
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const date = today.getDate();
+
+      // Re-anchor hours and minutes smoothly to the current 2026 year context
+      const start = (oldStart instanceof Date && !isNaN(oldStart))
+        ? new Date(year, month, date, oldStart.getHours(), oldStart.getMinutes(), 0)
+        : new Date();
+
+      const end = (oldEnd instanceof Date && !isNaN(oldEnd))
+        ? new Date(year, month, date, oldEnd.getHours(), oldEnd.getMinutes(), 0)
+        : new Date(start.getTime() + 10 * 60000); // 10 min safe offset if zero or null
+
+      return [row[0], row[1], row[2], start, end];
+    });
+
+    return [cols, ...correctedRows];
   }, [rows]);
 
   // Deterministic wrapper height
@@ -186,6 +237,7 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       // console.warn('chart ready measurement failed', err);
     }
   };
+
 
   // compute now indicator left (percent). This uses measuredChartArea when available,
   // otherwise we fall back to a centered placeholder.

@@ -83,6 +83,12 @@ function App() {
     }
   }, [notifications.length, isNotificationsReleased]);
 
+  const clearAllNotifications = () => {
+    notifications.forEach(notification => {
+      removeNotification(notification.id);
+    });
+  };
+
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
   const currentDateStr = state.displayDate instanceof Date
     ? `${state.displayDate.getFullYear()}-${String(state.displayDate.getMonth() + 1).padStart(2, '0')}-${String(state.displayDate.getDate()).padStart(2, '0')}`
@@ -237,17 +243,6 @@ function App() {
     const race = state.filteredRaces[num - 1];
     window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
   };
-
-  // Automatically jump to the first available race when 'Follow' mode is enabled
-  useEffect(() => {
-    if (state.filters.follow && state.filteredRaces.length > 0) {
-      setActiveRaceIndex(0);
-      const firstRace = state.filteredRaces[0];
-
-      // Update hash to ensure the "Single" view and background scroll stay in sync
-      window.location.hash = `${currentDateStr}@${firstRace.time}${firstRace.place.replace(/\s+/g, '')}`;
-    }
-  }, [state.filters.follow, state.filteredRaces, state.displayDate]);
 
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
@@ -460,12 +455,6 @@ function App() {
               )}
             </div>
 
-            {state.showNextRaceBanner && (
-              <div className="next-race-banner">
-                🕒 Race finished. Moved to next scheduled off...
-              </div>
-            )}
-
             <Modal
               isOpen={isHelpOpen}
               onClose={() => setIsHelpOpen(false)}
@@ -525,6 +514,7 @@ function App() {
         <NonRunnerNotifications
           notifications={isNotificationsReleased ? notifications : []}
           onRemove={removeNotification}
+          onClearAll={clearAllNotifications}
         />
       </Layout>
     );

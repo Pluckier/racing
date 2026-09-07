@@ -58,6 +58,35 @@
 }
 
 @keyframes nr-slide-up {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.nr-notification-item.nr-clear-all-item {
+  border-left: 4px solid #666;
+  /* Neutral accent instead of warning red */
+  background: var(--bg-card, #ffffff);
+}
+
+.nr-clear-all-btn {
+  background: none;
+  border: none;
+  color: #0066cc;
+  text-decoration: underline;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.nr-clear-all-btn:hover {
+  color: #004499;
 }

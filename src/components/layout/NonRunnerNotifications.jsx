@@ -21,18 +21,31 @@ const NotificationItem = ({ notification, onRemove }) => {
   );
 };
 
-const NonRunnerNotifications = ({ notifications, onRemove }) => {
+const NonRunnerNotifications = ({ notifications, onRemove, onClearAll }) => {
   if (!notifications.length) return null;
 
   return (
     <div className="nr-notifications-container">
+      {/* 1. Individual horse notifications render first */}
       {notifications.map(notification => (
-        <NotificationItem 
-          key={notification.id} 
-          notification={notification} 
-          onRemove={onRemove} 
+        <NotificationItem
+          key={notification.id}
+          notification={notification}
+          onRemove={onRemove}
         />
       ))}
+
+      {/* 2. Clear All block renders last, pinning it to the bottom of the stack */}
+      {notifications.length > 1 && (
+        <div className="nr-notification-item nr-clear-all-item">
+          <div className="nr-notification-content">
+            <span className="nr-message">You have {notifications.length} new updates</span>
+          </div>
+          <button className="nr-clear-all-btn" onClick={onClearAll}>
+            Clear All
+          </button>
+        </div>
+      )}
     </div>
   );
 };

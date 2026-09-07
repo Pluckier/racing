@@ -4,15 +4,6 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowTr
   return (
     <div className="filter-section" style={{ marginTop: '20px' }}>
       <div className="place-filters">
-        <button className="filter-btn movement-summary-btn" onClick={onShowMovement} title="Show odds movements">📊 Odds</button>
-        <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Set hot connections">🔥 Connections</button>
-
-        <button
-          onClick={() => setFilters(f => ({ ...f, tricast: !f.tricast }))}
-          className={`filter-btn handicap-btn ${filters.tricast ? 'active' : ''}`}
-        >
-          Tricasts
-        </button>
         {uniquePlaces.map(place => {
           const isActive = filters.places.includes(place);
           return (
@@ -28,6 +19,14 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, onShowMovement, onShowTr
             </button>
           );
         })}
+        <button
+          onClick={() => setFilters(f => ({ ...f, tricast: !f.tricast }))}
+          className={`filter-btn handicap-btn ${filters.tricast ? 'active' : ''}`}
+        >
+          🏆 Tricasts
+        </button>
+        <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Set hot connections">🔥 Connections</button>
+        <button className="filter-btn movement-summary-btn" onClick={onShowMovement} title="Show odds movements">📊 Odds</button>
       </div>
     </div>
   );

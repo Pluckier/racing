@@ -3,7 +3,6 @@ import { useClock } from './useClock';
 import { useRaces } from './useRaces';
 import { useTheme } from './useTheme';
 import { useFilteredRaces } from './useFilteredRaces';
-import { useNextRaceBanner } from './useNextRaceBanner';
 import { useAutoScroll } from './useAutoScroll';
 import { formatDisplayDateTime } from '../utils/dateUtils';
 import { useStore } from '../store/alarmStore';
@@ -64,7 +63,6 @@ export function useAppState() {
   );
 
   const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
-  const showNextRaceBanner = useNextRaceBanner(filteredRaces.length, currentTime, filters.follow, displayDate);
 
   useAutoScroll(loading, filteredRaces);
 
@@ -75,6 +73,6 @@ export function useAppState() {
     races, loading, error,
     filters, setFilters, lastRefreshTime,
     activeModal, setActiveModal,
-    formattedDateTime, uniquePlaces, filteredRaces, showNextRaceBanner
+    formattedDateTime, uniquePlaces, filteredRaces
   };
 }
