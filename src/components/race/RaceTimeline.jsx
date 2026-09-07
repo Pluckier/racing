@@ -257,7 +257,6 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
   const renderNowIndicator = (chartArea) => {
     const chartDiv = containerRef.current;
     if (!chartDiv) {
-      console.log('chart container not found');
       return;
     }
 
@@ -273,7 +272,6 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
 
       // SAFETY GUARD: Abort cleanly if row parsing hasn't updated the timeline limits yet
       if (!minTimeRef.current || !maxTimeRef.current) {
-        console.warn('Chart baseline hours are not yet initialized.');
         return;
       }
 
@@ -345,9 +343,6 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
         line.appendChild(bottomTriangle);
 
         chartDiv.appendChild(line);
-        console.log(`Simulated time line rendered at ${Math.round(percentage * 100)}% of the grid layout`);
-      } else {
-        console.log('Simulated time still falls outside the timeline chart boundaries.');
       }
     };
 
@@ -427,7 +422,7 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       renderNowIndicator(measured);
 
     } catch (err) {
-      console.error('Failed matrix alignment scan:', err);
+
     }
   };
 
