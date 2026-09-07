@@ -6,6 +6,7 @@ import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
 import { useStore } from '../../store/alarmStore';
 import ThreeSliders from '../charts/Sliders';
+import { getFormEmoji } from '../../constants/chartConstants';
 
 const SORT_MODES = ['odds', 'last', 'avg', 'all', 'high'];
 const SORT_LABELS = {
@@ -46,21 +47,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     : 0;
 
   // 2. Determine which emoji to use based on the tier
-  let emoji = "";
-
-  if (formPercentage >= 0 && formPercentage <= 33) {
-    emoji = " ❌";
-  } else if (formPercentage >= 34 && formPercentage <= 55) {
-    emoji = " ⚠️";
-  } else if (formPercentage >= 56 && formPercentage <= 74) {
-    emoji = " 👎";
-  } else if (formPercentage >= 75 && formPercentage <= 87) {
-    emoji = " 👍";
-  } else if (formPercentage >= 88 && formPercentage <= 99) {
-    emoji = " 👌";
-  } else if (formPercentage === 100) {
-    emoji = " ✅💯";
-  }
+  const emoji = getFormEmoji(formPercentage);
 
   // 3. Create final output string
   const finalDisplay = `${formPercentage}%${emoji}`;

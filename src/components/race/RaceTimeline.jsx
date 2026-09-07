@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Chart } from 'react-google-charts';
 import '../../css/RaceTimeline.css';
 import SkeletonRaceTimeline from '../skeletons/SkeletonRaceTimeline';
+import { getFormEmoji } from '../../constants/chartConstants';
 
 /**
  * RaceTimeline.jsx
@@ -124,20 +125,7 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       if ((isH || isC1) && count >= 8) icons.push('🏆');
       const icon = icons.length ? icons.join(' ') : '🚫';
 
-      let emoji = " ";
-      if (formPercentage >= 0 && formPercentage <= 33) {
-        emoji = " ❌";
-      } else if (formPercentage >= 34 && formPercentage <= 55) {
-        emoji = " ⚠️";
-      } else if (formPercentage >= 56 && formPercentage <= 74) {
-        emoji = " 👎";
-      } else if (formPercentage >= 75 && formPercentage <= 87) {
-        emoji = " 👍";
-      } else if (formPercentage >= 88 && formPercentage <= 99) {
-        emoji = " 👌";
-      } else if (formPercentage === 100) {
-        emoji = " ✅💯";
-      }
+      const emoji = getFormEmoji(formPercentage);
 
       const rawFullDetail = `${race.detail || ''} (${race.runners || 0} run)`;
       const displayDetail = wrapTextAtSpaces(icon + " " + rawFullDetail + " FORM:" + formPercentage + "% " + emoji, 40);

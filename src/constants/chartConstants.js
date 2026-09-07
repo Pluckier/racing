@@ -27,3 +27,14 @@ export const SOFT_COLORS = [
   '#3b3b5c', // Midnight Slate Blue (replaces light slate)
   '#4a4a4a'  // Charcoal Grey (replaces mid grey)
 ];
+
+export const getFormEmoji = (formPercentage) => {
+  if (formPercentage === null || formPercentage === undefined) return " ";
+  if (formPercentage >= 0 && formPercentage <= 33) return " ❌";
+  if (formPercentage >= 34 && formPercentage <= 55) return " ⚠️";
+  if (formPercentage >= 56 && formPercentage <= 74) return " 👎";
+  if (formPercentage >= 75 && formPercentage <= 87) return " 👍";
+  if (formPercentage >= 88 && formPercentage <= 99) return " 👌";
+  if (formPercentage === 100) return " ✅💯";
+  return " ";
+};
