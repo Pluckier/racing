@@ -124,8 +124,23 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       if ((isH || isC1) && count >= 8) icons.push('🏆');
       const icon = icons.length ? icons.join(' ') : '🚫';
 
+      let emoji = " ";
+      if (formPercentage >= 0 && formPercentage <= 33) {
+        emoji = " ❌";
+      } else if (formPercentage >= 34 && formPercentage <= 55) {
+        emoji = " ⚠️";
+      } else if (formPercentage >= 56 && formPercentage <= 74) {
+        emoji = " 👎";
+      } else if (formPercentage >= 75 && formPercentage <= 87) {
+        emoji = " 👍";
+      } else if (formPercentage >= 88 && formPercentage <= 99) {
+        emoji = " 👌";
+      } else if (formPercentage === 100) {
+        emoji = " ✅💯";
+      }
+
       const rawFullDetail = `${race.detail || ''} (${race.runners || 0} run)`;
-      const displayDetail = wrapTextAtSpaces(icon + " " + rawFullDetail + " FORM:" + formPercentage + "%", 40);
+      const displayDetail = wrapTextAtSpaces(icon + " " + rawFullDetail + " FORM:" + formPercentage + "% " + emoji, 40);
 
       const themeStyle = currentTheme === 'dark'
         ? 'background-color: #595656; color: #ffffff; border: 1px solid #444;'
