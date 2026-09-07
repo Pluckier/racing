@@ -109,7 +109,7 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       const icon = icons.length ? icons.join(' ') : '🚫';
 
       const rawFullDetail = `${race.detail || ''} (${race.runners || 0} run)`;
-      const displayDetail = wrapTextAtSpaces(icon + " " + rawFullDetail + " FORM:" + formPercentage, 40);
+      const displayDetail = wrapTextAtSpaces(icon + " " + rawFullDetail + " FORM:" + formPercentage + "%", 40);
 
       const tooltipHtml = `<div style="padding:10px; min-width: 280px !important; width: max-content !important; font-family:sans-serif; font-size:13px; line-height:1.4; ${currentTheme === 'dark' ? 'background:#595656;color:#fff;border:1px solid #444;' : 'background:#fff;color:#333;border:1px solid #ccc;'
         }">${displayDetail}</div>`;
