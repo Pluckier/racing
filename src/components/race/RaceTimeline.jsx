@@ -60,6 +60,10 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
   const hasMeasured = useRef(false);
   const validRaceIndexMapRef = useRef([]); // maps chart row -> original races index
 
+  const minTimeRef = useRef(null);
+  const maxTimeRef = useRef(null);
+
+
   // Build rows and find global min/max times (only from validated rows)
   let globalMinTime = null;
   let globalMaxTime = null;
@@ -67,6 +71,9 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
   const rows = useMemo(() => {
     const result = [];
     const localValidMap = [];
+
+    let localMin = null;
+    let localMax = null;
 
     races.forEach((race, idx) => {
       // Validate time format strictly: "H:MM" or "HH:MM"
@@ -93,8 +100,8 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       const end = new Date(0, 0, 0, hours, minutes + Math.max(2, duration));
 
       // Update globals only for validated dates
-      if (!globalMinTime || start < globalMinTime) globalMinTime = start;
-      if (!globalMaxTime || end > globalMaxTime) globalMaxTime = end;
+      if (!localMin || start < localMin) localMin = start;
+      if (!localMax || end > localMax) localMax = end;
 
       const totalPastRuns =
         race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
@@ -125,6 +132,9 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       localValidMap.push(idx);
       result.push([race.place, race.time, tooltipHtml, start, end]);
     });
+
+    minTimeRef.current = localMin;
+    maxTimeRef.current = localMax;
 
     // persist mapping so selection callback can map back to original races array
     validRaceIndexMapRef.current = localValidMap;
@@ -183,7 +193,26 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
     hasMeasured.current = false;
     setMeasuredChartArea(null);
     setWrapperHeight(baselineWrapperHeight);
-  }, [baselineWrapperHeight, rowCount]);
+
+    // Clear the interval right away so old timers don't conflict
+    if (window.timelineNowInterval) {
+      clearInterval(window.timelineNowInterval);
+    }
+
+    // Remove the physical line element from view
+    const container = containerRef.current;
+    if (container) {
+      const oldLine = container.querySelector('.timeline-now-line');
+      if (oldLine) oldLine.remove();
+    }
+
+    // FORCE A MANUALLY RE-RENDER CHECK:
+    // If the chart boundaries are already available, draw the line immediately
+    if (measuredChartArea) {
+      renderNowIndicator(measuredChartArea);
+    }
+  }, [baselineWrapperHeight, rowCount, currentTheme]);
+
 
   // compute the chart options; once measuredChartArea exists we pass its pixel values to chartArea
   const options = useMemo(() => {
@@ -219,35 +248,186 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
     };
   }, [measuredChartArea, wrapperHeight, currentTheme]);
 
-  // handle chart ready: measure chartArea ONCE
+
+
+
+
+
+
+  const renderNowIndicator = (chartArea) => {
+    const chartDiv = containerRef.current;
+    if (!chartDiv) {
+      console.log('chart container not found');
+      return;
+    }
+
+    // 1. Clear any previous intervals to avoid duplicate clocks
+    if (window.timelineNowInterval) {
+      clearInterval(window.timelineNowInterval);
+    }
+
+    // 2. Define the core drawing function
+    const drawLine = () => {
+      const oldLine = chartDiv.querySelector('.timeline-now-line');
+      if (oldLine) oldLine.remove();
+
+      // SAFETY GUARD: Abort cleanly if row parsing hasn't updated the timeline limits yet
+      if (!minTimeRef.current || !maxTimeRef.current) {
+        console.warn('Chart baseline hours are not yet initialized.');
+        return;
+      }
+
+      const simulatedTime = new Date();
+      simulatedTime.setHours(simulatedTime.getHours());
+
+      const year = simulatedTime.getFullYear();
+      const month = simulatedTime.getMonth();
+      const date = simulatedTime.getDate();
+
+      // Read from our new persistent reference hooks
+      const chartStart = new Date(year, month, date, minTimeRef.current.getHours(), minTimeRef.current.getMinutes(), 0);
+      const chartEnd = new Date(year, month, date, maxTimeRef.current.getHours(), maxTimeRef.current.getMinutes(), 0);
+
+      const totalDuration = chartEnd.getTime() - chartStart.getTime();
+      const timeElapsed = simulatedTime.getTime() - chartStart.getTime();
+      const percentage = timeElapsed / totalDuration;
+
+      if (percentage >= 0 && percentage <= 1) {
+        const lineLeftPosition = chartArea.left + (chartArea.width * percentage);
+
+        const line = document.createElement('div');
+        line.className = 'timeline-now-line';
+
+        const lineColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
+        const shadowColor = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+
+        Object.assign(line.style, {
+          position: 'absolute',
+          left: `${lineLeftPosition}px`,
+          top: `${chartArea.top}px`,
+          height: `${chartArea.height}px`,
+          width: '2px',
+          opacity: '0.7',
+          backgroundColor: lineColor,
+          zIndex: '15',
+          pointerEvents: 'none',
+          boxShadow: `0 0 6px ${shadowColor}`
+        });
+
+        // 2. Create the Top Triangle (Pointing Downwards ▼)
+        const topTriangle = document.createElement('div');
+        Object.assign(topTriangle.style, {
+          position: 'absolute',
+          top: '-2px',                  // Sits just above the chart boundary grid
+          left: '-4px',                 // Centers a 10px wide triangle on a 2px line
+          width: '0',
+          height: '0',
+          borderLeft: '5px solid transparent',
+          borderRight: '5px solid transparent',
+          borderTop: `6px solid ${lineColor}`, // Pointing Down
+          pointerEvents: 'none'
+        });
+        line.appendChild(topTriangle);
+
+        // 3. Create the Bottom Triangle (Pointing Upwards ▲)
+        const bottomTriangle = document.createElement('div');
+        Object.assign(bottomTriangle.style, {
+          position: 'absolute',
+          bottom: '-2px',               // Sits just below the chart boundary grid
+          left: '-4px',                 // Centers a 10px wide triangle on a 2px line
+          width: '0',
+          height: '0',
+          borderLeft: '5px solid transparent',
+          borderRight: '5px solid transparent',
+          borderBottom: `6px solid ${lineColor}`, // Pointing Up
+          pointerEvents: 'none'
+        });
+        line.appendChild(bottomTriangle);
+
+        chartDiv.appendChild(line);
+        console.log(`Simulated time line rendered at ${Math.round(percentage * 100)}% of the grid layout`);
+      } else {
+        console.log('Simulated time still falls outside the timeline chart boundaries.');
+      }
+    };
+
+    // 4. Run immediately and keep updating every minute
+    drawLine();
+    window.timelineNowInterval = setInterval(drawLine, 60000);
+  };
+
+
+
+
+
+
+
   const handleChartReady = ({ chartWrapper }) => {
     if (hasMeasured.current) return;
+
     try {
-      const chart = chartWrapper.getChart();
-      if (!chart || typeof chart.getChartLayoutInterface !== 'function') return;
-      const cli = chart.getChartLayoutInterface();
-      const box = cli.getChartAreaBoundingBox && cli.getChartAreaBoundingBox();
-      if (!box) return;
+      const container = containerRef.current;
+      if (!container) return;
 
-      // box: { top, left, width, height } in pixels relative to chart area
+      const svgElement = container.querySelector('svg');
+      if (!svgElement) return;
+
+      // 1. Grab all rendered bars inside the timeline.
+      // Google isolates timeline nodes using rect elements without borders.
+      const rects = Array.from(svgElement.querySelectorAll('rect'));
+      const svgBounds = svgElement.getBoundingClientRect();
+
+      // 2. Identify the true timeline bars by ignoring wide background container blocks
+      const dynamicBars = rects.filter(rect => {
+        const w = parseFloat(rect.getAttribute('width') || '0');
+        const x = parseFloat(rect.getAttribute('x') || '0');
+        // A legitimate race block has a finite width and starts past the text margins
+        return w > 2 && x > 20 && w < (svgBounds.width - 20);
+      });
+
+      if (dynamicBars.length === 0) return;
+
+      // 3. Scan the exact visual limits from the drawn vector blocks themselves
+      let minLeftEdge = Infinity;
+      let maxRightEdge = 0;
+      let minTopEdge = Infinity;
+      let maxBottomEdge = 0;
+
+      dynamicBars.forEach(bar => {
+        const x = parseFloat(bar.getAttribute('x') || '0');
+        const y = parseFloat(bar.getAttribute('y') || '0');
+        const w = parseFloat(bar.getAttribute('width') || '0');
+        const h = parseFloat(bar.getAttribute('height') || '0');
+
+        if (x < minLeftEdge) minLeftEdge = x;
+        if ((x + w) > maxRightEdge) maxRightEdge = x + w;
+        if (y < minTopEdge) minTopEdge = y;
+        if ((y + h) > maxBottomEdge) maxBottomEdge = y + h;
+      });
+
+      // 4. Calculate exact grid space bounding metrics
+      const exactLeft = minLeftEdge + 3;
+      const exactWidth = maxRightEdge - minLeftEdge + 10;
+      const exactTop = minTopEdge;
+      const exactHeight = maxBottomEdge + 12;
+
+      // Strict validation check to ensure calculations succeeded
+      if (exactLeft === Infinity || exactWidth <= 0) return;
+
       hasMeasured.current = true;
-      const measured = {
-        top: Math.round(box.top),
-        left: Math.round(box.left),
-        width: Math.round(box.width),
-        height: Math.round(box.height),
-      };
-      setMeasuredChartArea(measured);
 
-      // Adjust wrapperHeight to match plotted area + top + small bottom padding so no inner scroll
-      const desiredWrapper = measured.top + measured.height + 6; // 6px bottom padding
-      // only update if significantly different to avoid thrash
-      if (Math.abs(desiredWrapper - wrapperHeight) > 6) {
-        setWrapperHeight(desiredWrapper);
-      }
+      const measured = {
+        top: Math.round(exactTop),
+        left: Math.round(exactLeft),
+        width: Math.round(exactWidth),
+        height: Math.round(exactHeight),
+      };
+
+      setMeasuredChartArea(measured);
+      renderNowIndicator(measured);
+
     } catch (err) {
-      // ignore chart not ready
-      // console.warn('chart ready measurement failed', err);
+      console.error('Failed matrix alignment scan:', err);
     }
   };
 
