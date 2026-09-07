@@ -62,10 +62,10 @@ const wrapTextAtSpaces = (text, maxLength = 30) => {
 };
 
 
-
 const RaceTimeline = ({ races = [], theme: currentTheme }) => {
   const containerRef = useRef(null);
   const hasMeasured = useRef(false);
+  const validRaceIndexMapRef = useRef([]); // maps chart row -> original races index
 
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -73,13 +73,27 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
     return () => clearInterval(t);
   }, []);
 
-  // Build rows and find global min/max times
+  // Build rows and find global min/max times (only from validated rows)
   let globalMinTime = null;
   let globalMaxTime = null;
 
   const rows = useMemo(() => {
-    return races.map((race) => {
-      const [hours, minutes] = (race.time || '00:00').split(':').map(Number);
+    const result = [];
+    const localValidMap = [];
+
+    races.forEach((race, idx) => {
+      // Validate time format strictly: "H:MM" or "HH:MM"
+      const timeStr = race?.time;
+      if (!timeStr || typeof timeStr !== 'string') return;
+      const timeMatch = timeStr.trim().match(/^(\d{1,2}):(\d{2})$/);
+      if (!timeMatch) return;
+
+      const hours = Number(timeMatch[1]);
+      const minutes = Number(timeMatch[2]);
+      if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return;
+      if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return;
+
+      // Extract distance from detail (e.g., "2m 4f", "5f") to determine duration
       const milesMatch = race.detail?.match(/(\d+)m/);
       const furlongsMatch = race.detail?.match(/(\d+)f/);
       const m = milesMatch ? parseInt(milesMatch[1], 10) : 0;
@@ -87,9 +101,11 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       const totalMiles = m + f / 8;
       const duration = totalMiles > 0 ? 1.5 * totalMiles + 0.5 * Math.pow(totalMiles, 2) : 10;
 
+      // Create base start/end anchored to year 0 (will be re-anchored later)
       const start = new Date(0, 0, 0, hours, minutes);
       const end = new Date(0, 0, 0, hours, minutes + Math.max(2, duration));
 
+      // Update globals only for validated dates
       if (!globalMinTime || start < globalMinTime) globalMinTime = start;
       if (!globalMaxTime || end > globalMaxTime) globalMaxTime = end;
 
@@ -111,14 +127,23 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       const rawFullDetail = `${race.detail || ''} (${race.runners || 0} run)`;
       const displayDetail = wrapTextAtSpaces(icon + " " + rawFullDetail + " FORM:" + formPercentage + "%", 40);
 
-      const tooltipHtml = `<div style="padding:10px; min-width: 280px !important; width: max-content !important; font-family:sans-serif; font-size:13px; line-height:1.4; ${currentTheme === 'dark' ? 'background:#595656;color:#fff;border:1px solid #444;' : 'background:#fff;color:#333;border:1px solid #ccc;'
-        }">${displayDetail}</div>`;
+      const themeStyle = currentTheme === 'dark'
+        ? 'background-color: #595656; color: #ffffff; border: 1px solid #444;'
+        : 'background-color: #ffffff; color: #333333; border: 1px solid #ccc;';
 
-      return [race.place, race.time, tooltipHtml, start, end];
+      const tooltipHtml = `<div style="padding:10px; min-width: 280px !important; width: max-content !important; font-family:sans-serif; font-size:13px; line-height:1.4; ${themeStyle}">${displayDetail}</div>`;
+
+      localValidMap.push(idx);
+      result.push([race.place, race.time, tooltipHtml, start, end]);
     });
+
+    // persist mapping so selection callback can map back to original races array
+    validRaceIndexMapRef.current = localValidMap;
+    return result;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [races, currentTheme]);
 
+  // Build data and re-anchor rows to today's date context (and provide safe fallback)
   const data = useMemo(() => {
     const cols = [
       { type: 'string', id: 'Venue' },
@@ -128,26 +153,25 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       { type: 'date', id: 'End' },
     ];
 
-    // Map and correct the raw rows directly inside the hook calculation block
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const date = today.getDate();
+
     const correctedRows = rows.map((row) => {
       if (!Array.isArray(row)) return row;
 
       const oldStart = row[3];
       const oldEnd = row[4];
 
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const date = today.getDate();
-
-      // Re-anchor hours and minutes smoothly to the current 2026 year context
-      const start = (oldStart instanceof Date && !isNaN(oldStart))
+      // Re-anchor hours and minutes to today's date if the original Date is valid
+      const start = (oldStart instanceof Date && !isNaN(oldStart.getTime()))
         ? new Date(year, month, date, oldStart.getHours(), oldStart.getMinutes(), 0)
-        : new Date();
+        : new Date(year, month, date, 0, 0, 0);
 
-      const end = (oldEnd instanceof Date && !isNaN(oldEnd))
+      const end = (oldEnd instanceof Date && !isNaN(oldEnd.getTime()))
         ? new Date(year, month, date, oldEnd.getHours(), oldEnd.getMinutes(), 0)
-        : new Date(start.getTime() + 10 * 60000); // 10 min safe offset if zero or null
+        : new Date(start.getTime() + 10 * 60000); // 10 min safe offset
 
       return [row[0], row[1], row[2], start, end];
     });
@@ -155,8 +179,8 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
     return [cols, ...correctedRows];
   }, [rows]);
 
-  // Deterministic wrapper height
-  const rowCount = new Set(races.map((r) => r.place)).size || 0;
+  // Deterministic wrapper height: calculate from validated rows
+  const rowCount = new Set(rows.map((r) => r[0])).size || 0;
   const baselineWrapperHeight = HEADER_HEIGHT + rowCount * ROW_HEIGHT;
 
   // wrapper height in state so we can adjust after measurement if needed
@@ -250,6 +274,14 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
     }
     const containerWidth = containerRef.current.clientWidth || containerRef.current.getBoundingClientRect().width;
     const normalizedNow = new Date(0, 0, 0, now.getHours(), now.getMinutes());
+    if (!(globalMinTime instanceof Date) || !(globalMaxTime instanceof Date)) {
+      setNowLeftPercent(null);
+      return;
+    }
+    if (isNaN(globalMinTime.getTime()) || isNaN(globalMaxTime.getTime())) {
+      setNowLeftPercent(null);
+      return;
+    }
     if (normalizedNow < globalMinTime || normalizedNow > globalMaxTime) {
       setNowLeftPercent(null);
       return;
@@ -285,7 +317,9 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
           const selection = chart.getSelection();
           if (selection.length > 0) {
             const row = selection[0].row;
-            const race = races[row];
+            const originalIdx = validRaceIndexMapRef.current && validRaceIndexMapRef.current[row];
+            // If mapping exists, map back to the original races; otherwise fallback to same index
+            const race = (typeof originalIdx === 'number') ? races[originalIdx] : races[row];
             if (race) {
               const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
               window.location.hash = raceId;
@@ -349,6 +383,11 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       </div>
     );
   };
+
+  // If there are no valid rows, render nothing
+  if (!rows || rows.length === 0) {
+    return null;
+  }
 
   return (
     <div
