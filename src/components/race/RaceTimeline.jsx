@@ -4,14 +4,6 @@ import '../../css/RaceTimeline.css';
 import SkeletonRaceTimeline from '../skeletons/SkeletonRaceTimeline';
 import { getFormEmoji } from '../../constants/chartConstants';
 
-/**
- * RaceTimeline.jsx
- * - Deterministic wrapper height
- * - Single 'ready' measurement via getChartLayoutInterface().getChartAreaBoundingBox()
- * - Pixel chartArea applied after measurement
- * - Precise now-indicator positioning computed from measured chartArea
- */
-
 const ROW_HEIGHT = 35;    // per-row pixels (tweak for density)
 const HEADER_HEIGHT = 50; // reserved top area (labels/header)
 
@@ -67,12 +59,6 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
   const containerRef = useRef(null);
   const hasMeasured = useRef(false);
   const validRaceIndexMapRef = useRef([]); // maps chart row -> original races index
-
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(t);
-  }, []);
 
   // Build rows and find global min/max times (only from validated rows)
   let globalMinTime = null;
@@ -265,47 +251,6 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
     }
   };
 
-
-  // compute now indicator left (percent). This uses measuredChartArea when available,
-  // otherwise we fall back to a centered placeholder.
-  const [nowLeftPercent, setNowLeftPercent] = useState(null);
-
-  const recomputeNowLeft = () => {
-    if (!measuredChartArea || !containerRef.current || !globalMinTime || !globalMaxTime) {
-      setNowLeftPercent(null);
-      return;
-    }
-    const containerWidth = containerRef.current.clientWidth || containerRef.current.getBoundingClientRect().width;
-    const normalizedNow = new Date(0, 0, 0, now.getHours(), now.getMinutes());
-    if (!(globalMinTime instanceof Date) || !(globalMaxTime instanceof Date)) {
-      setNowLeftPercent(null);
-      return;
-    }
-    if (isNaN(globalMinTime.getTime()) || isNaN(globalMaxTime.getTime())) {
-      setNowLeftPercent(null);
-      return;
-    }
-    if (normalizedNow < globalMinTime || normalizedNow > globalMaxTime) {
-      setNowLeftPercent(null);
-      return;
-    }
-    const total = globalMaxTime.getTime() - globalMinTime.getTime();
-    const elapsed = normalizedNow.getTime() - globalMinTime.getTime();
-    const pct = elapsed / total; // 0..1
-    const leftPx = measuredChartArea.left + pct * measuredChartArea.width;
-    const leftPercent = (leftPx / containerWidth) * 100;
-    setNowLeftPercent(Math.max(0, Math.min(100, leftPercent)));
-  };
-
-  // recompute when measured area, container size, or time changes
-  useEffect(() => {
-    recomputeNowLeft();
-    const onResize = () => recomputeNowLeft();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [measuredChartArea, now, globalMinTime, globalMaxTime]);
-
   // Build chartEvents: use ready to measure and keep select behavior
   const chartEvents = [
     {
@@ -335,58 +280,6 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
     },
   ];
 
-  // Render now indicator (pixel-accurate height taken from measuredChartArea.height)
-  const renderNowIndicator = () => {
-    if (nowLeftPercent == null) return null;
-    const top = measuredChartArea ? measuredChartArea.top : HEADER_HEIGHT;
-    const height = measuredChartArea ? measuredChartArea.height : Math.max(40, wrapperHeight - HEADER_HEIGHT);
-    const color = currentTheme === 'dark' ? '#ffffff' : '#000000';
-    return (
-      <div
-        className="timeline-now-indicator"
-        data-testid="now-indicator"
-        style={{
-          position: 'absolute',
-          left: `${nowLeftPercent}%`,
-          top: `${top}px`,
-          height: `${height}px`,
-          width: '2px',
-          backgroundColor: color,
-          zIndex: 60,
-          pointerEvents: 'none',
-          transform: 'translateX(-50%)', // center the 2px line at the computed point
-        }}
-      >
-        {/* top triangle */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-10px',
-            left: '-5px',
-            width: 0,
-            height: 0,
-            borderLeft: '6px solid transparent',
-            borderRight: '6px solid transparent',
-            borderTop: `10px solid ${color}`,
-          }}
-        />
-        {/* bottom triangle */}
-        <div
-          style={{
-            position: 'absolute',
-            top: `${height}px`,
-            left: '-5px',
-            width: 0,
-            height: 0,
-            borderLeft: '6px solid transparent',
-            borderRight: '6px solid transparent',
-            borderBottom: `10px solid ${color}`,
-          }}
-        />
-      </div>
-    );
-  };
-
   // If there are no valid rows, render nothing
   if (!rows || rows.length === 0) {
     return null;
@@ -409,7 +302,6 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
         chartEvents={chartEvents}
       />
 
-      {renderNowIndicator()}
     </div>
   );
 };
