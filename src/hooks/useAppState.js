@@ -29,6 +29,18 @@ export function useAppState() {
     fiddle: false
   });
 
+  useEffect(() => {
+    setFilters(prev => {
+      // Safety optimization: Only trigger a state change if places are actually selected
+      if (prev.places.length === 0) return prev;
+
+      return {
+        ...prev,
+        places: [] // Clear the selected venues array cleanly
+      };
+    });
+  }, [displayDate]);
+
   const refreshFoaled = useStore(state => state.refreshFoaled);
 
   const [theme, setTheme] = useTheme();
