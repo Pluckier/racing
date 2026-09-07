@@ -253,6 +253,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
       ch: 'Chestnut',
       br: 'Brown',
       gr: 'Grey',
+      g: 'Grey',
       grey: 'Grey',
       bl: 'Black',
       blk: 'Black',
