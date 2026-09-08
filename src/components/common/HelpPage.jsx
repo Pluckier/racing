@@ -101,6 +101,9 @@ const HelpPage = ({ theme: currentTheme }) => {
                     <li>
                         <strong>Interactive On-the-Fly Toggling:</strong> Click any Jockey or Trainer name directly on a racecard row to toggle them in or out of your Hot list. Clicking the 🟨 icon directly removes that runner's connection.
                     </li>
+                    <li>
+                        <strong>OR and AND settings:</strong> By default, all selected connections are combined with OR logic (e.g. Sire A OR Broodmare Sire B). Toggle to <strong>AND</strong> combines selected connections with AND logic (e.g. Sire A AND Broodmare Sire B).  This setting only relates to Dams, Sires and Broodmare Sires.
+                    </li>
                 </ul>
             </section>
 
