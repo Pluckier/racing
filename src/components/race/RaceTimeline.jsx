@@ -188,7 +188,10 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
   // measured chart area from Google Chart API (top,left,width,height) - pixels
   const [measuredChartArea, setMeasuredChartArea] = useState(null);
 
-  // reset measurement when rowCount changes so we re-measure
+  // Track min/max time bounds and races count/identity so we re-measure when races are filtered
+  const timeSignature = `${minTimeRef.current?.getTime() || 0}-${maxTimeRef.current?.getTime() || 0}-${races.length}`;
+
+  // reset measurement when rowCount, races/time boundaries, or theme change
   useEffect(() => {
     hasMeasured.current = false;
     setMeasuredChartArea(null);
@@ -205,13 +208,7 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       const oldLine = container.querySelector('.timeline-now-line');
       if (oldLine) oldLine.remove();
     }
-
-    // FORCE A MANUALLY RE-RENDER CHECK:
-    // If the chart boundaries are already available, draw the line immediately
-    if (measuredChartArea) {
-      renderNowIndicator(measuredChartArea);
-    }
-  }, [baselineWrapperHeight, rowCount, currentTheme]);
+  }, [baselineWrapperHeight, rowCount, timeSignature, currentTheme]);
 
 
   // compute the chart options; once measuredChartArea exists we pass its pixel values to chartArea
