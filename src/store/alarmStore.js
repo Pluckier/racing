@@ -12,7 +12,7 @@ const parseFoaled = (str) => {
 
 export const useStore = create(
     persist(
-        (set, get) => ({
+        (set) => ({
             // =================================================================
             // 1. STATE DEFINITIONS
             // =================================================================
@@ -156,6 +156,13 @@ export const useStore = create(
                     }
                 }
             })),
+
+            clearSliders: () => set({
+                wValue: 0,
+                dValue: 0,
+                gValue: 0,
+                raceSliders: {}
+            }),
         }),
         {
             name: 'alarm-storage',

@@ -29,6 +29,9 @@ export function useAppState() {
     fiddle: false
   });
 
+  const clearSliders = useStore(state => state.clearSliders);
+  const refreshFoaled = useStore(state => state.refreshFoaled);
+
   useEffect(() => {
     setFilters(prev => {
       // Safety optimization: Only trigger a state change if places are actually selected
@@ -39,9 +42,8 @@ export function useAppState() {
         places: [] // Clear the selected venues array cleanly
       };
     });
-  }, [displayDate]);
-
-  const refreshFoaled = useStore(state => state.refreshFoaled);
+    clearSliders();
+  }, [displayDate, clearSliders]);
 
   const [theme, setTheme] = useTheme();
   const [activeModal, setActiveModal] = useState(null); // 'movement', 'favorites', or null
