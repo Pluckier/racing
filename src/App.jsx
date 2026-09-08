@@ -73,21 +73,14 @@ function App() {
     }
   };
 
-  const { notifications, removeNotification } = useNonRunnerNotifications(state.races, state.displayDate);
-  const [isNotificationsReleased, setIsNotificationsReleased] = useState(false);
-
-  // Automatically reset the release flag once all current notifications are cleared or timed out
-  useEffect(() => {
-    if (isNotificationsReleased && notifications.length === 0) {
-      setIsNotificationsReleased(false);
-    }
-  }, [notifications.length, isNotificationsReleased]);
-
-  const clearAllNotifications = () => {
-    notifications.forEach(notification => {
-      removeNotification(notification.id);
-    });
-  };
+  const {
+    notifications,
+    approvedNonRunners,
+    rejectedNonRunners,
+    acceptNotification,
+    rejectNotification,
+    clearAll,
+  } = useNonRunnerNotifications(state.races, state.displayDate);
 
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
   const currentDateStr = state.displayDate instanceof Date
@@ -289,18 +282,13 @@ function App() {
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
-                    className={`filter-btn refresh-btn ${isNotificationsReleased ? 0 : notifications.length > 0 ? 'active' : 'disabled'}`}
-                    disabled={isNotificationsReleased ? 0 : notifications.length === 0}
-                    onClick={() => setIsNotificationsReleased(true)}
-                    style={{ cursor: (isNotificationsReleased ? 0 : notifications.length > 0) ? 'pointer' : 'default' }}
-                    title={
-                      (isNotificationsReleased ? 0 : notifications.length > 0)
-                        ? `Show ${isNotificationsReleased ? 0 : notifications.length} non-runners`
-                        : (refreshMinutes ? `Auto Refresh ${refreshMinutes}m` : "Auto Refresh")
-                    }
+                    className={`filter-btn refresh-btn ${notifications.length > 0 ? 'active' : 'disabled'}`}
+                    disabled={true}
+                    style={{ cursor: 'default' }}
+                    title={refreshMinutes ? `Auto Refresh ${refreshMinutes}m` : 'Auto Refresh'}
                   >
                     ↻
-                    {(isNotificationsReleased ? 0 : notifications.length > 0) && (
+                    {notifications.length > 0 && (
                       <span style={{
                         position: 'absolute',
                         top: '-8px',
@@ -315,7 +303,7 @@ function App() {
                         zIndex: 2,
                         pointerEvents: 'none'
                       }}>
-                        {(isNotificationsReleased ? 0 : notifications.length)}
+                        {notifications.length}
                       </span>
                     )}
                   </button>
@@ -489,6 +477,8 @@ function App() {
                     onToggleAlarm={() => toggleAlarm(activeRaceId)}
                     viewMode={viewMode}
                     currentDateStr={currentDateStr}
+                    approvedNonRunners={approvedNonRunners}
+                    rejectedNonRunners={rejectedNonRunners}
                   />
                 ) : (
                   <div className="no-data" style={{ textAlign: 'center', padding: '20px' }}>No races match filters.</div>
@@ -503,6 +493,8 @@ function App() {
                   toggleAlarm={toggleAlarm}
                   viewMode={viewMode}
                   currentDateStr={currentDateStr}
+                  approvedNonRunners={approvedNonRunners}
+                  rejectedNonRunners={rejectedNonRunners}
                 />
               </div>
             )}
@@ -512,9 +504,10 @@ function App() {
         {state.showChat && <Chatter onClose={() => state.setShowChat(false)} />}
 
         <NonRunnerNotifications
-          notifications={isNotificationsReleased ? notifications : []}
-          onRemove={removeNotification}
-          onClearAll={clearAllNotifications}
+          notifications={notifications}
+          onAccept={acceptNotification}
+          onReject={rejectNotification}
+          onClearAll={clearAll}
         />
       </Layout>
     );

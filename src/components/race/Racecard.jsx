@@ -17,7 +17,7 @@ const SORT_LABELS = {
   all: 'All'
 };
 
-const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr }) => {
+const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr, approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
@@ -485,6 +485,10 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               gValue={gValue}
               todayDistance={race.distance}
               todayGoing={race.going}
+              raceTime={race.time}
+              racePlace={race.place}
+              approvedNonRunners={approvedNonRunners}
+              rejectedNonRunners={rejectedNonRunners}
             />
           );
         })}

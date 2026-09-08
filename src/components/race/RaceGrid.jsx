@@ -1,7 +1,7 @@
 import React from 'react';
 import RaceCard from './Racecard';
 
-const RaceGrid = ({ races, filters, enabledAlarms, toggleAlarm, viewMode, currentDateStr }) => {
+const RaceGrid = ({ races, filters, enabledAlarms, toggleAlarm, viewMode, currentDateStr, approvedNonRunners, rejectedNonRunners }) => {
   return (
     <div className="race-grid">
       {races.map((race) => {
@@ -18,6 +18,8 @@ const RaceGrid = ({ races, filters, enabledAlarms, toggleAlarm, viewMode, curren
             onToggleAlarm={() => toggleAlarm(id)}
             viewMode={viewMode}
             currentDateStr={currentDateStr}
+            approvedNonRunners={approvedNonRunners}
+            rejectedNonRunners={rejectedNonRunners}
           />
         );
       })}

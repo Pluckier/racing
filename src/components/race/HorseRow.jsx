@@ -5,7 +5,7 @@ import { useStore } from '../../store/alarmStore';
 import { SOFT_COLORS } from '../../constants/chartConstants';
 import { HOT_TRAINERS, HOT_JOCKEYS } from '../../utils/racingLogic';
 
-const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '' }) => {
+const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '', raceTime = '', racePlace = '', approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [showForm, setShowForm] = useState(false);
 
   const pastRuns = horse.past || [];
@@ -13,7 +13,13 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
   const oddsArr = horse.odds || [];
   const currentOdds = oddsArr[oddsArr.length - 1];
   const previousOdds = oddsArr[oddsArr.length - 2];
-  const isNR = currentOdds === "null" || currentOdds === "NR";
+
+  // Priority chain: Rejected > Approved > Feed
+  const horseKey = `${horse.name}@${raceTime}${racePlace}`;
+  const isRejected = rejectedNonRunners.has(horseKey);  // user vetoed — force active
+  const isApproved = approvedNonRunners.has(horseKey);  // user confirmed — force greyed
+  const feedIsNR = currentOdds === "null" || currentOdds === "NR";
+  const isNR = isRejected ? false : isApproved ? true : feedIsNR;
 
   let oddsArrow = null;
   if (!isNR && currentOdds && previousOdds && previousOdds !== "null" && previousOdds !== "NR") {

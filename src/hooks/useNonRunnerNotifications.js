@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 
 export function useNonRunnerNotifications(races, displayDate) {
   const [notifications, setNotifications] = useState([]);
+  const [approvedNonRunners, setApprovedNonRunners] = useState(new Set());
+  const [rejectedNonRunners, setRejectedNonRunners] = useState(new Set());
+
   const prevRacesRef = useRef(races);
   const prevDateRef = useRef(displayDate?.getTime());
 
@@ -14,8 +17,16 @@ export function useNonRunnerNotifications(races, displayDate) {
     prevRacesRef.current = races;
     prevDateRef.current = currentDate;
 
-    // Skip notification on initial load or if the user switched the date
-    if (!prevRaces || prevRaces.length === 0 || prevDate !== currentDate) {
+    // On date change: clear all override state and pending notifications
+    if (prevDate !== currentDate) {
+      setNotifications([]);
+      setApprovedNonRunners(new Set());
+      setRejectedNonRunners(new Set());
+      return;
+    }
+
+    // Skip notification on initial load
+    if (!prevRaces || prevRaces.length === 0) {
       return;
     }
 
@@ -28,12 +39,23 @@ export function useNonRunnerNotifications(races, displayDate) {
         const prevHorse = prevRace.horses.find(h => h.name === currentHorse.name);
         if (!prevHorse) return;
 
-        const wasRunner = prevHorse.odds?.length > 0 && prevHorse.odds[prevHorse.odds.length - 1] !== "null" && prevHorse.odds[prevHorse.odds.length - 1] !== "NR";
-        const isNR = currentHorse.odds?.length > 0 && (currentHorse.odds[currentHorse.odds.length - 1] === "null" || currentHorse.odds[currentHorse.odds.length - 1] === "NR");
+        const wasRunner = prevHorse.odds?.length > 0
+          && prevHorse.odds[prevHorse.odds.length - 1] !== "null"
+          && prevHorse.odds[prevHorse.odds.length - 1] !== "NR";
+
+        const isNR = currentHorse.odds?.length > 0
+          && (currentHorse.odds[currentHorse.odds.length - 1] === "null"
+            || currentHorse.odds[currentHorse.odds.length - 1] === "NR");
 
         if (wasRunner && isNR) {
+          const horseKey = `${currentHorse.name}@${currentRace.time}${currentRace.place}`;
+
+          // Never re-notify for horses the user has already decided on
+          if (rejectedNonRunners.has(horseKey) || approvedNonRunners.has(horseKey)) return;
+
           newNonRunners.push({
-            id: `${currentHorse.name}-${currentRace.time}-${Date.now()}-${Math.random()}`,
+            id: `${horseKey}-${Date.now()}-${Math.random()}`,
+            horseKey,
             name: currentHorse.name,
             race: `${currentRace.time} ${currentRace.place}`
           });
@@ -41,17 +63,45 @@ export function useNonRunnerNotifications(races, displayDate) {
       });
     });
 
-    // Inform one-by-one by staggering the state updates
+    // Stagger notifications 1.2s apart
     newNonRunners.forEach((nr, index) => {
       setTimeout(() => {
         setNotifications(prev => [...prev, nr]);
-      }, index * 1200); // 1.2s delay between each notification
+      }, index * 1200);
     });
   }, [races, displayDate]);
 
-  const removeNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const acceptNotification = (id) => {
+    setNotifications(prev => {
+      const item = prev.find(n => n.id === id);
+      if (item) {
+        setApprovedNonRunners(s => new Set([...s, item.horseKey]));
+      }
+      return prev.filter(n => n.id !== id);
+    });
   };
 
-  return { notifications, removeNotification };
+  const rejectNotification = (id) => {
+    setNotifications(prev => {
+      const item = prev.find(n => n.id === id);
+      if (item) {
+        setRejectedNonRunners(s => new Set([...s, item.horseKey]));
+      }
+      return prev.filter(n => n.id !== id);
+    });
+  };
+
+  const clearAll = () => {
+    // Dismiss all pending — no decision, horse follows feed
+    setNotifications([]);
+  };
+
+  return {
+    notifications,
+    approvedNonRunners,
+    rejectedNonRunners,
+    acceptNotification,
+    rejectNotification,
+    clearAll,
+  };
 }

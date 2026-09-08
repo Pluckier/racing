@@ -27,6 +27,7 @@ const TrainerSelections = ({ races }) => {
   // 1. Add the state line for tracking independent text filters per category block
   const [searchQueries, setSearchQueries] = useState({});
   const [showOnlyActive, setShowOnlyActive] = useState({});
+  const [bloodlineMode, setBloodlineMode] = useState('or'); // 'or' | 'and'
 
   // Bind directly to global individual tracks in Zustand
   const trainers = useStore((s) => s.selectedTrainers);
@@ -128,24 +129,35 @@ const TrainerSelections = ({ races }) => {
     const activeSires = store.sires || [];
 
     const hasActiveRelative = bloodlineConnections.some(conn => {
-      // Ensure this connection row matches the specific name item being evaluated
+      // Check if this connection row matches the item AND satisfies the mode condition
       if (conn[cfg.isSubParent] !== item) return false;
 
-      // Check if Dam is currently checked (either manually or via global defaults match)
       const isDamActive = store.dams === null
         ? CONFIG.dams.hot.some(h => conn.raw.includes(h))
         : store.dams.includes(conn.dam);
 
-      // Check if Broodmare Sire is currently checked
       const isBMSireActive = store.broodmareSires === null
         ? CONFIG.broodmareSires.hot.some(h => conn.raw.includes(h))
         : store.broodmareSires.includes(conn.broodmareSire);
 
-      // Check if Sire is currently checked
       const isSireActive = store.sires === null
         ? CONFIG.sires.hot.some(h => conn.raw.includes(h))
         : store.sires.includes(conn.sire);
 
+      if (bloodlineMode === 'and') {
+        // Collect only the lineage roles that have at least one item selected
+        const hasDamSelection = (store.dams === null ? CONFIG.dams.hot.length > 0 : store.dams.length > 0);
+        const hasBMSireSelection = (store.broodmareSires === null ? CONFIG.broodmareSires.hot.length > 0 : store.broodmareSires.length > 0);
+        const hasSireSelection = (store.sires === null ? CONFIG.sires.hot.length > 0 : store.sires.length > 0);
+
+        // All non-empty categories must be satisfied
+        return (!hasDamSelection || isDamActive)
+            && (!hasBMSireSelection || isBMSireActive)
+            && (!hasSireSelection || isSireActive)
+            && (hasDamSelection || hasBMSireSelection || hasSireSelection); // at least one must exist
+      }
+
+      // OR mode (default)
       return isDamActive || isBMSireActive || isSireActive;
     });
 
@@ -183,6 +195,53 @@ const TrainerSelections = ({ races }) => {
 
   return (
     <div className="trainer-selections-container" style={{ padding: '10px 5px', maxHeight: '550px', overflowY: 'auto' }}>
+
+      {/* Or / And mode toggle — only relevant for bloodline sections */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #888)', flexShrink: 0 }}>Bloodline match:</span>
+        <button
+          type="button"
+          onClick={() => setBloodlineMode('or')}
+          style={{
+            padding: '4px 14px',
+            borderRadius: '20px',
+            border: '1px solid',
+            cursor: 'pointer',
+            fontSize: '0.82rem',
+            fontWeight: '600',
+            borderColor: bloodlineMode === 'or' ? '#10B981' : 'var(--border)',
+            backgroundColor: bloodlineMode === 'or' ? 'rgba(16,185,129,0.15)' : 'transparent',
+            color: bloodlineMode === 'or' ? '#10B981' : 'var(--text-muted, #888)',
+            transition: 'all 0.2s'
+          }}
+          title="Highlight if ANY selected bloodline parent matches"
+        >
+          Or
+        </button>
+        <button
+          type="button"
+          onClick={() => setBloodlineMode('and')}
+          style={{
+            padding: '4px 14px',
+            borderRadius: '20px',
+            border: '1px solid',
+            cursor: 'pointer',
+            fontSize: '0.82rem',
+            fontWeight: '600',
+            borderColor: bloodlineMode === 'and' ? '#FF69B4' : 'var(--border)',
+            backgroundColor: bloodlineMode === 'and' ? 'rgba(255,105,180,0.15)' : 'transparent',
+            color: bloodlineMode === 'and' ? '#FF69B4' : 'var(--text-muted, #888)',
+            transition: 'all 0.2s'
+          }}
+          title="Highlight only if ALL selected bloodline parents match in the same horse"
+        >
+          And
+        </button>
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted, #666)', marginLeft: 4 }}>
+          {bloodlineMode === 'and' ? '— all selected categories must match' : '— any selected category matches'}
+        </span>
+      </div>
+
       {CONFIG_ENTRIES.map(([key, { title, setterName, hot, isSubParent }]) => {
         // Get the current search text for this specific section, fallback to empty string
         const currentQuery = searchQueries[key] || '';

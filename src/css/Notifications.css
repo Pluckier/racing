@@ -8,23 +8,22 @@
   flex-direction: column;
   gap: 10px;
   width: 90%;
-  max-width: 450px;
+  max-width: 480px;
   pointer-events: none;
 }
 
 .nr-notification-item {
   pointer-events: auto;
-  background: var(--bg-card, #ffffff);
-  color: var(--text-h, #333);
+  background: var(--bg-card, #1e1e2e);
+  color: var(--text-h, #eee);
   padding: 12px 16px;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
   border-left: 4px solid #ff4444;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   animation: nr-slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition: all 0.3s ease;
 }
 
 .nr-notification-content {
@@ -35,6 +34,7 @@
 
 .nr-icon {
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .nr-message {
@@ -42,19 +42,41 @@
   line-height: 1.4;
 }
 
-.nr-close-btn {
-  background: none;
-  border: none;
-  color: var(--text-h, #888);
-  font-size: 1.5rem;
-  cursor: pointer;
-  margin-left: 10px;
-  padding: 0 5px;
-  line-height: 1;
+/* Action button row */
+.nr-notification-actions {
+  display: flex;
+  gap: 8px;
 }
 
-.nr-close-btn:hover {
-  color: var(--text, #333);
+.nr-action-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+
+.nr-action-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.nr-action-btn:active {
+  transform: translateY(0);
+}
+
+.nr-accept-btn {
+  background: #22c55e;
+  color: #fff;
+}
+
+.nr-reject-btn {
+  background: #f97316;
+  color: #fff;
 }
 
 @keyframes nr-slide-up {
@@ -69,24 +91,29 @@
   }
 }
 
+/* Clear-all bar */
 .nr-notification-item.nr-clear-all-item {
-  border-left: 4px solid #666;
-  /* Neutral accent instead of warning red */
-  background: var(--bg-card, #ffffff);
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-left: 4px solid #555;
+  padding: 10px 16px;
 }
 
 .nr-clear-all-btn {
   background: none;
-  border: none;
-  color: #0066cc;
-  text-decoration: underline;
-  font-size: 0.9rem;
-  font-weight: bold;
+  border: 1px solid #666;
+  border-radius: 6px;
+  color: var(--text-h, #ccc);
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 4px 12px;
   white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
 }
 
 .nr-clear-all-btn:hover {
-  color: #004499;
-}
+  border-color: #aaa;
+  color: #fff;
+}
