@@ -401,7 +401,7 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
       });
 
       // 4. Calculate exact grid space bounding metrics
-      const exactLeft = minLeftEdge + 3;
+      const exactLeft = minLeftEdge + 6;
       const exactWidth = maxRightEdge - minLeftEdge + 10;
       const exactTop = minTopEdge;
       const exactHeight = maxBottomEdge + 12;
