@@ -209,12 +209,21 @@ function App() {
       if (index !== -1) {
         setActiveRaceIndex(index);
       }
+
+      if (viewMode === 'all') {
+        setTimeout(() => {
+          const el = document.getElementById(raceId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
     };
 
     window.addEventListener('hashchange', handleHashSync);
     handleHashSync();
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [viewMode, state.loading, state.displayDate, state.setDisplayDate, currentDateStr, state.filteredRaces]);
+  }, [viewMode, state.loading]);
 
   // Ensure index stays in bounds if filters reduce the number of races
   useEffect(() => {
@@ -337,7 +346,7 @@ function App() {
                 onShowMovement={() => state.setActiveModal('movement')}
                 onShowTrainers={() => state.setActiveModal('trainers')}
               />
-              <RaceTimeline races={state.filteredRaces} theme={state.theme} />
+              <RaceTimeline races={state.filteredRaces} theme={state.theme} currentDateStr={currentDateStr} />
             </>
           )
         }}
@@ -457,7 +466,7 @@ function App() {
               title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Today's Connections (Hot 🟠)"}
             >
               {state.activeModal === 'movement' && (
-                <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
+                <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} />
               )}
               {state.activeModal === 'trainers' && (
                 <TrainerSelections races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />

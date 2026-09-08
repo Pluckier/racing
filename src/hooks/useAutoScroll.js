@@ -12,8 +12,9 @@ export function useAutoScroll(loading, filteredRaces) {
 
       if (nextRace) {
         setTimeout(() => {
-          const hash = window.location.hash.substring(1);
-          const hashedElement = hash ? document.getElementById(hash) : null;
+          const hash = decodeURIComponent(window.location.hash.substring(1));
+          const targetId = hash.includes('@') ? hash.split('@')[1] : hash;
+          const hashedElement = targetId ? document.getElementById(targetId) : null;
 
           if (hashedElement) {
             hashedElement.scrollIntoView({ behavior: 'auto', block: 'start' });

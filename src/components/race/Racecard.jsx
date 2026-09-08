@@ -342,7 +342,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
         <div className="race-title-group">
           <h2 className="race-title">
 
-            <a href={`#${raceId}`} className="race-title-link">
+            <a href={currentDateStr ? `#${currentDateStr}@${raceId}` : `#${raceId}`} className="race-title-link">
               {race.time} {race.place}
             </a>
 

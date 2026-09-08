@@ -12,8 +12,10 @@ export function useAppState() {
     const hash = decodeURIComponent(window.location.hash.substring(1));
     if (hash.includes('@')) {
       const datePart = hash.split('@')[0];
-      const parsed = new Date(datePart);
-      if (!isNaN(parsed.getTime())) return parsed;
+      const parts = datePart.split('-').map(Number);
+      if (parts.length === 3 && !parts.some(isNaN)) {
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
     }
     return new Date();
   });

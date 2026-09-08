@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import '../../css/OddsMovementSummary.css';
 
-const OddsMovementSummary = ({ races, onClose }) => {
+const OddsMovementSummary = ({ races, onClose, currentDateStr }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'diff', direction: 'asc' });
 
   const movementData = useMemo(() => {
@@ -73,7 +73,7 @@ const OddsMovementSummary = ({ races, onClose }) => {
 
   const handleJump = (time, place) => {
     const id = `${time}${place.replace(/\s+/g, '')}`;
-    window.location.hash = id;
+    window.location.hash = currentDateStr ? `${currentDateStr}@${id}` : id;
     if (onClose) onClose();
   };
 

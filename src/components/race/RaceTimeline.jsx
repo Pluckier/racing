@@ -55,7 +55,7 @@ const wrapTextAtSpaces = (text, maxLength = 30) => {
 };
 
 
-const RaceTimeline = ({ races = [], theme: currentTheme }) => {
+const RaceTimeline = ({ races = [], theme: currentTheme, currentDateStr }) => {
   const containerRef = useRef(null);
   const hasMeasured = useRef(false);
   const validRaceIndexMapRef = useRef([]); // maps chart row -> original races index
@@ -442,7 +442,7 @@ const RaceTimeline = ({ races = [], theme: currentTheme }) => {
             const race = (typeof originalIdx === 'number') ? races[originalIdx] : races[row];
             if (race) {
               const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
-              window.location.hash = raceId;
+              window.location.hash = currentDateStr ? `${currentDateStr}@${raceId}` : raceId;
             }
           }
         } catch (e) {
