@@ -73,7 +73,8 @@ const HelpPage = ({ theme: currentTheme }) => {
             {/* Section: Hot Connections */}
             <section className="help-section">
                 <h2>🔥 Hot Connections & Pedigree Panel</h2>
-                <p>Click the <strong>🔥 Connections</strong> button in the filter bar to open <em>Today's Connections</em> modal. This panel lets you manage exactly which connections and bloodlines are flagged across all racecards:</p>
+                <p>Click the <strong>🔥 Connections</strong> button in the filter bar to open <em>Today's Connections</em> modal. This panel lets you manage exactly which connections and bloodlines are flagged across all racecards.</p>
+                <p>We have pre-selected some Trainers and Owners that are notable.  Horses connected to these get the orange square 🟨 annotation on the racecard.</p>
                 <ul>
                     <li>
                         <strong>6 Tracked Categories:</strong>

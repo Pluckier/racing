@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { HOT_TRAINERS, HOT_JOCKEYS, HOT_OWNERS } from '../utils/racingLogic';
 
 // Internal parser matching your component logic exactly
 const parseFoaled = (str) => {
@@ -28,12 +29,13 @@ export const useStore = create(
             // Per-race slider values { [raceKey]: { w: 0, d: 0, g: 0 } }
             raceSliders: {},
 
-            // Selected trainers list (defaults to null)
-            selectedTrainers: null,
-            // Selected jockeys list (defaults to null)
-            selectedJockeys: null,
-            // Selected owners list (defaults to null)
-            selectedOwners: null,
+            // Selected trainers list — seeded from HOT_TRAINERS on first load;
+            // persist middleware will restore any previously saved user selections.
+            selectedTrainers: HOT_TRAINERS,
+            // Selected jockeys list — seeded from HOT_JOCKEYS on first load
+            selectedJockeys: HOT_JOCKEYS,
+            // Selected owners list — seeded from HOT_OWNERS on first load
+            selectedOwners: HOT_OWNERS,
 
             // Legacy selected foaled list (automatically updated & synced)
             selectedFoaled: null,
