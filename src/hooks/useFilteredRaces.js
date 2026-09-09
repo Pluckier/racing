@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { augmentRaceWithStats } from '../utils/racingLogic';
-import { useStore } from '../store/alarmStore';
+import { useStore } from '../store/store';
 
 export const useFilteredRaces = (races, filters) => {
   const aiMode = useStore((state) => state.aiMode);

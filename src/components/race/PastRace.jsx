@@ -1,6 +1,6 @@
 import React from 'react';
 import '../../css/PastRace.css';
-import { useStore } from '../../store/alarmStore';
+import { useStore } from '../../store/store';
 
 const PastRace = ({ race, adjustedRating }) => {
   // Destructuring the JSON properties for cleaner code

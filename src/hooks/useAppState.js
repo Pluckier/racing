@@ -4,7 +4,7 @@ import { useTheme } from './useTheme';
 import { useFilteredRaces } from './useFilteredRaces';
 import { useAutoScroll } from './useAutoScroll';
 import { formatDisplayDateTime } from '../utils/dateUtils';
-import { useStore } from '../store/alarmStore';
+import { useStore } from '../store/store';
 
 export function useAppState() {
   const [displayDate, setDisplayDate] = useState(() => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PastRace from './PastRace';
 import '../../css/HorseRow.css';
-import { useStore } from '../../store/alarmStore';
+import { useStore } from '../../store/store';
 import { SOFT_COLORS } from '../../constants/chartConstants';
 import { HOT_TRAINERS, HOT_JOCKEYS } from '../../utils/racingLogic';
 

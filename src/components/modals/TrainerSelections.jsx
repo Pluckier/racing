@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { HOT_TRAINERS, HOT_JOCKEYS, HOT_FOALED, HOT_OWNERS } from '../../utils/racingLogic';
-import { useStore } from '../../store/alarmStore';
+import { useStore } from '../../store/store';
 import '../../css/TrainerSelections.css';
 
 // Safe parser that separates Dam, Broodmare Sire, and Sire explicitly
@@ -152,9 +152,9 @@ const TrainerSelections = ({ races }) => {
 
         // All non-empty categories must be satisfied
         return (!hasDamSelection || isDamActive)
-            && (!hasBMSireSelection || isBMSireActive)
-            && (!hasSireSelection || isSireActive)
-            && (hasDamSelection || hasBMSireSelection || hasSireSelection); // at least one must exist
+          && (!hasBMSireSelection || isBMSireActive)
+          && (!hasSireSelection || isSireActive)
+          && (hasDamSelection || hasBMSireSelection || hasSireSelection); // at least one must exist
       }
 
       // OR mode (default)

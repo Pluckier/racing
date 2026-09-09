@@ -14,7 +14,7 @@ import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
 import RaceCard from './components/race/Racecard';
 import Chatter from './components/chat/Chatter';
-import { useStore } from './store/alarmStore';
+import { useStore } from './store/store';
 import NonRunnerNotifications from './components/layout/NonRunnerNotifications';
 import TrackWorker from './components/obs/TrackWorker'; // Import TrackWorker
 import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchOverlay

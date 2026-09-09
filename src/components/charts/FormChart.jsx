@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { LINE_COLORS } from '../../constants/chartConstants';
 import '../../css/FormChart.css';
-import { useStore } from '../../store/alarmStore';
+import { useStore } from '../../store/store';
 import ThreeSliders from './Sliders';
 
 const CustomDot = React.memo((props) => {

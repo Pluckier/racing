@@ -4,7 +4,7 @@ import FormChart from '../charts/FormChart';
 import OddsChart from '../charts/OddsChart';
 import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
-import { useStore } from '../../store/alarmStore';
+import { useStore } from '../../store/store';
 import ThreeSliders from '../charts/Sliders';
 import { getFormEmoji } from '../../constants/chartConstants';
 
