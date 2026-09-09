@@ -78,7 +78,7 @@ export function useAppState() {
     [races]
   );
 
-  const filteredRaces = useFilteredRaces(races, filters, currentTime, displayDate);
+  const filteredRaces = useFilteredRaces(races, filters);
 
   useAutoScroll(loading, filteredRaces);
 
