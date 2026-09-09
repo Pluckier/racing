@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useClock } from './useClock';
 import { useRaces } from './useRaces';
 import { useTheme } from './useTheme';
 import { useFilteredRaces } from './useFilteredRaces';
@@ -19,7 +18,7 @@ export function useAppState() {
     }
     return new Date();
   });
-  const currentTime = useClock();
+  const currentTime = new Date();
   const [showChat, setShowChat] = useState(false);
   const { races, loading, error, handleManualRefresh, lastRefreshTime } = useRaces(displayDate);
 
@@ -62,11 +61,13 @@ export function useAppState() {
   }, [currentTime, lastRefreshTime, handleManualRefresh]);
 
   useEffect(() => {
-    if (!refreshFoaled) return;
-    if (!Array.isArray(races)) return;
-    // Recompute legacy 'selectedFoaled' for the newly-loaded races
+    if (!refreshFoaled || !Array.isArray(races)) return;
+
     refreshFoaled(races);
-  }, [races, refreshFoaled]);
+
+    // ✅ FIX: Stringify the array so React checks the actual data values 
+    // instead of checking the unstable memory references.
+  }, [JSON.stringify(races), refreshFoaled]);
 
   const formattedDateTime = useMemo(() =>
     formatDisplayDateTime(displayDate, currentTime),
