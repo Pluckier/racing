@@ -68,15 +68,43 @@ const RaceTimeline = ({ races = [], theme: currentTheme, currentDateStr }) => {
   let globalMinTime = null;
   let globalMaxTime = null;
 
+  const [highlightedRaceId, setHighlightedRaceId] = useState(null);
+
+  // Listen for URL hash changes to update highlighted race
+  useEffect(() => {
+    const handleHash = () => {
+      const raw = window.location.hash.substring(1);
+      const parts = raw.split('@');
+
+      // Grab the part after the '@' symbol (e.g., "17:20Doncaster")
+      const racePart = parts[1] || parts[0];
+      if (!racePart) return;
+
+      const match = racePart.match(/^(\d{1,2}:\d{2})(.+)$/);
+      if (!match) return;
+
+      const time = match[1];
+      const place = match[2];
+      const raceId = `${time}${place.replace(/\s+/g, '')}`;
+      setHighlightedRaceId(raceId);
+    };
+
+    window.addEventListener('hashchange', handleHash);
+    handleHash(); // Run on mount
+    return () => {
+      window.removeEventListener('hashchange', handleHash);
+    };
+  }, []);
+
+
+  // Build rows and find global min/max times (only from validated rows)
   const rows = useMemo(() => {
     const result = [];
     const localValidMap = [];
-
     let localMin = null;
     let localMax = null;
 
     races.forEach((race, idx) => {
-      // Validate time format strictly: "H:MM" or "HH:MM"
       const timeStr = race?.time;
       if (!timeStr || typeof timeStr !== 'string') return;
       const timeMatch = timeStr.trim().match(/^(\d{1,2}):(\d{2})$/);
@@ -84,10 +112,8 @@ const RaceTimeline = ({ races = [], theme: currentTheme, currentDateStr }) => {
 
       const hours = Number(timeMatch[1]);
       const minutes = Number(timeMatch[2]);
-      if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return;
       if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return;
 
-      // Extract distance from detail (e.g., "2m 4f", "5f") to determine duration
       const milesMatch = race.detail?.match(/(\d+)m/);
       const furlongsMatch = race.detail?.match(/(\d+)f/);
       const m = milesMatch ? parseInt(milesMatch[1], 10) : 0;
@@ -95,16 +121,13 @@ const RaceTimeline = ({ races = [], theme: currentTheme, currentDateStr }) => {
       const totalMiles = m + f / 8;
       const duration = totalMiles > 0 ? 1.5 * totalMiles + 0.5 * Math.pow(totalMiles, 2) : 10;
 
-      // Create base start/end anchored to year 0 (will be re-anchored later)
       const start = new Date(0, 0, 0, hours, minutes);
       const end = new Date(0, 0, 0, hours, minutes + Math.max(2, duration));
 
-      // Update globals only for validated dates
       if (!localMin || start < localMin) localMin = start;
       if (!localMax || end > localMax) localMax = end;
 
-      const totalPastRuns =
-        race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
+      const totalPastRuns = race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
       const maxPossibleRuns = (race.horses?.length || 0) * 6;
       const formPercentage = maxPossibleRuns > 0 ? Math.round((totalPastRuns / maxPossibleRuns) * 100) : 0;
 
@@ -119,7 +142,6 @@ const RaceTimeline = ({ races = [], theme: currentTheme, currentDateStr }) => {
       const icon = icons.length ? icons.join(' ') : '🚫';
 
       const emoji = getFormEmoji(formPercentage);
-
       const rawFullDetail = `${race.detail || ''} (${race.runners || 0} run)`;
       const displayDetail = wrapTextAtSpaces(icon + " " + rawFullDetail + " FORM:" + formPercentage + "% " + emoji, 40);
 
@@ -129,25 +151,40 @@ const RaceTimeline = ({ races = [], theme: currentTheme, currentDateStr }) => {
 
       const tooltipHtml = `<div style="padding:10px; min-width: 280px !important; width: max-content !important; font-family:sans-serif; font-size:13px; line-height:1.4; ${themeStyle}">${displayDetail}</div>`;
 
+      // Match the hash signature format
+      const raceId = `${race.time}${race.place.replace(/\s+/g, '')}`;
+
+      // Compute the hex color state dynamically mapped by row grouping
+      const originalPalette = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043'];
+      const uniqueVenues = [...new Set(races.map(r => r?.place))];
+      const venueRowIndex = uniqueVenues.indexOf(race.place);
+      const baseRowColor = originalPalette[venueRowIndex % originalPalette.length];
+
+      let barColor = baseRowColor;
+      if (highlightedRaceId && highlightedRaceId === raceId) {
+        barColor = currentTheme === 'dark' ? '#fff' : '#000';
+      }
+
       localValidMap.push(idx);
-      result.push([race.place, race.time, tooltipHtml, start, end]);
+      // NOTICE: barColor is placed explicitly at index 3 before the dates
+      result.push([race.place, race.time, tooltipHtml, barColor, start, end]);
     });
 
     minTimeRef.current = localMin;
     maxTimeRef.current = localMax;
-
-    // persist mapping so selection callback can map back to original races array
     validRaceIndexMapRef.current = localValidMap;
     return result;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [races, currentTheme]);
+  }, [races, currentTheme, highlightedRaceId]);
+
 
   // Build data and re-anchor rows to today's date context (and provide safe fallback)
+  // Build data and re-anchor rows to today's date context
   const data = useMemo(() => {
     const cols = [
       { type: 'string', id: 'Venue' },
       { type: 'string', id: 'Race' },
       { type: 'string', role: 'tooltip', p: { html: true } },
+      { type: 'string', role: 'style' }, // Configures style injection column
       { type: 'date', id: 'Start' },
       { type: 'date', id: 'End' },
     ];
@@ -160,23 +197,23 @@ const RaceTimeline = ({ races = [], theme: currentTheme, currentDateStr }) => {
     const correctedRows = rows.map((row) => {
       if (!Array.isArray(row)) return row;
 
-      const oldStart = row[3];
-      const oldEnd = row[4];
+      const oldStart = row[4];
+      const oldEnd = row[5];
 
-      // Re-anchor hours and minutes to today's date if the original Date is valid
       const start = (oldStart instanceof Date && !isNaN(oldStart.getTime()))
         ? new Date(year, month, date, oldStart.getHours(), oldStart.getMinutes(), 0)
         : new Date(year, month, date, 0, 0, 0);
 
       const end = (oldEnd instanceof Date && !isNaN(oldEnd.getTime()))
         ? new Date(year, month, date, oldEnd.getHours(), oldEnd.getMinutes(), 0)
-        : new Date(start.getTime() + 10 * 60000); // 10 min safe offset
+        : new Date(start.getTime() + 10 * 60000);
 
-      return [row[0], row[1], row[2], start, end];
+      return [row[0], row[1], row[2], row[3], start, end];
     });
 
     return [cols, ...correctedRows];
   }, [rows]);
+
 
   // Deterministic wrapper height: calculate from validated rows
   const rowCount = new Set(rows.map((r) => r[0])).size || 0;
@@ -217,7 +254,7 @@ const RaceTimeline = ({ races = [], theme: currentTheme, currentDateStr }) => {
       timeline: {
         showRowLabels: true,
         groupByRowLabel: true,
-        colorByRowLabel: true,
+        colorByRowLabel: false, // ◄ TURN THIS TO FALSE
         rowLabelStyle: { fontSize: 12, color: currentTheme === 'dark' ? '#e0e0e0' : '#333333' },
         barLabelStyle: { fontSize: 10, color: currentTheme === 'dark' ? '#e0e0e0' : '#333333' },
       },
