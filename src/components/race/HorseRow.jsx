@@ -348,7 +348,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
               fontWeight: isJockeyHighlighted ? 'bold' : 'normal'
             }}
           >
-            <strong>J:</strong> {horse.jockey}
+            <strong style={{ color: isJockeyHighlighted ? 'orange' : 'inherit' }}>J</strong>:{horse.jockey}
           </div>
           <div
             className="trainer-row"
@@ -361,7 +361,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
               fontWeight: isTrainerHighlighted ? 'bold' : 'normal'
             }}
           >
-            <strong>T:</strong> {horse.trainer}
+            <strong style={{ color: isTrainerHighlighted ? 'orange' : 'inherit' }}>T</strong>:{horse.trainer}
             {horse.breeding && <span className="cell-breeding"> • <strong>B:</strong> {horse.breeding}</span>}
           </div>
         </div>

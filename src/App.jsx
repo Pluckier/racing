@@ -294,7 +294,7 @@ function App() {
                     className={`filter-btn refresh-btn ${notifications.length > 0 ? 'active' : 'disabled'}`}
                     disabled={true}
                     style={{ cursor: 'default' }}
-                    title={refreshMinutes ? `Auto Refresh ${refreshMinutes}m` : 'Auto Refresh'}
+                    title={refreshMinutes ? `Non Runner Alerts ${refreshMinutes}m` : 'No Non Runner Alerts'}
                   >
                     ↻
                     {notifications.length > 0 && (
