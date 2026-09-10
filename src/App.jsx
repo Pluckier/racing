@@ -56,6 +56,7 @@ function App() {
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const [raceNumberInput, setRaceNumberInput] = useState('1');
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
+  const [showNonRunnerNotifications, setShowNonRunnerNotifications] = useState(false);
 
   useEffect(() => {
     const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -291,11 +292,11 @@ function App() {
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
-                    className={`filter-btn refresh-btn ${notifications.length > 0 ? 'active' : 'disabled'}`}
-                    disabled={true}
-                    style={{ cursor: 'default' }}
-                    title={refreshMinutes ? `Non Runner Alerts ${refreshMinutes}m` : 'No Non Runner Alerts'}
-                  >
+                                        className={`filter-btn refresh-btn ${notifications.length > 0 ? 'active' : 'disabled'}`}
+                    disabled={notifications.length === 0}
+                    style={{ cursor: notifications.length > 0 ? 'pointer' : 'default' }}
+                    title={notifications.length > 0 ? `Non Runner Alerts ${refreshMinutes}m` : 'No Non Runner Alerts'}
+                    onClick={() => setShowNonRunnerNotifications(true)}                  >
                     ↻
                     {notifications.length > 0 && (
                       <span style={{
@@ -512,12 +513,14 @@ function App() {
 
         {state.showChat && <Chatter onClose={() => state.setShowChat(false)} />}
 
-        <NonRunnerNotifications
-          notifications={notifications}
-          onAccept={acceptNotification}
-          onReject={rejectNotification}
-          onClearAll={clearAll}
-        />
+        {showNonRunnerNotifications && (
+          <NonRunnerNotifications
+            notifications={notifications}
+            onAccept={acceptNotification}
+            onReject={rejectNotification}
+            onClearAll={clearAll}
+          />
+        )}
       </Layout>
     );
   };
