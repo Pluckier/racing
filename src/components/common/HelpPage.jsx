@@ -1,18 +1,75 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import '../../css/HelpPage.css';
+
+/* ─── Collapsible Section wrapper ─── */
+const Section = ({ id, emoji, title, defaultOpen = false, children }) => {
+    const [open, setOpen] = useState(defaultOpen);
+    return (
+        <section id={id} className={`help-section${open ? ' expanded' : ''}`}>
+            <div className="help-section-header" onClick={() => setOpen(o => !o)} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && setOpen(o => !o)}>
+                <h2>{emoji} {title}</h2>
+                <span className="help-section-chevron">▶</span>
+            </div>
+            <div className="help-section-body">
+                <div className="help-section-content">
+                    {children}
+                </div>
+            </div>
+        </section>
+    );
+};
 
 const HelpPage = ({ theme: currentTheme }) => {
     // Fallback gracefully if theme is not explicitly passed as a prop
     const activeTheme = currentTheme || (typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'dark');
     const isDark = activeTheme === 'dark';
 
+    const scrollTo = useCallback((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Auto-expand the section when navigated to
+            const section = el.closest('.help-section') || el;
+            if (!section.classList.contains('expanded')) {
+                section.querySelector('.help-section-header')?.click();
+            }
+        }
+    }, []);
+
+    const tocItems = [
+        { id: 'help-toolbar', emoji: '🧭', label: 'Toolbar' },
+        { id: 'help-timeline', emoji: '⏱️', label: 'Timeline' },
+        { id: 'help-annotations', emoji: '🏷️', label: 'Annotations' },
+        { id: 'help-connections', emoji: '🔥', label: 'Hot Connections' },
+        { id: 'help-class', emoji: '👑', label: 'Classification' },
+        { id: 'help-form', emoji: '📊', label: 'Form %' },
+        { id: 'help-sliders', emoji: '🎚️', label: 'Sliders' },
+        { id: 'help-sort', emoji: '🔀', label: 'Sort By' },
+        { id: 'help-ai', emoji: '🤖', label: 'AI Models' },
+        { id: 'help-charts', emoji: '📈', label: 'Charts' },
+        { id: 'help-horse', emoji: '🏇', label: 'Horse Row' },
+    ];
+
     return (
         <div className={`help-container ${isDark ? 'dark-mode' : 'light-mode'}`}>
-            <p className="help-lead">Welcome to The Racing (from Pluckier). Here is a breakdown of how to read the data, classification icons, and form percentage indicators.</p>
+
+            {/* ─── Hero Banner ─── */}
+            <div className="help-hero">
+                <h1 className="help-hero-title">The Racing Guide</h1>
+                <p className="help-hero-sub">
+                    Welcome to The Racing (from Pluckier). Here is a breakdown of how to read the data, classification icons, and form percentage indicators.
+                </p>
+                <nav className="help-toc">
+                    {tocItems.map(t => (
+                        <span key={t.id} className="help-toc-chip" onClick={() => scrollTo(t.id)}>
+                            {t.emoji} {t.label}
+                        </span>
+                    ))}
+                </nav>
+            </div>
 
             {/* Header Navigation & Toolbar Controls */}
-            <section className="help-section">
-                <h2>🧭 Header Bar & Toolbar Controls</h2>
+            <Section id="help-toolbar" emoji="🧭" title="Header Bar & Toolbar Controls" defaultOpen={false}>
                 <p>The top navigation and expandable toolbar provide instant access to global platform utilities:</p>
                 <ul>
                     <li>
@@ -46,33 +103,48 @@ const HelpPage = ({ theme: currentTheme }) => {
                         <strong>📅 Date Selector:</strong> Click the calendar icon (📅) in the header to travel to previous historical race days or browse upcoming scheduled cards.
                     </li>
                 </ul>
-            </section>
-
+            </Section>
 
             {/* Section 1: The Live Timeline Line */}
-            <section className="help-section">
-                <h2>⏱️ Live Race Timeline Indicator</h2>
+            <Section id="help-timeline" emoji="⏱️" title="Live Race Timeline Indicator">
                 <p>The timeline acts as a real-time schedule of today's active race cards across all tracks.</p>
                 <ul>
                     <li><strong>Vertical Indicator Line:</strong> Represents the <strong>Current Time (Now)</strong>. It dynamically crawls across the layout minute-by-minute (white in dark mode, black in light mode).</li>
                     <li><strong>Automatic Scaling:</strong> Race blocks scale automatically based on distance. Longer distance races stretch out further horizontally.</li>
                     <li><strong>Double click / Hover:</strong> Jump directly to a race by double-clicking its block. Hover to preview race details.</li>
                 </ul>
-            </section>
+            </Section>
 
-            <section className="help-section">
-                <h2>Annotations</h2>
+            {/* Annotations */}
+            <Section id="help-annotations" emoji="🏷️" title="Annotations">
                 <p>Horses can be annotated with an orange square 🟨, a green circle 🟢, or a red triangle 🔺:</p>
-                <ul>
-                    <li><strong>🟨 Hot:</strong> Trainers, Jockeys, Owners, or Lineage (Sires, Dams, Broodmare Sires) marked as notable connections.</li>
-                    <li><strong>🟢 Performance:</strong> The highest ever career performance (or 2nd best). Glows light blue when the performance spike was exceptional.</li>
-                    <li><strong>🔺 Recent:</strong> Judged to have had the best last run, demonstrating peak current form last time out.</li>
-                </ul>
-            </section>
+                <div className="help-annotation-grid">
+                    <div className="help-annotation-card">
+                        <div className="help-annotation-icon">🟨</div>
+                        <div className="help-annotation-text">
+                            <strong>Hot</strong>
+                            <span>Trainers, Jockeys, Owners, or Lineage (Sires, Dams, Broodmare Sires) marked as notable connections.</span>
+                        </div>
+                    </div>
+                    <div className="help-annotation-card">
+                        <div className="help-annotation-icon">🟢</div>
+                        <div className="help-annotation-text">
+                            <strong>Performance</strong>
+                            <span>The highest ever career performance (or 2nd best). Glows light blue when the performance spike was exceptional.</span>
+                        </div>
+                    </div>
+                    <div className="help-annotation-card">
+                        <div className="help-annotation-icon">🔺</div>
+                        <div className="help-annotation-text">
+                            <strong>Recent</strong>
+                            <span>Judged to have had the best last run, demonstrating peak current form last time out.</span>
+                        </div>
+                    </div>
+                </div>
+            </Section>
 
             {/* Section: Hot Connections */}
-            <section className="help-section">
-                <h2>🔥 Hot Connections & Pedigree Panel</h2>
+            <Section id="help-connections" emoji="🔥" title="Hot Connections & Pedigree Panel">
                 <p>Click the <strong>🔥 Connections</strong> button in the filter bar to open <em>Today's Connections</em> modal. This panel lets you manage exactly which connections and bloodlines are flagged across all racecards.</p>
                 <p>We have pre-selected some Trainers and Owners that are notable.  Horses connected to these get the orange square 🟨 annotation on the racecard.</p>
                 <ul>
@@ -106,23 +178,21 @@ const HelpPage = ({ theme: currentTheme }) => {
                         <strong>OR and AND settings:</strong> By default, all selected connections are combined with OR logic (e.g. Sire A OR Broodmare Sire B). Toggle to <strong>AND</strong> combines selected connections with AND logic (e.g. Sire A AND Broodmare Sire B).  This setting only relates to Dams, Sires and Broodmare Sires.
                     </li>
                 </ul>
-            </section>
+            </Section>
 
             {/* Section 2: Race Importance Icons */}
-            <section className="help-section">
-                <h2>🏷️ Race Classification Icons</h2>
-                <p>Each race  displays its classification category metrics:</p>
+            <Section id="help-class" emoji="👑" title="Race Classification Icons">
+                <p>Each race displays its classification category metrics:</p>
                 <div className="icon-grid">
                     <div className="icon-item"><strong>👑 Premium Grade:</strong> Indicates a prestigious <em>Class 1</em> or <em>Class 2</em> tier stakes event.</div>
                     <div className="icon-item"><strong>⚖️ Handicap/Nursery:</strong> Indicates weights are custom allocated to balance field competitiveness.</div>
                     <div className="icon-item"><strong>🏆 Tricast Race:</strong> Handicaps (usually) containing fields of <strong>8 or more horses</strong>.</div>
                     <div className="icon-item"><strong>🚫 Generic Field:</strong> Stakes, Maidens, Novices or unclassified race type.</div>
                 </div>
-            </section>
+            </Section>
 
             {/* Section 3: Form Percentage Breakdown */}
-            <section className="help-section">
-                <h2>📊 Form Percentages & Emojis</h2>
+            <Section id="help-form" emoji="📊" title="Form Percentages & Emojis">
                 <p>We calculate the past readiness of fields out of a maximum threshold ceiling (capped at 6 historical runs per runner):</p>
                 <div className="help-table-wrapper">
                     <table className="help-table">
@@ -143,23 +213,20 @@ const HelpPage = ({ theme: currentTheme }) => {
                         </tbody>
                     </table>
                 </div>
-            </section>
+            </Section>
 
             {/* Section 4: Sliders Weight Distance & Going */}
-            <section className="help-section">
-                <h2>🎚️ Sliders Weight Distance & Going</h2>
+            <Section id="help-sliders" emoji="🎚️" title="Sliders Weight Distance & Going">
                 <p>The sliders allow you to emphasis horses based on their weight, distance and going compared to past runs.</p>
                 <ul>
                     <li><strong>Weights:</strong>  Tracks horses where the current weight is less than past runs.</li>
                     <li><strong>Distance:</strong>  Tracks horses where the current distance is within 20% of past runs.</li>
                     <li><strong>Going:</strong>  Tracks horses where the current going matches past runs.</li>
                 </ul>
-            </section>
-
+            </Section>
 
             {/* Section 5: Sort By */}
-            <section className="help-section">
-                <h2>🎚️ Sort By Slider</h2>
+            <Section id="help-sort" emoji="🔀" title="Sort By Slider">
                 <p>Each race card features a slider control in the header to instantly re-sort runners by your preferred analytical metric:</p>
                 <ul>
                     <li><strong>Avg3:</strong> Sorts by the average adjusted rating of the runner's last 3 career runs (the default, offering a balanced baseline of current form).</li>
@@ -168,11 +235,10 @@ const HelpPage = ({ theme: currentTheme }) => {
                     <li><strong>All:</strong> Sorts by the overall career average rating across all recorded past runs.</li>
                     <li><strong>Odds:</strong> Sorts by the current live market price with the shortest odds first (non-runners are always placed at the bottom).</li>
                 </ul>
-            </section>
+            </Section>
 
             {/* Section 6: AI */}
-            <section className="help-section">
-                <h2>🤖 Artificial Intelligence Models</h2>
+            <Section id="help-ai" emoji="🤖" title="Artificial Intelligence Models">
                 <p>Click the AI model toggle button on any race card or form chart to switch between analytical scoring engines:</p>
                 <ul>
                     <li><strong>Off (Grey CPU):</strong> Default mode using official speed and performance handicap ratings.</li>
@@ -180,11 +246,10 @@ const HelpPage = ({ theme: currentTheme }) => {
                     <li><strong>ChatGPT (Emerald Icon):</strong> Uses OpenAI ChatGPT's predictive scoring and handicap adjustments.</li>
                 </ul>
                 <p>Toggling AI dynamically updates all ratings, averages, peak scores, and sort ordering in real time.</p>
-            </section>
+            </Section>
 
             {/* Section 7: Odds and Past Performance Charts */}
-            <section className="help-section">
-                <h2>📈 Odds & Past Performance Charts</h2>
+            <Section id="help-charts" emoji="📈" title="Odds & Past Performance Charts">
                 <p>Deep-dive visual analytics are available via the chart buttons in each race header:</p>
                 <ul>
                     <li>
@@ -200,11 +265,10 @@ const HelpPage = ({ theme: currentTheme }) => {
                         </ul>
                     </li>
                 </ul>
-            </section>
+            </Section>
 
             {/* Section 8: Horse Row */}
-            <section className="help-section">
-                <h2>🏇 Horse Row: Ratings, Odds & Past Form</h2>
+            <Section id="help-horse" emoji="🏇" title="Horse Row: Ratings, Odds & Past Form">
                 <p>Each runner row displays dense, high-signal information at a glance:</p>
                 <ul>
                     <li><strong>Silks, Number & Stall:</strong> Official jockey silks, racecard number, and starting stall draw in brackets (e.g. <code>(4)</code>).</li>
@@ -222,17 +286,13 @@ const HelpPage = ({ theme: currentTheme }) => {
                     </li>
                     <li><strong>Past Runs Pill Button:</strong> The number button on the right indicates total past runs recorded. Click it to expand or collapse the full history drawer showing individual track, distance, going, weight, and adjusted rating details for every past race.</li>
                 </ul>
-            </section>
+            </Section>
 
-            {/* Section 8: Version number and date */}
-            <section
-                className="help-section"
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', textAlign: 'right' }}
-            >
+            {/* Version footer */}
+            <div className="help-version">
                 <p>Version: 3.0</p>
                 <p>Last Updated: 07 Aug 2026 00:51 BST</p>
-            </section>
-
+            </div>
 
         </div>
     );
