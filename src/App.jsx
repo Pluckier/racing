@@ -292,7 +292,7 @@ function App() {
 
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
-                                        className={`filter-btn refresh-btn ${notifications.length > 0 ? 'active' : 'disabled'}`}
+                    className={`filter-btn refresh-btn ${notifications.length > 0 ? 'active' : 'disabled'}`}
                     disabled={notifications.length === 0}
                     style={{ cursor: notifications.length > 0 ? 'pointer' : 'default' }}
                     title={notifications.length > 0 ? `Non Runner Alerts ${refreshMinutes}m` : 'No Non Runner Alerts'}
@@ -344,6 +344,7 @@ function App() {
                 filters={state.filters}
                 setFilters={state.setFilters}
                 uniquePlaces={state.uniquePlaces}
+                races={state.races}
                 onShowMovement={() => state.setActiveModal('movement')}
                 onShowTrainers={() => state.setActiveModal('trainers')}
               />
