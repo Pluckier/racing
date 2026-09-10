@@ -170,7 +170,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
 
       // Skip non-runners
       const lastOdd = horse.odds?.[horse.odds.length - 1];
-      //if (lastOdd === "null" || lastOdd === "NR") return;
+      if (lastOdd === "null" || lastOdd === "NR") return;
 
       const displayOdd = lastOdd === "null" ? "NR" : (lastOdd ? (isNaN(lastOdd) ? lastOdd : Number(lastOdd)) : "x");
 
