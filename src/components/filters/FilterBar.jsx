@@ -25,21 +25,19 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, races = [], onShowMoveme
       }
     });
 
+    // This array is ordered chronologically by first race time
     return Object.keys(meetingEarliestTimes).sort((a, b) => meetingEarliestTimes[a] - meetingEarliestTimes[b]);
   }, [races]);
 
   return (
     <div className="filter-section" style={{ marginTop: '20px' }}>
       <div className="place-filters">
-        {uniquePlaces.map((place) => {
+        {/* LOOP CHRONOLOGICAL VENUES INSTEAD: Sorts buttons left-to-right identically to chart rows */}
+        {chronologicalVenues.map((place, index) => {
           const isActive = filters.places.includes(place);
-          const cleanPlace = String(place).trim();
-          const venueRowIndex = chronologicalVenues.indexOf(cleanPlace);
 
-          // Match the timeline row color index precisely
-          const assignedColor = venueRowIndex !== -1
-            ? originalPalette[venueRowIndex % originalPalette.length]
-            : '#4285F4';
+          // The index here now matches the true chronological row order perfectly
+          const assignedColor = originalPalette[index % originalPalette.length];
 
           // Flipped Look and Feel: Solid fill when inactive, transparent outline when active
           const buttonStyle = isActive
