@@ -166,52 +166,46 @@ function App() {
     return () => clearInterval(interval);
   }, [enabledAlarms, state.races, removeAlarm]);
 
-  // Only attach hashchange listener; don't scroll on effect re-run
+  // Keep refs updated so listeners always access latest values without stale closures
+  const filteredRacesRef = useRef(state.filteredRaces);
+  filteredRacesRef.current = state.filteredRaces;
+
+  const currentDateStrRef = useRef(currentDateStr);
+  currentDateStrRef.current = currentDateStr;
+
+  const setDisplayDateRef = useRef(state.setDisplayDate);
+  setDisplayDateRef.current = state.setDisplayDate;
+
+  const viewModeRef = useRef(viewMode);
+  viewModeRef.current = viewMode;
+
+  const loadingRef = useRef(state.loading);
+  loadingRef.current = state.loading;
+
+  // Listen for hash changes (e.g. user navigation, timeline clicks, Prev/Next)
   useEffect(() => {
     const handleHashSync = () => {
-      if (state.loading) return;
+      if (loadingRef.current) return;
 
       const hash = decodeURIComponent(window.location.hash.substring(1));
-
-      if (!hash) {
-        if (state.filteredRaces.length > 0) {
-          let selectedRace = state.filteredRaces[0];
-
-          // Find the next race if display date is today
-          const now = new Date();
-          const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-          if (currentDateStr === todayStr) {
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            const upcomingRace = state.filteredRaces.find(r => {
-              if (!r.time) return false;
-              const [hours, minutes] = r.time.split(':').map(Number);
-              return (hours * 60 + minutes) >= currentMinutes;
-            });
-            if (upcomingRace) {
-              selectedRace = upcomingRace;
-            }
-          }
-
-          const targetId = `${selectedRace.time}${selectedRace.place.replace(/\s+/g, '')}`;
-          window.location.hash = `${currentDateStr}@${targetId}`;
-        }
-        return;
-      }
+      const races = filteredRacesRef.current || [];
+      if (races.length === 0) return;
 
       let raceId = hash;
       if (hash.includes('@')) {
         const [datePart, idPart] = hash.split('@');
         raceId = idPart;
 
-        if (datePart && datePart !== currentDateStr) {
+        if (datePart && datePart !== currentDateStrRef.current) {
           const [y, m, d] = datePart.split('-').map(Number);
-          state.setDisplayDate(new Date(y, m - 1, d));
-          return;
+          if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+            setDisplayDateRef.current(new Date(y, m - 1, d));
+            return;
+          }
         }
       }
 
-      const index = state.filteredRaces.findIndex(r =>
+      const index = races.findIndex(r =>
         `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
       );
 
@@ -219,7 +213,7 @@ function App() {
         setActiveRaceIndex(index);
       }
 
-      if (viewMode === 'all') {
+      if (viewModeRef.current === 'all') {
         setTimeout(() => {
           const el = document.getElementById(raceId);
           if (el) {
@@ -230,16 +224,53 @@ function App() {
     };
 
     window.addEventListener('hashchange', handleHashSync);
-    handleHashSync();
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [viewMode, state.loading]);
+  }, []);
 
-  // Ensure index stays in bounds if filters reduce the number of races
+  // Sync active race index and hash whenever filteredRaces or currentDateStr updates
   useEffect(() => {
-    if (activeRaceIndex >= state.filteredRaces.length && state.filteredRaces.length > 0) {
-      setActiveRaceIndex(state.filteredRaces.length - 1);
+    if (state.loading || state.filteredRaces.length === 0) return;
+
+    const hash = decodeURIComponent(window.location.hash.substring(1));
+    let raceId = hash;
+    if (hash.includes('@')) {
+      const [, idPart] = hash.split('@');
+      raceId = idPart;
     }
-  }, [state.filteredRaces.length, activeRaceIndex]);
+
+    const foundIndex = state.filteredRaces.findIndex(r =>
+      `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
+    );
+
+    if (foundIndex !== -1) {
+      setActiveRaceIndex(foundIndex);
+    } else {
+      // If current hash is not in filtered races (e.g. venue filter selected, or initial load),
+      // choose the upcoming race (if today) or the first available race
+      let selectedRace = state.filteredRaces[0];
+      let selectedIndex = 0;
+
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+      if (currentDateStr === todayStr) {
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const upcomingIdx = state.filteredRaces.findIndex(r => {
+          if (!r.time) return false;
+          const [hours, minutes] = r.time.split(':').map(Number);
+          return (hours * 60 + minutes) >= currentMinutes;
+        });
+        if (upcomingIdx !== -1) {
+          selectedRace = state.filteredRaces[upcomingIdx];
+          selectedIndex = upcomingIdx;
+        }
+      }
+
+      setActiveRaceIndex(selectedIndex);
+      const targetId = `${selectedRace.time}${selectedRace.place.replace(/\s+/g, '')}`;
+      window.location.hash = `${currentDateStr}@${targetId}`;
+    }
+  }, [state.filteredRaces, currentDateStr, state.loading]);
 
   useEffect(() => {
     setRaceNumberInput(String(activeRaceIndex + 1));
