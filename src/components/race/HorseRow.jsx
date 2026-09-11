@@ -339,30 +339,40 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
         <div className="horse-personnel-column hide-mobile hide-mobile-medium">
           <div
             className="jockey-row"
-            onClick={handleJockeyClick}
             title={isJockeyHighlighted ? "Click to remove jockey from highlights" : "Click to highlight jockey"}
             style={{
               textAlign: 'right',
               whiteSpace: 'nowrap',
-              cursor: 'pointer',
               fontWeight: isJockeyHighlighted ? 'bold' : 'normal'
             }}
           >
-            <strong style={{ color: isJockeyHighlighted ? 'orange' : 'inherit' }}>J</strong>:{horse.jockey}
+            <strong
+              onClick={handleJockeyClick}
+              style={
+                {
+                  color: isJockeyHighlighted ? 'orange' : 'inherit',
+                  cursor: 'pointer'
+                }}>J
+            </strong>:{horse.jockey}
             {isSoleRide && '*'}
           </div>
           <div
             className="trainer-row"
-            onClick={handleTrainerClick}
             title={isTrainerHighlighted ? "Click to remove trainer from highlights" : "Click to highlight trainer"}
             style={{
               textAlign: 'right',
               whiteSpace: 'nowrap',
-              cursor: 'pointer',
               fontWeight: isTrainerHighlighted ? 'bold' : 'normal'
             }}
           >
-            <strong style={{ color: isTrainerHighlighted ? 'orange' : 'inherit' }}>T</strong>:{horse.trainer}
+            <strong
+              onClick={handleTrainerClick}
+              style={{
+                cursor: 'pointer',
+                color: isTrainerHighlighted ? 'orange' : 'inherit'
+              }}>T
+            </strong>
+            :{horse.trainer}
             {isSoleTrainerRunner && '*'}
             {horse.breeding && <span className="cell-breeding"> • <strong>B:</strong> {horse.breeding}</span>}
           </div>
