@@ -55,7 +55,7 @@ const HelpPage = ({ theme: currentTheme }) => {
 
             {/* ─── Hero Banner ─── */}
             <div className="help-hero">
-                <h1 className="help-hero-title">The Racing Guide</h1>
+                <h1 className="help-hero-title">The Racing</h1>
                 <p className="help-hero-sub">
                     Welcome to The Racing (from Pluckier). Here is a breakdown of how to read the data, classification icons, and form percentage indicators.
                 </p>

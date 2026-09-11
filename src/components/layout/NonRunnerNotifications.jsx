@@ -49,7 +49,7 @@ const NonRunnerNotifications = ({ notifications, onAccept, onReject, onClearAll 
             <span className="nr-message">{notifications.length} non-runner alerts pending</span>
           </div>
           <button className="nr-clear-all-btn" onClick={onClearAll}>
-            Dismiss All
+            Accept All
           </button>
         </div>
       )}
