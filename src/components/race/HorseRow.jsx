@@ -5,7 +5,7 @@ import { useStore } from '../../store/store';
 import { SOFT_COLORS } from '../../constants/chartConstants';
 import { HOT_TRAINERS, HOT_JOCKEYS } from '../../utils/racingLogic';
 
-const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '', raceTime = '', racePlace = '', approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
+const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sortBy, highlightFiddle, highlightValue, highlightSelect, wValue = 0, dValue = 0, gValue = 0, todayDistance = '', todayGoing = '', raceTime = '', racePlace = '', approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [showForm, setShowForm] = useState(false);
 
   const pastRuns = horse.past || [];
@@ -349,6 +349,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             }}
           >
             <strong style={{ color: isJockeyHighlighted ? 'orange' : 'inherit' }}>J</strong>:{horse.jockey}
+            {isSoleRide && '*'}
           </div>
           <div
             className="trainer-row"
@@ -362,6 +363,7 @@ const HorseRow = ({ horse, sortBy, highlightFiddle, highlightValue, highlightSel
             }}
           >
             <strong style={{ color: isTrainerHighlighted ? 'orange' : 'inherit' }}>T</strong>:{horse.trainer}
+            {isSoleTrainerRunner && '*'}
             {horse.breeding && <span className="cell-breeding"> • <strong>B:</strong> {horse.breeding}</span>}
           </div>
         </div>

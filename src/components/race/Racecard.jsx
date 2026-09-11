@@ -287,6 +287,26 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     setShowChart(true);
   };
 
+  const trainerCounts = {};
+  allRaces.forEach(race => {
+    race.horses?.forEach(h => {
+      const trainerName = h.trainer ? h.trainer.trim() : '';
+      if (trainerName) {
+        trainerCounts[trainerName] = (trainerCounts[trainerName] || 0) + 1;
+      }
+    });
+  });
+
+  const jockeyCounts = {};
+  allRaces.forEach(race => {
+    race.horses?.forEach(h => {
+      const jockeyName = h.jockey ? h.jockey.trim() : '';
+      if (jockeyName) {
+        jockeyCounts[jockeyName] = (jockeyCounts[jockeyName] || 0) + 1;
+      }
+    });
+  });
+
   const CpuIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect width="16" height="16" x="4" y="4" rx="2" />
@@ -469,10 +489,18 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           const isValue = highlightValues && horse.isValue;
           const isSelect = highlightSelects && horseId === selectHorseNumber;
 
+          const currentTrainer = horse.trainer ? horse.trainer.trim() : '';
+          const isSoleRunner = trainerCounts[currentTrainer] === 1;
+
+          const currentJockey = horse.jockey ? horse.jockey.trim() : '';
+          const isSoleRide = jockeyCounts[currentJockey] === 1;
+
           return (
             <HorseRow
               key={`${horse.name}-${horse.number}-${wValue}-${dValue}-${gValue}`}
               horse={horse}
+              isSoleTrainerRunner={isSoleRunner}
+              isSoleRide={isSoleRide}
               sortBy={sortBy}
               highlightFiddle={highlightFiddles && horse.isFiddle}
               highlightValue={
