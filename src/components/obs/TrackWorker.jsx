@@ -12,7 +12,7 @@ const TrackWorker = () => {
     // Listen for messages coming back from trackerWorker.js
     workerRef.current.onmessage = (event) => {
       if (event.data.type === 'COUNT_UPDATE') {
-        setLiveCount(event.data.count + 3);
+        setLiveCount(event.data.count);
       }
     };
 
