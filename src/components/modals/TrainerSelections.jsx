@@ -26,8 +26,16 @@ const CONFIG_ENTRIES = Object.entries(CONFIG);
 const TrainerSelections = ({ races }) => {
   // 1. Add the state line for tracking independent text filters per category block
   const [searchQueries, setSearchQueries] = useState({});
-  const [showOnlyActive, setShowOnlyActive] = useState({});
   const [bloodlineMode, setBloodlineMode] = useState('or'); // 'or' | 'and'
+
+  const [showOnlyActive, setShowOnlyActive] = useState({
+    trainers: true,
+    jockeys: true,
+    owners: true,
+    dams: true,
+    broodmareSires: true,
+    sires: true
+  });
 
   // Bind directly to global individual tracks in Zustand
   const trainers = useStore((s) => s.selectedTrainers);
@@ -47,6 +55,18 @@ const TrainerSelections = ({ races }) => {
   const store = {
     trainers, jockeys, owners, dams, broodmareSires, sires,
     setSelectedTrainers, setSelectedJockeys, setSelectedOwners, setSelectedDams, setSelectedBroodmareSires, setSelectedSires
+  };
+
+  const handleSearchChange = (key, val) => {
+    setSearchQueries(prev => ({ ...prev, [key]: val }));
+
+    if (val.trim().length > 0) {
+      // User is typing -> Show all records so search filters everything
+      setShowOnlyActive(prev => ({ ...prev, [key]: false }));
+    } else {
+      // Search box is empty/cleared -> Snap back to showing active items only
+      setShowOnlyActive(prev => ({ ...prev, [key]: true }));
+    }
   };
 
   // Build lookups for today's active items and parsed lineage maps
@@ -269,7 +289,7 @@ const TrainerSelections = ({ races }) => {
                 type="text"
                 placeholder={`Search ${title.toLowerCase()}...`}
                 value={currentQuery}
-                onChange={(e) => setSearchQueries(prev => ({ ...prev, [key]: e.target.value }))}
+                onChange={(e) => handleSearchChange(key, e.target.value)}
                 className="theSearchInput"
                 style={{
                   width: '100%',
@@ -297,9 +317,12 @@ const TrainerSelections = ({ races }) => {
               }}>
                 Set to Defaults
               </button>
-              <button type="button" className="theButton" onClick={() =>
-                setShowOnlyActive(prev => ({ ...prev, [key]: !prev[key] }))
-              } style={showOnlyActive[key] ? { borderColor: '#10B981', color: '#10B981' } : {}}>
+              <button
+                type="button"
+                className="theButton"
+                onClick={() => setShowOnlyActive(prev => ({ ...prev, [key]: !prev[key] }))}
+                style={showOnlyActive[key] ? {} : { borderColor: '#10B981', color: '#10B981' }}
+              >
                 {showOnlyActive[key] ? 'Show All' : 'Show Only Active'}
               </button>
             </div>
