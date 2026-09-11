@@ -83,6 +83,14 @@ function App() {
     clearAll,
   } = useNonRunnerNotifications(state.races, state.displayDate);
 
+  // Auto-close the panel once the user has dealt with every notification,
+  // so new non-runners from the next refresh won't appear without a click.
+  useEffect(() => {
+    if (notifications.length === 0) {
+      setShowNonRunnerNotifications(false);
+    }
+  }, [notifications.length]);
+
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
   const currentDateStr = state.displayDate instanceof Date
     ? `${state.displayDate.getFullYear()}-${String(state.displayDate.getMonth() + 1).padStart(2, '0')}-${String(state.displayDate.getDate()).padStart(2, '0')}`
