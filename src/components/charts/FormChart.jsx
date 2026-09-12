@@ -36,7 +36,17 @@ const CustomDot = React.memo((props) => {
   );
 });
 
-const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode, currentDateStr }) => {
+const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, todayGoing, raceTime, racePlace, viewMode, currentDateStr, pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
+
+  const isHorseNR = (h) => {
+    const horseKey = `${h.name}@${raceTime}${racePlace}`;
+    if (rejectedNonRunners.has(horseKey)) return false;
+    if (approvedNonRunners.has(horseKey)) return true;
+    if (pendingNonRunners.has(horseKey)) return false;
+    const odds = h.odds || [];
+    const last = odds[odds.length - 1];
+    return last === "null" || last === "NR";
+  };
 
   const GOING_OPTIONS = [
     { code: 'Hvy', label: 'Hvy' },
@@ -128,14 +138,14 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
     return Number(targetProperty) || 0;
   };
 
-  // Clean up selection when moving between races to prevent "ghost" filters
+  // Clean up selection when moving between races or when a horse becomes an approved non-runner
   useEffect(() => {
     setSelectedHorse(prev => {
-      const validNames = prev.filter(name => horses.some(h => h.name === name));
+      const validNames = prev.filter(name => horses.some(h => h.name === name && !isHorseNR(h)));
       // Only update state if the filtered list is actually different to avoid render loops
       return validNames.length === prev.length ? prev : validNames;
     });
-  }, [horses]);
+  }, [horses, approvedNonRunners, rejectedNonRunners, pendingNonRunners, raceTime, racePlace]);
 
   // Synchronize the background scroll position with the race being navigated in the chart
   useEffect(() => {
@@ -169,10 +179,13 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
       horseEligibleRatings[horse.name] = [];
 
       // Skip non-runners
-      const lastOdd = horse.odds?.[horse.odds.length - 1];
-      if (lastOdd === "null" || lastOdd === "NR") return;
+      if (isHorseNR(horse)) return;
 
-      const displayOdd = lastOdd === "null" ? "NR" : (lastOdd ? (isNaN(lastOdd) ? lastOdd : Number(lastOdd)) : "x");
+      const odds = horse.odds || [];
+      const lastOdd = odds[odds.length - 1];
+      const prevValid = [...odds].reverse().find(o => o && o !== "null" && o !== "NR" && !isNaN(o));
+      const validOdd = (lastOdd && lastOdd !== "null" && lastOdd !== "NR") ? lastOdd : prevValid;
+      const displayOdd = validOdd ? (isNaN(validOdd) ? validOdd : Number(validOdd)) : "x";
 
       horse.past.forEach(race => {
         const posStr = race.position ? race.position.toString().trim() : "";
@@ -356,7 +369,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
     });
 
     return sortedData;
-  }, [horses, selectedHorse, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, aiMode, wValue, dValue, gValue]);
+  }, [horses, selectedHorse, distanceBeatenFilter, distMargin, todayDistance, monthsFilter, goingFilter, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners, raceTime, racePlace]);
 
   const CpuIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -443,7 +456,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             <button
               onClick={() => {
                 const allNames = horses
-                  .filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null")
+                  .filter(h => !isHorseNR(h))
                   .map(h => h.name);
                 setSelectedHorse(selectedHorse.length === allNames.length ? [] : allNames);
               }}
@@ -473,7 +486,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
               }}
             >
               {horses
-                .filter(h => h.odds?.[h.odds.length - 1] !== "NR" && h.odds?.[h.odds.length - 1] !== "null")
+                .filter(h => !isHorseNR(h))
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map(h => (
                   <option key={h.name} value={h.name} style={{ color: LINE_COLORS[horses.indexOf(h) % LINE_COLORS.length] }}>{h.name}</option>
@@ -655,7 +668,7 @@ const FormChart = ({ horses, onNext, onPrev, hasNext, hasPrev, todayDistance, to
             }}
           />
           {horses
-            .filter(h => selectedHorse.length === 0 || selectedHorse.includes(h.name))
+            .filter(h => !isHorseNR(h) && (selectedHorse.length === 0 || selectedHorse.includes(h.name)))
             .map((horse) => (
               <Line
                 // FIX: Use a stable key so Recharts animates instead of redrawing

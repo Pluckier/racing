@@ -18,23 +18,39 @@ const CustomDot = (props) => {
   return <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />;
 };
 
-const OddsChart = ({ horses }) => {
+const OddsChart = ({ horses, raceTime = '', racePlace = '', pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [minOdds, setMinOdds] = useState(0);
   const [maxOdds, setMaxOdds] = useState(100);
 
-  const getLatestOdds = (h) => {
+  const isHorseNR = (h) => {
+    const horseKey = `${h.name}@${raceTime}${racePlace}`;
+    if (rejectedNonRunners.has(horseKey)) return false;
+    if (approvedNonRunners.has(horseKey)) return true;
+    if (pendingNonRunners.has(horseKey)) return false;
     const odds = h.odds || [];
     const last = odds[odds.length - 1];
-    return (last && last !== "null" && last !== "NR" && !isNaN(last)) ? parseFloat(last) : Infinity;
+    return last === "null" || last === "NR";
+  };
+
+  const getLatestOdds = (h) => {
+    if (isHorseNR(h)) return Infinity;
+    const odds = h.odds || [];
+    const last = odds[odds.length - 1];
+    if (last && last !== "null" && last !== "NR" && !isNaN(last)) {
+      return parseFloat(last);
+    }
+    const prevValid = [...odds].reverse().find(o => o && o !== "null" && o !== "NR" && !isNaN(o));
+    return prevValid ? parseFloat(prevValid) : Infinity;
   };
 
   const visibleHorses = useMemo(() => {
     return horses.filter(h => {
+      if (isHorseNR(h)) return false; // Exclude non-runners from the chart
       const odds = getLatestOdds(h);
-      if (odds === Infinity) return false; // Exclude non-runners from the chart
+      if (odds === Infinity) return false;
       return odds >= minOdds && (maxOdds === 100 ? true : odds <= maxOdds);
     });
-  }, [horses, minOdds, maxOdds]);
+  }, [horses, minOdds, maxOdds, approvedNonRunners, rejectedNonRunners, pendingNonRunners, raceTime, racePlace]);
 
   const chartData = useMemo(() => {
     if (visibleHorses.length === 0) return [];

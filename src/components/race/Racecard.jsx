@@ -17,7 +17,7 @@ const SORT_LABELS = {
   all: '\u00A0\u00A0All\u00A0\u00A0'
 };
 
-const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr, approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
+const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr, pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [showChart, setShowChart] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
@@ -147,16 +147,31 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     return past.reduce((acc, r) => acc + getAdjustedRating(h, r), 0) / past.length;
   };
 
-  const getLatestOdds = (h) => {
+  const isHorseNR = (h) => {
+    const horseKey = `${h.name}@${race.time}${race.place}`;
+    if (rejectedNonRunners.has(horseKey)) return false;
+    if (approvedNonRunners.has(horseKey)) return true;
+    if (pendingNonRunners.has(horseKey)) return false;
     const odds = h.odds || [];
     const last = odds[odds.length - 1];
-    return (last && last !== "null" && last !== "NR" && !isNaN(last)) ? parseFloat(last) : Infinity;
+    return last === "null" || last === "NR";
+  };
+
+  const getLatestOdds = (h) => {
+    if (isHorseNR(h)) return Infinity;
+    const odds = h.odds || [];
+    const last = odds[odds.length - 1];
+    if (last && last !== "null" && last !== "NR" && !isNaN(last)) {
+      return parseFloat(last);
+    }
+    const prevValid = [...odds].reverse().find(o => o && o !== "null" && o !== "NR" && !isNaN(o));
+    return prevValid ? parseFloat(prevValid) : Infinity;
   };
 
   const sortedHorses = useMemo(() =>
     [...race.horses].sort((a, b) => {
-      const isNRA = getLatestOdds(a) === Infinity;
-      const isNRB = getLatestOdds(b) === Infinity;
+      const isNRA = isHorseNR(a);
+      const isNRB = isHorseNR(b);
 
       // Always push non-runners to the bottom
       if (isNRA !== isNRB) return isNRA ? 1 : -1;
@@ -168,7 +183,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       if (sortBy === 'odds') return getLatestOdds(a) - getLatestOdds(b);
       return Number(a.number) - Number(b.number);
     }),
-    [race.horses, sortBy, aiMode, wValue, dValue, gValue]
+    [race.horses, sortBy, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]
   );
 
   const valueRunnersRanked = useMemo(() => {
@@ -194,7 +209,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     });
 
     return ranks;
-  }, [race.horses, highlightValues, aiMode, wValue, dValue, gValue]);
+  }, [race.horses, highlightValues, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]);
 
 
 
@@ -227,7 +242,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     }
 
     return (topPeak > 0 && topPeak >= nextPeak * 1.9 && peakDistValid) ? (winner.number === 'NR' ? winner.name : winner.number) : null;
-  }, [race.horses, aiMode, wValue, dValue, gValue]);
+  }, [race.horses, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]);
 
   const selectHorseNumber = useMemo(() => {
     // 1. Filter out Non-Runners and invalid odds immediately
@@ -243,7 +258,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     // 3. Return the winning horse's number
     return winner.number === 'NR' ? winner.name : winner.number;
-  }, [race.horses, aiMode, wValue, dValue, gValue]);
+  }, [race.horses, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]);
 
 
   const getRaceIcon = (r) => {
@@ -458,7 +473,14 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
         onClose={() => setShowOdds(false)}
         title={`Odds Movement: ${race.time} ${race.place}`}
       >
-        <OddsChart horses={race.horses} />
+        <OddsChart
+          horses={race.horses}
+          raceTime={race.time}
+          racePlace={race.place}
+          pendingNonRunners={pendingNonRunners}
+          approvedNonRunners={approvedNonRunners}
+          rejectedNonRunners={rejectedNonRunners}
+        />
       </Modal>
 
       <Modal
@@ -478,6 +500,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           todayGoing={activeChartRace.going}
           viewMode={viewMode} // Pass down viewMode
           currentDateStr={currentDateStr} // Pass down currentDateStr
+          pendingNonRunners={pendingNonRunners}
+          approvedNonRunners={approvedNonRunners}
+          rejectedNonRunners={rejectedNonRunners}
         />
       </Modal>
 
@@ -515,6 +540,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               todayGoing={race.going}
               raceTime={race.time}
               racePlace={race.place}
+              pendingNonRunners={pendingNonRunners}
               approvedNonRunners={approvedNonRunners}
               rejectedNonRunners={rejectedNonRunners}
             />

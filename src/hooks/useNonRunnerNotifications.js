@@ -2,11 +2,19 @@ import { useState, useEffect, useRef } from 'react';
 
 export function useNonRunnerNotifications(races, displayDate) {
   const [notifications, setNotifications] = useState([]);
+  const [pendingNonRunners, setPendingNonRunners] = useState(new Set());
   const [approvedNonRunners, setApprovedNonRunners] = useState(new Set());
   const [rejectedNonRunners, setRejectedNonRunners] = useState(new Set());
 
   const prevRacesRef = useRef(races);
   const prevDateRef = useRef(displayDate?.getTime());
+
+  const approvedRef = useRef(approvedNonRunners);
+  approvedRef.current = approvedNonRunners;
+  const rejectedRef = useRef(rejectedNonRunners);
+  rejectedRef.current = rejectedNonRunners;
+  const pendingRef = useRef(pendingNonRunners);
+  pendingRef.current = pendingNonRunners;
 
   useEffect(() => {
     const prevRaces = prevRacesRef.current;
@@ -20,6 +28,7 @@ export function useNonRunnerNotifications(races, displayDate) {
     // On date change: clear all override state and pending notifications
     if (prevDate !== currentDate) {
       setNotifications([]);
+      setPendingNonRunners(new Set());
       setApprovedNonRunners(new Set());
       setRejectedNonRunners(new Set());
       return;
@@ -50,8 +59,8 @@ export function useNonRunnerNotifications(races, displayDate) {
         if (wasRunner && isNR) {
           const horseKey = `${currentHorse.name}@${currentRace.time}${currentRace.place}`;
 
-          // Never re-notify for horses the user has already decided on
-          if (rejectedNonRunners.has(horseKey) || approvedNonRunners.has(horseKey)) return;
+          // Never re-notify for horses the user has already decided on or is currently pending
+          if (rejectedRef.current.has(horseKey) || approvedRef.current.has(horseKey) || pendingRef.current.has(horseKey)) return;
 
           newNonRunners.push({
             id: `${horseKey}-${Date.now()}-${Math.random()}`,
@@ -62,6 +71,15 @@ export function useNonRunnerNotifications(races, displayDate) {
         }
       });
     });
+
+    if (newNonRunners.length > 0) {
+      // Mark as pending immediately so the horse is not treated as a non-runner before user decision
+      setPendingNonRunners(prev => {
+        const next = new Set(prev);
+        newNonRunners.forEach(nr => next.add(nr.horseKey));
+        return next;
+      });
+    }
 
     // Stagger notifications 1.2s apart
     newNonRunners.forEach((nr, index) => {
@@ -76,6 +94,11 @@ export function useNonRunnerNotifications(races, displayDate) {
       const item = prev.find(n => n.id === id);
       if (item) {
         setApprovedNonRunners(s => new Set([...s, item.horseKey]));
+        setPendingNonRunners(s => {
+          const next = new Set(s);
+          next.delete(item.horseKey);
+          return next;
+        });
       }
       return prev.filter(n => n.id !== id);
     });
@@ -86,18 +109,34 @@ export function useNonRunnerNotifications(races, displayDate) {
       const item = prev.find(n => n.id === id);
       if (item) {
         setRejectedNonRunners(s => new Set([...s, item.horseKey]));
+        setPendingNonRunners(s => {
+          const next = new Set(s);
+          next.delete(item.horseKey);
+          return next;
+        });
       }
       return prev.filter(n => n.id !== id);
     });
   };
 
   const clearAll = () => {
-    // Dismiss all pending — no decision, horse follows feed
-    setNotifications([]);
+    // "Accept All": Approve all pending non-runner alerts
+    setNotifications(prev => {
+      const allKeys = prev.map(n => n.horseKey);
+      setApprovedNonRunners(s => {
+        const next = new Set(s);
+        allKeys.forEach(k => next.add(k));
+        pendingRef.current.forEach(k => next.add(k));
+        return next;
+      });
+      setPendingNonRunners(new Set());
+      return [];
+    });
   };
 
   return {
     notifications,
+    pendingNonRunners,
     approvedNonRunners,
     rejectedNonRunners,
     acceptNotification,

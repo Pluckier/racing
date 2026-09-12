@@ -76,6 +76,7 @@ function App() {
 
   const {
     notifications,
+    pendingNonRunners,
     approvedNonRunners,
     rejectedNonRunners,
     acceptNotification,
@@ -335,7 +336,8 @@ function App() {
                     disabled={notifications.length === 0}
                     style={{ cursor: notifications.length > 0 ? 'pointer' : 'default' }}
                     title={notifications.length > 0 ? `Non Runner Alerts ${refreshMinutes}m` : 'No Non Runner Alerts'}
-                    onClick={() => setShowNonRunnerNotifications(true)}                  >
+                    onClick={() => setShowNonRunnerNotifications(prev => !prev)}
+                  >
                     ↻
                     {notifications.length > 0 && (
                       <span style={{
@@ -527,6 +529,7 @@ function App() {
                     onToggleAlarm={() => toggleAlarm(activeRaceId)}
                     viewMode={viewMode}
                     currentDateStr={currentDateStr}
+                    pendingNonRunners={pendingNonRunners}
                     approvedNonRunners={approvedNonRunners}
                     rejectedNonRunners={rejectedNonRunners}
                   />
@@ -543,6 +546,7 @@ function App() {
                   toggleAlarm={toggleAlarm}
                   viewMode={viewMode}
                   currentDateStr={currentDateStr}
+                  pendingNonRunners={pendingNonRunners}
                   approvedNonRunners={approvedNonRunners}
                   rejectedNonRunners={rejectedNonRunners}
                 />
