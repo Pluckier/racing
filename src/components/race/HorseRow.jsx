@@ -347,7 +347,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
         <div className="horse-personnel-column hide-mobile hide-mobile-medium">
           <div
             className="jockey-row"
-            title={isJockeyHighlighted ? "Click to remove jockey from highlights" : "Click to highlight jockey"}
+            title={"Jockey"}
             style={{
               textAlign: 'right',
               whiteSpace: 'nowrap',
@@ -356,6 +356,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
           >
             <strong
               onClick={handleJockeyClick}
+              title={isJockeyHighlighted ? "Click to remove jockey from highlights" : "Click to highlight jockey"}
               style={
                 {
                   color: isJockeyHighlighted ? 'orange' : 'inherit',
@@ -366,7 +367,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
           </div>
           <div
             className="trainer-row"
-            title={isTrainerHighlighted ? "Click to remove trainer from highlights" : "Click to highlight trainer"}
+            title={"Trainer"}
             style={{
               textAlign: 'right',
               whiteSpace: 'nowrap',
@@ -375,6 +376,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
           >
             <strong
               onClick={handleTrainerClick}
+              title={isTrainerHighlighted ? "Click to remove trainer from highlights" : "Click to highlight trainer"}
               style={{
                 cursor: 'pointer',
                 color: isTrainerHighlighted ? 'orange' : 'inherit'
