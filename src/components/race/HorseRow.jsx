@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import PastRace from './PastRace';
 import '../../css/HorseRow.css';
 import { useStore } from '../../store/store';
@@ -296,7 +297,14 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
   };
 
   return (
-    <div
+    <motion.div
+      layout="position"
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8
+      }}
       className={`horse-row ${isNR ? 'non-runner' : ''}`}
       style={{ backgroundColor: rowBg }}
     >
@@ -432,7 +440,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
         </div>
       )}
 
-    </div>
+    </motion.div>
   );
 };
 

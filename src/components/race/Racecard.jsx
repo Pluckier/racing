@@ -497,7 +497,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
           return (
             <HorseRow
-              key={`${horse.name}-${horse.number}-${wValue}-${dValue}-${gValue}`}
+              key={`${raceId}-${horse.number || 'NR'}-${horse.name}`}
               horse={horse}
               isSoleTrainerRunner={isSoleRunner}
               isSoleRide={isSoleRide}
