@@ -14,7 +14,7 @@ const SORT_LABELS = {
   avg: 'Avg3',
   last: '1Run',
   high: 'High',
-  all: 'All'
+  all: '\u00A0\u00A0All\u00A0\u00A0'
 };
 
 const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr, approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
