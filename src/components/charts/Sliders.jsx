@@ -54,9 +54,19 @@ function SliderField({ label, value, onChange }) {
           cursor: grabbing;
           background: #0056b3;
         }
+
+        /* NEW: Responsive class to hide labels on mobile screens (less than 768px wide) */
+        @media (max-width: 767px) {
+          .responsive-label {
+            display: none !important;
+          }
+        }
       `}</style>
 
-      <label style={{ whiteSpace: 'nowrap', minWidth: '55px' }}>{label}: {value}%</label>
+      {/* Added the className "responsive-label" here */}
+      <label className="responsive-label" style={{ whiteSpace: 'nowrap', minWidth: '55px' }}>
+        {label}: {value}%
+      </label>
       <input
         type="range"
         min="0"
