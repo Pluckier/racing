@@ -54,6 +54,7 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, races = [], onShowMoveme
 
           return (
             <button
+              title={`${place} races`}
               key={place}
               onClick={() => setFilters(f => ({
                 ...f,
@@ -67,10 +68,11 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, races = [], onShowMoveme
           );
         })}
         <button
+          title="Tricasts & Class 1 & 2 (8+ runners)"
           onClick={() => setFilters(f => ({ ...f, tricast: !f.tricast }))}
           className={`filter-btn handicap-btn ${filters.tricast ? 'active' : ''}`}
         >
-          🏆 Tricasts
+          🏆 Nice
         </button>
         <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Set hot connections">🔥 Connections</button>
         <button className="filter-btn movement-summary-btn" onClick={onShowMovement} title="Show odds movements">📊 Odds</button>
