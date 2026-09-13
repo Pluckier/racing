@@ -1,0 +1,189 @@
+.notes-modal-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 75vh;
+    color: var(--text);
+}
+
+.notes-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border, #333);
+    margin-bottom: 8px;
+    border-radius: 6px;
+}
+
+.notes-count {
+    font-size: 0.95rem;
+    color: var(--text-h, #f3f4f6);
+    font-weight: 500;
+}
+
+.notes-count span {
+    color: #fbbf24;
+    font-weight: bold;
+}
+
+.clear-all-btn {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.clear-all-btn:hover:not(:disabled) {
+    background-color: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+}
+
+.clear-all-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.notes-table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.notes-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text, #e5e7eb);
+    font-size: 0.9rem;
+}
+
+.notes-table th {
+    position: sticky;
+    top: 0;
+    background-color: #222;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #444;
+    color: var(--text-h, #ffffff);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+}
+
+.notes-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.notes-table th.sortable:hover {
+    background-color: #333;
+    color: #fbbf24;
+}
+
+.notes-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #333;
+    vertical-align: middle;
+}
+
+.notes-table tr:hover td {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.notes-horse-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notes-silks {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.notes-horse-number {
+    font-weight: bold;
+    color: #fbbf24;
+    min-width: 20px;
+    flex-shrink: 0;
+}
+
+.notes-horse-name {
+    font-weight: 600;
+    color: var(--text-h, #fff);
+}
+
+.notes-race-link {
+    color: #60a5fa;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.notes-race-link:hover {
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+.notes-odds-badge {
+    font-weight: bold;
+    color: #4ade80;
+    font-size: 0.95rem;
+}
+
+.notes-remove-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.notes-remove-btn:hover {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.notes-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+    text-align: center;
+    gap: 12px;
+}
+
+.notes-empty-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.notes-empty-text {
+    font-size: 1rem;
+    max-width: 380px;
+    line-height: 1.5;
+}

@@ -140,6 +140,21 @@ body {
   color: white;
 }
 
+.notes-btn {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.notes-btn:hover {
+  background-color: rgba(251, 191, 36, 0.15);
+}
+
+.notes-badge {
+  font-weight: bold;
+  font-size: 0.9em;
+  color: #fef08a;
+}
+
 .movement-summary-btn {
   border-color: #3ccf34;
 }

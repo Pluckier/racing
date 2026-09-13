@@ -1,6 +1,8 @@
 import React from 'react';
+import { useStore } from '../../store/store';
 
-const FilterBar = ({ filters, setFilters, uniquePlaces, races = [], onShowMovement, onShowTrainers }) => {
+const FilterBar = ({ filters, setFilters, uniquePlaces, races = [], onShowMovement, onShowTrainers, onShowNotes }) => {
+  const notedHorses = useStore((state) => state.notedHorses) || [];
   // Exact matching color palette from your timeline component
   const originalPalette = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043'];
 
@@ -67,6 +69,13 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, races = [], onShowMoveme
             </button>
           );
         })}
+        <button
+          className="filter-btn notes-btn"
+          onClick={onShowNotes}
+          title="Show noted horses"
+        >
+          📝 Notes {notedHorses.length > 0 && <span className="notes-badge">({notedHorses.length})</span>}
+        </button>
         <button
           title="Tricasts & Class 1 & 2 (8+ runners)"
           onClick={() => setFilters(f => ({ ...f, tricast: !f.tricast }))}

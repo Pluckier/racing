@@ -1,8 +1,28 @@
 .cell-no {
   font-weight: bold;
-  width: 25px;
+  width: 26px;
   color: var(--text-h);
   flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  display: inline-block;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.cell-no:hover {
+  color: #fbbf24;
+  transform: scale(1.15);
+  text-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
+}
+
+.cell-no.noted {
+  color: #fbbf24;
+  background-color: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.6);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+  padding: 0 2px;
 }
 
 .cell-draw {

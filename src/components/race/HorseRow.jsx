@@ -53,6 +53,30 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
   const selectedFoaled = useStore((state) => state.selectedFoaled);
   const setSelectedFoaled = useStore((state) => state.setSelectedFoaled);
 
+  const notedHorses = useStore((state) => state.notedHorses) || [];
+  const toggleNotedHorse = useStore((state) => state.toggleNotedHorse);
+  const isNoted = notedHorses.some(h => (h.id || `${h.name}@${h.time}${h.place}`) === horseKey);
+
+  const handleNumberClick = (e) => {
+    e.stopPropagation();
+    toggleNotedHorse({
+      id: horseKey,
+      number: horse.number,
+      name: horse.name,
+      time: raceTime,
+      place: racePlace,
+      trainer: horse.trainer ? horse.trainer.trim() : '',
+      jockey: horse.jockey ? horse.jockey.trim() : '',
+      draw: horse.draw,
+      form: horse.form,
+      weight: horse.weight,
+      age: horse.age,
+      silks: horse.silks,
+      currentOdds: isNR ? "NR" : (activeOdds || (oddsArr[oddsArr.length - 1] !== "null" && oddsArr[oddsArr.length - 1] !== "NR" ? oddsArr[oddsArr.length - 1] : '')),
+      addedAt: Date.now()
+    });
+  };
+
   const handleFiddleClick = (e) => {
     e.stopPropagation(); // Prevent row toggling/collapse
 
@@ -318,7 +342,14 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
             {horse.silks && <img src={horse.silks} alt="silks" className="horse-silks" />}
           </div>
           <div className="horse-primary-data">
-            <span className="cell-no">{horse.number}.</span>
+            <span
+              className={`cell-no ${isNoted ? 'noted' : ''}`}
+              onClick={handleNumberClick}
+              title={isNoted ? "Noted horse — click to remove from notes" : "Click horse number to add to notes"}
+              style={{ cursor: 'pointer' }}
+            >
+              {horse.number}.
+            </span>
             <span className="cell-draw hide-mobile hide-mobile-medium">{horse.draw ? `(${horse.draw})` : ''}</span>
             <span className="cell-form hide-mobile hide-mobile-medium">{horse.form}</span>
             <span className="cell-name">

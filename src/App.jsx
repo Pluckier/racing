@@ -8,6 +8,7 @@ import RaceTimeline from './components/race/RaceTimeline';
 import Modal from './components/common/Modal';
 import OddsMovementSummary from './components/modals/OddsMovementSummary';
 import TrainerSelections from './components/modals/TrainerSelections';
+import NotesModal from './components/modals/NotesModal';
 import GridDarkSocialShareDropdown from './components/layout/DropShare';
 import Layout from './components/layout/Layout';
 import FilterBar from './components/filters/FilterBar';
@@ -386,6 +387,7 @@ function App() {
                 setFilters={state.setFilters}
                 uniquePlaces={state.uniquePlaces}
                 races={state.races}
+                onShowNotes={() => state.setActiveModal('notes')}
                 onShowMovement={() => state.setActiveModal('movement')}
                 onShowTrainers={() => state.setActiveModal('trainers')}
               />
@@ -506,13 +508,22 @@ function App() {
             <Modal
               isOpen={!!state.activeModal}
               onClose={() => state.setActiveModal(null)}
-              title={state.activeModal === 'movement' ? "Card-wide Odds Movement" : "Today's Connections (Hot 🟠)"}
+              title={
+                state.activeModal === 'movement'
+                  ? "Card-wide Odds Movement"
+                  : state.activeModal === 'notes'
+                  ? "Noted Horses"
+                  : "Today's Connections (Hot 🟠)"
+              }
             >
               {state.activeModal === 'movement' && (
                 <OddsMovementSummary races={state.filteredRaces} onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} />
               )}
               {state.activeModal === 'trainers' && (
                 <TrainerSelections races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
+              )}
+              {state.activeModal === 'notes' && (
+                <NotesModal onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} />
               )}
             </Modal>
 
