@@ -44,9 +44,9 @@ export const isFiddleHorse = (horse, activeTrainersList = null, activeJockeysLis
   const ownersToUse = activeOwnersList !== null ? activeOwnersList : HOT_OWNERS;
   const foaledToUse = activeFoaledList !== null ? activeFoaledList : HOT_FOALED;
 
-  return ownersToUse.some(o => owner.includes(o)) ||
-    trainersToUse.some(t => trainer.includes(t)) ||
-    jockeysToUse.some(j => jockey.includes(j)) ||
+  return ownersToUse.some(o => owner.toLowerCase().replace(".", "").includes(o.toLowerCase().replace(".", ""))) ||
+    trainersToUse.some(t => trainer.toLowerCase().replace(".", "").includes(t.toLowerCase().replace(".", ""))) ||
+    jockeysToUse.some(j => jockey.toLowerCase().replace(".", "").includes(j.toLowerCase().replace(".", ""))) ||
     foaledToUse.some(f => foaled.includes(f));
 };
 
