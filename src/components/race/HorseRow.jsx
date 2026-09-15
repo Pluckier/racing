@@ -90,7 +90,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
     if (currentTrainers === null) {
       currentTrainers = HOT_TRAINERS;
     }
-    const nextTrainers = currentTrainers.filter(t => !horseTrainer.includes(t) && !t.includes(horseTrainer));
+    const nextTrainers = currentTrainers.filter(t => !horseTrainer.toLowerCase().replaceAll(".", "").includes(t.toLowerCase().replaceAll(".", "")) && !t.toLowerCase().replaceAll(".", "").includes(horseTrainer.toLowerCase().replaceAll(".", "")));
     setSelectedTrainers(nextTrainers);
 
     // Remove jockey from store selections
@@ -98,7 +98,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
     if (currentJockeys === null) {
       currentJockeys = HOT_JOCKEYS;
     }
-    const nextJockeys = currentJockeys.filter(j => !horseJockey.includes(j) && !j.includes(horseJockey));
+    const nextJockeys = currentJockeys.filter(j => !horseJockey.toLowerCase().replaceAll(".", "").includes(j.toLowerCase().replaceAll(".", "")) && !j.toLowerCase().replaceAll(".", "").includes(horseJockey.toLowerCase().replaceAll(".", "")));
     setSelectedJockeys(nextJockeys);
 
     // Remove owner from store selections
@@ -106,7 +106,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
     if (currentOwners === null) {
       currentOwners = HOT_OWNERS;
     }
-    const nextOwners = currentOwners.filter(o => !horseOwner.includes(o) && !o.includes(horseOwner));
+    const nextOwners = currentOwners.filter(o => !horseOwner.toLowerCase().replaceAll(".", "").includes(o.toLowerCase().replaceAll(".", "")) && !o.toLowerCase().replaceAll(".", "").includes(horseOwner.toLowerCase().replaceAll(".", "")));
     setSelectedOwners(nextOwners);
 
     // Remove foaled from store selections
@@ -130,8 +130,8 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
       currentTrainers = HOT_TRAINERS;
     }
 
-    if (currentTrainers.some(t => trainerName.includes(t) || t.includes(trainerName))) {
-      setSelectedTrainers(currentTrainers.filter(t => !trainerName.includes(t) && !t.includes(trainerName)));
+    if (currentTrainers.some(t => trainerName.toLowerCase().replaceAll(".", "").includes(t.toLowerCase().replaceAll(".", "")) || t.toLowerCase().replaceAll(".", "").includes(trainerName.toLowerCase().replaceAll(".", "")))) {
+      setSelectedTrainers(currentTrainers.filter(t => !trainerName.toLowerCase().replaceAll(".", "").includes(t.toLowerCase().replaceAll(".", "")) && !t.toLowerCase().replaceAll(".", "").includes(trainerName.toLowerCase().replaceAll(".", ""))));
     } else {
       setSelectedTrainers([...currentTrainers, trainerName]);
     }
@@ -147,8 +147,8 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
       currentJockeys = HOT_JOCKEYS;
     }
 
-    if (currentJockeys.some(j => jockeyName.includes(j) || j.includes(jockeyName))) {
-      setSelectedJockeys(currentJockeys.filter(j => !jockeyName.includes(j) && !j.includes(jockeyName)));
+    if (currentJockeys.some(j => jockeyName.toLowerCase().replaceAll(".", "").includes(j.toLowerCase().replaceAll(".", "")) || j.toLowerCase().replaceAll(".", "").includes(jockeyName.toLowerCase().replaceAll(".", "")))) {
+      setSelectedJockeys(currentJockeys.filter(j => !jockeyName.toLowerCase().replaceAll(".", "").includes(j.toLowerCase().replaceAll(".", "")) && !j.toLowerCase().replaceAll(".", "").includes(jockeyName.toLowerCase().replaceAll(".", ""))));
     } else {
       setSelectedJockeys([...currentJockeys, jockeyName]);
     }
@@ -158,12 +158,12 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
   const jockeyTrimmed = horse.jockey ? horse.jockey.trim() : '';
 
   const isTrainerHighlighted = selectedTrainers !== null
-    ? selectedTrainers.some(t => trainerTrimmed.includes(t) || t.includes(trainerTrimmed))
-    : HOT_TRAINERS.some(t => trainerTrimmed.includes(t));
+    ? selectedTrainers.some(t => trainerTrimmed.toLowerCase().replaceAll(".", "").includes(t.toLowerCase().replaceAll(".", "")) || t.toLowerCase().replaceAll(".", "").includes(trainerTrimmed.toLowerCase().replaceAll(".", "")))
+    : HOT_TRAINERS.some(t => trainerTrimmed.toLowerCase().replaceAll(".", "").includes(t.toLowerCase().replaceAll(".", "")));
 
   const isJockeyHighlighted = selectedJockeys !== null
-    ? selectedJockeys.some(j => jockeyTrimmed.includes(j) || j.includes(jockeyTrimmed))
-    : HOT_JOCKEYS.some(j => jockeyTrimmed.includes(j));
+    ? selectedJockeys.some(j => jockeyTrimmed.toLowerCase().replaceAll(".", "").includes(j.toLowerCase().replaceAll(".", "")) || j.toLowerCase().replaceAll(".", "").includes(jockeyTrimmed.toLowerCase().replaceAll(".", "")))
+    : HOT_JOCKEYS.some(j => jockeyTrimmed.toLowerCase().replaceAll(".", "").includes(j.toLowerCase().replaceAll(".", "")));
 
   // 2. Clear helper to safely parse individual run metrics based on state
   const getRating = (run) => {

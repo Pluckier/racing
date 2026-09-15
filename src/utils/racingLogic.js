@@ -5,7 +5,7 @@ export const HOT_OWNERS = [
 export const HOT_TRAINERS = [
   "A P O'Brien", "T D Easterby", "L Russell & M Scudamore",
   "W P Mullins", "G Elliott", "R Hannon", "G P Cromwell",
-  "G & J Moore", "R A Fahey", "Ian Williams", "A W Carroll",
+  "G & J Moore", "R A Fahey", "Ian Williams", "A W Carroll", "Aidan O'Brien",
   "K R Burke", "E Bolger", "James Owen", "J P O'Brien", "P Twomey",
   "D Skelton", "P F Nicholls", "A M Balding", "W J Haggas", "N P Mulholland",
   "J & T Gosden", "C Appleby", "R M Beckett", "C Johnston", "H De Bromhead",
