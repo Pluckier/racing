@@ -158,11 +158,11 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
   const jockeyTrimmed = horse.jockey ? horse.jockey.trim() : '';
 
   const isTrainerHighlighted = selectedTrainers !== null
-    ? selectedTrainers.some(t => trainerTrimmed.toLowerCase().replaceAll(".", "").includes(t.toLowerCase().replaceAll(".", "")) || t.toLowerCase().replaceAll(".", "").includes(trainerTrimmed.toLowerCase().replaceAll(".", "")))
+    ? selectedTrainers.some(t => trainerTrimmed.toLowerCase().replaceAll(".", "").includes(t.toLowerCase().replaceAll(".", "")))
     : HOT_TRAINERS.some(t => trainerTrimmed.toLowerCase().replaceAll(".", "").includes(t.toLowerCase().replaceAll(".", "")));
 
   const isJockeyHighlighted = selectedJockeys !== null
-    ? selectedJockeys.some(j => jockeyTrimmed.toLowerCase().replaceAll(".", "").includes(j.toLowerCase().replaceAll(".", "")) || j.toLowerCase().replaceAll(".", "").includes(jockeyTrimmed.toLowerCase().replaceAll(".", "")))
+    ? selectedJockeys.some(j => jockeyTrimmed.toLowerCase().replaceAll(".", "").includes(j.toLowerCase().replaceAll(".", "")))
     : HOT_JOCKEYS.some(j => jockeyTrimmed.toLowerCase().replaceAll(".", "").includes(j.toLowerCase().replaceAll(".", "")));
 
   // 2. Clear helper to safely parse individual run metrics based on state
