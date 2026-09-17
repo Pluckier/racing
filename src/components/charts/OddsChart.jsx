@@ -18,7 +18,7 @@ const CustomDot = (props) => {
   return <circle cx={cx} cy={cy} r={3} fill={stroke} stroke={stroke} strokeWidth={1} />;
 };
 
-const OddsChart = ({ horses, raceTime = '', racePlace = '', pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
+const OddsChart = ({ horses, raceTime = '', racePlace = '', onNext, onPrev, hasNext, hasPrev, pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [minOdds, setMinOdds] = useState(0);
   const [maxOdds, setMaxOdds] = useState(100);
 
@@ -90,53 +90,71 @@ const OddsChart = ({ horses, raceTime = '', racePlace = '', pendingNonRunners = 
 
   return (
     <div className="form-chart-container">
-      <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        {/* Min Odds Slider */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '10px',
-          padding: '2px 12px',
-          borderRadius: '20px',
-          border: '1px solid var(--border)',
-          backgroundColor: minOdds > 0 ? 'var(--accent)' : 'transparent',
-          color: minOdds > 0 ? 'var(--bg)' : 'var(--text)',
-          fontSize: '13px'
-        }}>
-          <span style={{ whiteSpace: 'nowrap' }}>Min: {minOdds === 0 ? 'Any' : minOdds}</span>
-          <input 
-            type="range" 
-            min="0" 
-            max="50" 
-            step="1" 
-            value={minOdds} 
-            onChange={(e) => setMinOdds(Number(e.target.value))}
-            style={{ width: '60px', cursor: 'pointer', accentColor: minOdds > 0 ? 'var(--bg)' : 'var(--accent)' }}
-          />
+      <div className="chart-controls" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1 }}>
+          {hasPrev && (
+            <button className="race-analytics-btn" onClick={onPrev}>
+              ← Prev Race
+            </button>
+          )}
         </div>
 
-        {/* Max Odds Slider */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '10px',
-          padding: '2px 12px',
-          borderRadius: '20px',
-          border: '1px solid var(--border)',
-          backgroundColor: maxOdds < 100 ? 'var(--accent)' : 'transparent',
-          color: maxOdds < 100 ? 'var(--bg)' : 'var(--text)',
-          fontSize: '13px'
-        }}>
-          <span style={{ whiteSpace: 'nowrap' }}>Max: {maxOdds === 100 ? 'Any' : maxOdds}</span>
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
-            step="10" 
-            value={maxOdds} 
-            onChange={(e) => setMaxOdds(Number(e.target.value))}
-            style={{ width: '60px', cursor: 'pointer', accentColor: maxOdds < 100 ? 'var(--bg)' : 'var(--accent)' }}
-          />
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {/* Min Odds Slider */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            backgroundColor: minOdds > 0 ? 'var(--accent)' : 'transparent',
+            color: minOdds > 0 ? 'var(--bg)' : 'var(--text)',
+            fontSize: '13px'
+          }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Min: {minOdds === 0 ? 'Any' : minOdds}</span>
+            <input 
+              type="range" 
+              min="0" 
+              max="50" 
+              step="1" 
+              value={minOdds} 
+              onChange={(e) => setMinOdds(Number(e.target.value))}
+              style={{ width: '60px', cursor: 'pointer', accentColor: minOdds > 0 ? 'var(--bg)' : 'var(--accent)' }}
+            />
+          </div>
+
+          {/* Max Odds Slider */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '2px 12px',
+            borderRadius: '20px',
+            border: '1px solid var(--border)',
+            backgroundColor: maxOdds < 100 ? 'var(--accent)' : 'transparent',
+            color: maxOdds < 100 ? 'var(--bg)' : 'var(--text)',
+            fontSize: '13px'
+          }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Max: {maxOdds === 100 ? 'Any' : maxOdds}</span>
+            <input 
+              type="range" 
+              min="0" 
+              max="100" 
+              step="10" 
+              value={maxOdds} 
+              onChange={(e) => setMaxOdds(Number(e.target.value))}
+              style={{ width: '60px', cursor: 'pointer', accentColor: maxOdds < 100 ? 'var(--bg)' : 'var(--accent)' }}
+            />
+          </div>
+        </div>
+
+        <div style={{ flex: 1, textAlign: 'right' }}>
+          {hasNext && (
+            <button className="race-analytics-btn" onClick={onNext}>
+              Next Race →
+            </button>
+          )}
         </div>
       </div>
       <ResponsiveContainer width="100%" height="100%">

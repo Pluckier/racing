@@ -257,7 +257,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   };
 
   const showSuggestions = (selectedRace) => {
-    const list = getFavouredSelections(selectedRace.horses, 3);
+    const targetRace = selectedRace || race;
+    setActiveChartRace(targetRace);
+    const list = getFavouredSelections(targetRace.horses, 3);
     setSuggestions(list);
     setIsOpen(true);
   };
@@ -352,7 +354,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     return icons.length > 0 ? icons.join(' ') : '🚫';
   };
 
-  // Navigation logic for the FormChart Modal
+  // Navigation logic for FormChart, OddsChart, and Favoured Suggestions Modals
   const currentIndex = allRaces.findIndex(r => r.time === activeChartRace.time && r.place === activeChartRace.place);
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allRaces.length - 1 && currentIndex !== -1;
@@ -361,6 +363,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     if (hasPrev) {
       const prevRace = allRaces[currentIndex - 1];
       setActiveChartRace(prevRace);
+      if (isOpen) {
+        setSuggestions(getFavouredSelections(prevRace.horses, 3));
+      }
       window.location.hash = `${currentDateStr}@${prevRace.time}${prevRace.place.replace(/\s+/g, '')}`;
     }
   };
@@ -369,6 +374,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     if (hasNext) {
       const nextRace = allRaces[currentIndex + 1];
       setActiveChartRace(nextRace);
+      if (isOpen) {
+        setSuggestions(getFavouredSelections(nextRace.horses, 3));
+      }
       window.location.hash = `${currentDateStr}@${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
     }
   };
@@ -376,6 +384,11 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const openChart = () => {
     setActiveChartRace(race); // Reset to this card's race when opening
     setShowChart(true);
+  };
+
+  const openOdds = () => {
+    setActiveChartRace(race); // Reset to this card's race when opening
+    setShowOdds(true);
   };
 
   const trainerCounts = {};
@@ -571,7 +584,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               {currentConfig.icon}
             </span>
           </button>
-          <button onClick={() => setShowOdds(!showOdds)} className="race-analytics-btn" title="View Odds Movement">
+          <button onClick={openOdds} className="race-analytics-btn" title="View Odds Movement">
             <span style={{ fontSize: '1.5rem' }}>📊</span>
           </button>
           <button onClick={openChart} className="race-analytics-btn" title="View Past Performance Chart">
@@ -583,7 +596,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       <Modal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title={`⚡ Favoured Suggestions • ${race.time} ${race.place}`}
+        title={`⚡ Favoured Suggestions • ${activeChartRace.time} ${activeChartRace.place}`}
       >
         <div style={{ padding: '16px', color: 'var(--text)', maxHeight: '75vh', overflowY: 'auto' }}>
           <div style={{
@@ -596,28 +609,44 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             flexWrap: 'wrap',
             gap: '8px'
           }}>
-            <div>
+            <div style={{ minWidth: '95px' }}>
+              {hasPrev && (
+                <button className="race-analytics-btn" onClick={handlePrev}>
+                  ← Prev Race
+                </button>
+              )}
+            </div>
+
+            <div style={{ textAlign: 'center', flex: 1 }}>
               <h3 style={{ margin: 0, color: 'var(--text-h)', fontSize: '1.15rem' }}>
-                {race.name || race.detail || `${race.time} ${race.place}`}
+                {activeChartRace.name || activeChartRace.detail || `${activeChartRace.time} ${activeChartRace.place}`}
               </h3>
               <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginTop: '4px' }}>
-                {getRaceIcon(race)} {race.detail} • Going: {race.going} • Runners: {race.runners}
+                {getRaceIcon(activeChartRace)} {activeChartRace.detail} • Going: {activeChartRace.going} • Runners: {activeChartRace.runners}
               </div>
             </div>
-            {suggestions.length === 3 && (
-              <div style={{
-                textAlign: 'right',
-                background: 'rgba(255, 255, 255, 0.05)',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)'
-              }}>
-                <div style={{ fontSize: '0.75rem', color: '#9ca3af', textTransform: 'uppercase' }}>Est. Tricast</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ade80' }}>
-                  {Math.round(suggestions.reduce((acc, h) => acc * (parseFloat(h.odds?.[h.odds.length - 1]) || 0), 1))}/1
+
+            <div style={{ minWidth: '95px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+              {suggestions.length === 3 && (
+                <div style={{
+                  textAlign: 'right',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border)'
+                }}>
+                  <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase' }}>Est. Tricast</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4ade80' }}>
+                    {Math.round(suggestions.reduce((acc, h) => acc * (parseFloat(h.odds?.[h.odds.length - 1]) || 0), 1))}/1
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+              {hasNext && (
+                <button className="race-analytics-btn" onClick={handleNext}>
+                  Next Race →
+                </button>
+              )}
+            </div>
           </div>
 
           {suggestions.length === 0 ? (
@@ -717,12 +746,16 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       <Modal
         isOpen={showOdds}
         onClose={() => setShowOdds(false)}
-        title={`Odds Movement: ${race.time} ${race.place}`}
+        title={`Odds Movement: ${activeChartRace.time} ${activeChartRace.place}`}
       >
         <OddsChart
-          horses={race.horses}
-          raceTime={race.time}
-          racePlace={race.place}
+          horses={activeChartRace.horses}
+          raceTime={activeChartRace.time}
+          racePlace={activeChartRace.place}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          hasNext={hasNext}
+          hasPrev={hasPrev}
           pendingNonRunners={pendingNonRunners}
           approvedNonRunners={approvedNonRunners}
           rejectedNonRunners={rejectedNonRunners}
