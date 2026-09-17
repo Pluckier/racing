@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import HorseRow from './HorseRow';
 import FormChart from '../charts/FormChart';
 import OddsChart from '../charts/OddsChart';
@@ -7,6 +7,7 @@ import '../../css/RaceCard.css';
 import { useStore } from '../../store/store';
 import ThreeSliders from '../charts/Sliders';
 import { getFormEmoji } from '../../constants/chartConstants';
+import { HOT_TRAINERS } from '../../utils/racingLogic';
 
 const SORT_MODES = ['odds', 'last', 'avg', 'all', 'high'];
 const SORT_LABELS = {
@@ -33,9 +34,14 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const gValue = useStore((store) => store.raceSliders?.[raceKey]?.g ?? 0);
   const setRaceSlider = useStore((store) => store.setRaceSlider);
 
+  const selectedTrainers = useStore((store) => store.selectedTrainers);
+
   const setW = (v) => setRaceSlider(raceKey, 'w', v);
   const setD = (v) => setRaceSlider(raceKey, 'd', v);
   const setG = (v) => setRaceSlider(raceKey, 'g', v);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
 
   // Math.min(horse.past?.length || 0, 6) caps each individual horse at 6
   const totalPastRuns = race.horses?.reduce((acc, horse) => acc + Math.min(horse.past?.length || 0, 6), 0) || 0;
@@ -185,6 +191,76 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     }),
     [race.horses, sortBy, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]
   );
+
+  const getFavouredSelections = (horses, count = 3) => {
+    const activeRunners = (horses || []).filter(h => {
+      const lastOdd = h.odds?.[h.odds.length - 1];
+      return lastOdd !== "null" && lastOdd !== "NR" && !isHorseNR(h);
+    });
+
+    if (activeRunners.length === 0) return [];
+
+    const selectedMap = new Map();
+    const getRunRating = (p) => {
+      if (!p) return 0;
+      const targetProp = aiMode === 2 ? p.name2AI : aiMode === 1 ? p.nameAI : p.name;
+      return parseFloat(targetProp) || 0;
+    };
+    const getPeak = (h) => Math.max(...(h.past || []).map(p => getRunRating(p)), 0);
+    const getRecent = (h) => (h.past && h.past.length > 0) ? getRunRating(h.past[0]) : 0;
+
+    // 1. Shortest odds runner (Favorite)
+    const favorite = [...activeRunners].sort((a, b) => {
+      const valA = getLatestOdds(a);
+      const valB = getLatestOdds(b);
+      return valA - valB;
+    })[0];
+    if (favorite) {
+      selectedMap.set(favorite.name, { ...favorite, reason: 'Favorite', icon: '⭐' });
+    }
+
+    // 2. Highest past race performance (Peak)
+    const peakHorse = [...activeRunners].sort((a, b) => getPeak(b) - getPeak(a))[0];
+    if (peakHorse && !selectedMap.has(peakHorse.name)) {
+      selectedMap.set(peakHorse.name, { ...peakHorse, reason: 'Top Peak Form', icon: '📈' });
+    }
+
+    // 3. Highest past performance with a HOT_TRAINER
+    const activeTrainers = selectedTrainers !== null ? selectedTrainers : HOT_TRAINERS;
+    const hotRunners = activeRunners.filter(h =>
+      activeTrainers.some(ht => (h.trainer || '').toLowerCase().replaceAll('.', '').includes(ht.toLowerCase().replaceAll('.', '')))
+    );
+    if (hotRunners.length > 0) {
+      const hotPeakHorse = hotRunners.sort((a, b) => getPeak(b) - getPeak(a))[0];
+      if (hotPeakHorse && !selectedMap.has(hotPeakHorse.name)) {
+        selectedMap.set(hotPeakHorse.name, { ...hotPeakHorse, reason: 'Hot Trainer', icon: '🔥' });
+      }
+    }
+
+    // Fallback: Best most recent past race performance
+    if (selectedMap.size < count) {
+      const remaining = activeRunners
+        .filter(h => !selectedMap.has(h.name))
+        .sort((a, b) => getRecent(b) - getRecent(a));
+
+      for (const h of remaining) {
+        if (selectedMap.size >= count) break;
+        selectedMap.set(h.name, { ...h, reason: 'Recent Form', icon: '⏱️' });
+      }
+    }
+
+    return Array.from(selectedMap.values()).slice(0, count).sort((a, b) => {
+      const priceA = getLatestOdds(a);
+      const priceB = getLatestOdds(b);
+      return priceA - priceB;
+    });
+  };
+
+  const showSuggestions = (selectedRace) => {
+    const list = getFavouredSelections(selectedRace.horses, 3);
+    setSuggestions(list);
+    setIsOpen(true);
+  };
 
   const valueRunnersRanked = useMemo(() => {
     if (!highlightValues) return new Map();
@@ -377,6 +453,44 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
         <div className="race-title-group">
           <h2 className="race-title">
 
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                showSuggestions(race);
+              }}
+              title="Show race suggestions"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                marginRight: '8px',
+                padding: 0,
+                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                opacity: 0.6,
+                color: '#9ca3af',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.color = '#f97316';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0.6';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.color = '#9ca3af';
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = 'scale(0.95)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              ⚡
+            </button>
+
             <a href={currentDateStr ? `#${currentDateStr}@${raceId}` : `#${raceId}`} className="race-title-link">
               {race.time} {race.place}
             </a>
@@ -465,6 +579,138 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           </button>
         </div>
       </header>
+
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={`⚡ Favoured Suggestions • ${race.time} ${race.place}`}
+      >
+        <div style={{ padding: '16px', color: 'var(--text)', maxHeight: '75vh', overflowY: 'auto' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '14px',
+            paddingBottom: '10px',
+            borderBottom: '1px solid var(--border)',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div>
+              <h3 style={{ margin: 0, color: 'var(--text-h)', fontSize: '1.15rem' }}>
+                {race.name || race.detail || `${race.time} ${race.place}`}
+              </h3>
+              <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginTop: '4px' }}>
+                {getRaceIcon(race)} {race.detail} • Going: {race.going} • Runners: {race.runners}
+              </div>
+            </div>
+            {suggestions.length === 3 && (
+              <div style={{
+                textAlign: 'right',
+                background: 'rgba(255, 255, 255, 0.05)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border)'
+              }}>
+                <div style={{ fontSize: '0.75rem', color: '#9ca3af', textTransform: 'uppercase' }}>Est. Tricast</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ade80' }}>
+                  {Math.round(suggestions.reduce((acc, h) => acc * (parseFloat(h.odds?.[h.odds.length - 1]) || 0), 1))}/1
+                </div>
+              </div>
+            )}
+          </div>
+
+          {suggestions.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#9ca3af', padding: '30px 0' }}>
+              No active runners available to generate suggestions.
+            </p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {suggestions.map((horse, idx) => {
+                const oddsArr = horse.odds || [];
+                const currentOdds = oddsArr[oddsArr.length - 1];
+                const prevOdds = oddsArr.length > 1 ? oddsArr[oddsArr.length - 2] : null;
+                const curNum = parseFloat(currentOdds);
+                const prevNum = parseFloat(prevOdds);
+                let oddsArrow = null;
+                if (!isNaN(curNum) && !isNaN(prevNum)) {
+                  if (curNum < prevNum) oddsArrow = <span style={{ color: '#ef4444', marginLeft: '4px' }}>▲</span>;
+                  else if (curNum > prevNum) oddsArrow = <span style={{ color: '#3b82f6', marginLeft: '4px' }}>▼</span>;
+                  else oddsArrow = <span style={{ color: 'var(--text)', opacity: 0.5, marginLeft: '4px' }}>~</span>;
+                }
+
+                return (
+                  <div
+                    key={horse.name || idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid var(--border)',
+                      gap: '12px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                      <span style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 'bold',
+                        color: '#fbbf24',
+                        width: '26px',
+                        textAlign: 'center'
+                      }}>
+                        #{horse.number}
+                      </span>
+                      {horse.silks && (
+                        <img
+                          src={horse.silks}
+                          alt="silks"
+                          style={{ width: '26px', height: '26px', objectFit: 'contain', borderRadius: '2px' }}
+                        />
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <strong style={{ color: 'var(--text-h)', fontSize: '1.05rem' }}>
+                            {horse.name}
+                          </strong>
+                          {horse.draw && (
+                            <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>({horse.draw})</span>
+                          )}
+                          <span style={{
+                            fontSize: '0.75rem',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                            color: '#fbbf24',
+                            border: '1px solid rgba(251, 191, 36, 0.3)',
+                            fontWeight: '600'
+                          }}>
+                            {horse.icon} {horse.reason}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: '#9ca3af', marginTop: '3px' }}>
+                          {horse.trainer && <span>T: {horse.trainer}</span>}
+                          {horse.jockey && <span style={{ marginLeft: '10px' }}>J: {horse.jockey}</span>}
+                          {horse.form && <span style={{ marginLeft: '10px', fontFamily: 'monospace' }}>Form: {horse.form}</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 'bold', color: '#4ade80' }}>
+                        {currentOdds || '—'}
+                        {oddsArrow}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Modal>
 
       <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
 
