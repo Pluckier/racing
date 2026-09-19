@@ -4,6 +4,8 @@
   box-sizing: border-box;
 }
 
+
+
 :root {
   --text: #c5d7fc;
   --text-h: #f3f4f6;
@@ -63,6 +65,12 @@ body {
   overflow-x: hidden;
   /* Prevents horizontal scroll on the main page */
   width: 100%;
+}
+
+html,
+body {
+  scrollbar-gutter: stable both-edges;
+  /* both-edges keeps things perfectly centered */
 }
 
 #root {
