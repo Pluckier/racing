@@ -192,69 +192,125 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     [race.horses, sortBy, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]
   );
 
-  const getFavouredSelections = (horses, count = 3) => {
+  const getFavouredSelections = (horses) => {
+    // Filter active runners first
     const activeRunners = (horses || []).filter(h => {
       const lastOdd = h.odds?.[h.odds.length - 1];
       return lastOdd !== "null" && lastOdd !== "NR" && !isHorseNR(h);
     });
 
-    if (activeRunners.length === 0) return [];
+    const totalRunners = activeRunners.length;
+    if (totalRunners === 0) return [];
+
+    // Determine the count based on the number of active runners today
+    let count = 3;
+    if (totalRunners <= 4) count = 1;
+    else if (totalRunners > 4 && totalRunners < 8) count = 2;
+    else if (totalRunners >= 8 && totalRunners < 16) count = 3;
+    else if (totalRunners >= 16) count = 4;
 
     const selectedMap = new Map();
+
+    // Helper to resolve the rating property based on aiMode
     const getRunRating = (p) => {
       if (!p) return 0;
       const targetProp = aiMode === 2 ? p.name2AI : aiMode === 1 ? p.nameAI : p.name;
       return parseFloat(targetProp) || 0;
     };
-    const getPeak = (h) => Math.max(...(h.past || []).map(p => getRunRating(p)), 0);
-    const getRecent = (h) => (h.past && h.past.length > 0) ? getRunRating(h.past[0]) : 0;
 
-    // 1. Shortest odds runner (Favorite)
-    const favorite = [...activeRunners].sort((a, b) => {
-      const valA = getLatestOdds(a);
-      const valB = getLatestOdds(b);
-      return valA - valB;
-    })[0];
-    if (favorite) {
-      selectedMap.set(favorite.name, { ...favorite, reason: 'Favorite', icon: '⭐' });
+    // Helper metrics for selection criteria
+    const getBestEverRating = (h) => Math.max(...(h.past || []).map(p => getRunRating(p)), 0);
+
+    const getAverageLast3 = (h) => {
+      const runs = (h.past || []).slice(0, 3);
+      if (runs.length === 0) return 0;
+      const sum = runs.reduce((acc, curr) => acc + getRunRating(curr), 0);
+      return sum / runs.length;
+    };
+
+    const getRecentRating = (h) => (h.past && h.past.length > 0) ? getRunRating(h.past[0]) : 0;
+
+    // 1. Best average rating over the last 3 past runs
+    const bestAvgHorse = [...activeRunners].sort((a, b) => getAverageLast3(b) - getAverageLast3(a))[0];
+    if (bestAvgHorse && selectedMap.size < count) {
+      selectedMap.set(bestAvgHorse.name, { ...bestAvgHorse, reason: 'Best 3-Run Average', icon: '📊' });
     }
 
-    // 2. Highest past race performance (Peak)
-    const peakHorse = [...activeRunners].sort((a, b) => getPeak(b) - getPeak(a))[0];
-    if (peakHorse && !selectedMap.has(peakHorse.name)) {
-      selectedMap.set(peakHorse.name, { ...peakHorse, reason: 'Top Peak Form', icon: '📈' });
+    // 2. Best ever past rating over all past races
+    const bestEverHorse = [...activeRunners].sort((a, b) => getBestEverRating(b) - getBestEverRating(a))[0];
+    if (bestEverHorse && selectedMap.size < count && !selectedMap.has(bestEverHorse.name)) {
+      selectedMap.set(bestEverHorse.name, { ...bestEverHorse, reason: 'Best Ever Rating', icon: '📈' });
     }
 
-    // 3. Highest past performance with a HOT_TRAINER
-    const activeTrainers = selectedTrainers !== null ? selectedTrainers : HOT_TRAINERS;
-    const hotRunners = activeRunners.filter(h =>
-      activeTrainers.some(ht => (h.trainer || '').toLowerCase().replaceAll('.', '').includes(ht.toLowerCase().replaceAll('.', '')))
-    );
-    if (hotRunners.length > 0) {
-      const hotPeakHorse = hotRunners.sort((a, b) => getPeak(b) - getPeak(a))[0];
-      if (hotPeakHorse && !selectedMap.has(hotPeakHorse.name)) {
-        selectedMap.set(hotPeakHorse.name, { ...hotPeakHorse, reason: 'Hot Trainer', icon: '🔥' });
+    // 3. Best most recent rating over the last 1 run
+    const bestRecentHorse = [...activeRunners].sort((a, b) => getRecentRating(b) - getRecentRating(a))[0];
+    if (bestRecentHorse && selectedMap.size < count && !selectedMap.has(bestRecentHorse.name)) {
+      selectedMap.set(bestRecentHorse.name, { ...bestRecentHorse, reason: 'Best Recent Run', icon: '⏱️' });
+    }
+
+    // 4. HOT_TRAINERS selection (Highest rating over last 3 runs)
+    if (selectedMap.size < count) {
+      const activeTrainers = selectedTrainers !== null ? selectedTrainers : HOT_TRAINERS;
+      const hotRunners = activeRunners.filter(h =>
+        activeTrainers.some(ht => (h.trainer || '').toLowerCase().replaceAll('.', '').includes(ht.toLowerCase().replaceAll('.', '')))
+      );
+
+      if (hotRunners.length > 0) {
+        const sortedHotRunners = hotRunners.sort((a, b) => getAverageLast3(b) - getAverageLast3(a));
+
+        for (const h of sortedHotRunners) {
+          if (selectedMap.size >= count) break;
+          if (!selectedMap.has(h.name)) {
+            selectedMap.set(h.name, { ...h, reason: 'Hot Trainer Form', icon: '🔥' });
+          }
+        }
       }
     }
 
-    // Fallback: Best most recent past race performance
+    // 5. Fallback: Second highest ever past rating OR second highest average over last 3 runs
     if (selectedMap.size < count) {
-      const remaining = activeRunners
-        .filter(h => !selectedMap.has(h.name))
-        .sort((a, b) => getRecent(b) - getRecent(a));
+      const remaining = activeRunners.filter(h => !selectedMap.has(h.name));
+
+      remaining.sort((a, b) => {
+        const metricB = Math.max(getBestEverRating(b), getAverageLast3(b));
+        const metricA = Math.max(getBestEverRating(a), getAverageLast3(a));
+        return metricB - metricA;
+      });
 
       for (const h of remaining) {
         if (selectedMap.size >= count) break;
-        selectedMap.set(h.name, { ...h, reason: 'Recent Form', icon: '⏱️' });
+        selectedMap.set(h.name, { ...h, reason: 'Fallback Form Tier', icon: '🔄' });
       }
     }
 
-    return Array.from(selectedMap.values()).slice(0, count).sort((a, b) => {
-      const priceA = getLatestOdds(a);
-      const priceB = getLatestOdds(b);
-      return priceA - priceB;
+    // Sort selections by odds
+    const finalSelections = Array.from(selectedMap.values()).slice(0, count).sort((a, b) => {
+      return getLatestOdds(a) - getLatestOdds(b);
     });
+
+    // Calculate market insight strings
+    const sortedByOdds = [...activeRunners].sort((a, b) => getLatestOdds(a) - getLatestOdds(b));
+    const marketFav = sortedByOdds[0]?.number + " " + sortedByOdds[0]?.name || "Unknown";
+    const marketSecondFav = sortedByOdds[1]?.number + " " + sortedByOdds[1]?.name || "Unknown";
+
+    let insightText = `Market favours: ${marketFav}`;
+    if (sortedByOdds.length > 1) {
+      insightText += ` and: ${marketSecondFav}`;
+    }
+
+    // Append a structural object text block to the end of the array 
+    // It matches a horse's object shape to keep lists from crashing when rendering
+    finalSelections.push({
+      name: insightText,
+      isMarketInsight: true,
+      reason: "",
+      icon: ""
+    });
+
+    return finalSelections;
   };
+
+
 
   const showSuggestions = (selectedRace) => {
     const targetRace = selectedRace || race;
