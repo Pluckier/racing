@@ -248,7 +248,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       selectedMap.set(bestRecentHorse.name, { ...bestRecentHorse, reason: 'Best Recent Run', icon: '⏱️' });
     }
 
-    // 4. HOT_TRAINERS selection (Highest rating over last 3 runs)
+    // 4. HOT_TRAINERS selection (Highest AVERAGE rating over the last 3 runs)
     if (selectedMap.size < count) {
       const activeTrainers = selectedTrainers !== null ? selectedTrainers : HOT_TRAINERS;
       const hotRunners = activeRunners.filter(h =>
@@ -256,12 +256,13 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       );
 
       if (hotRunners.length > 0) {
+        // Sorts them strictly by the 3-run mathematical average
         const sortedHotRunners = hotRunners.sort((a, b) => getAverageLast3(b) - getAverageLast3(a));
 
         for (const h of sortedHotRunners) {
           if (selectedMap.size >= count) break;
           if (!selectedMap.has(h.name)) {
-            selectedMap.set(h.name, { ...h, reason: 'Hot Trainer Form', icon: '🔥' });
+            selectedMap.set(h.name, { ...h, reason: 'Hot Trainer (Best 3-Run Avg)', icon: '🔥' });
           }
         }
       }
@@ -288,18 +289,23 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       return getLatestOdds(a) - getLatestOdds(b);
     });
 
-    // Calculate market insight strings
+    // Calculate market insight strings using your "hey BTW" formatting
     const sortedByOdds = [...activeRunners].sort((a, b) => getLatestOdds(a) - getLatestOdds(b));
-    const marketFav = sortedByOdds[0]?.number + " " + sortedByOdds[0]?.name || "Unknown";
-    const marketSecondFav = sortedByOdds[1]?.number + " " + sortedByOdds[1]?.name || "Unknown";
 
-    let insightText = `Market favours: ${marketFav}`;
+    const favNum = sortedByOdds[0]?.number ? `${sortedByOdds[0].number}. ` : "";
+    const favName = sortedByOdds[0]?.name || "Unknown";
+    const marketFav = `${favNum}${favName}`;
+
+    const secFavNum = sortedByOdds[1]?.number ? `${sortedByOdds[1].number}. ` : "";
+    const secFavName = sortedByOdds[1]?.name || "Unknown";
+    const marketSecondFav = `${secFavNum}${secFavName}`;
+
+    let insightText = `Market suggests ${marketFav}`;
     if (sortedByOdds.length > 1) {
-      insightText += ` and: ${marketSecondFav}`;
+      insightText += ` and ${marketSecondFav}`;
     }
 
-    // Append a structural object text block to the end of the array 
-    // It matches a horse's object shape to keep lists from crashing when rendering
+    // Append structural object text block to the end of the array 
     finalSelections.push({
       name: insightText,
       isMarketInsight: true,
@@ -309,6 +315,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     return finalSelections;
   };
+
 
 
 
