@@ -12,6 +12,9 @@ const parseFoaled = (str) => {
     : { dam: str.trim(), broodmareSire: '', sire: '' };
 };
 
+// Helper to normalize strings for comparison (remove periods and lowercase)
+const normalize = (s) => (s ? s.replace(/\./g, '').toLowerCase() : '');
+
 const CONFIG = {
   trainers: { title: 'Trainers Today', prop: 'trainer', hot: HOT_TRAINERS, setterName: 'setSelectedTrainers', storeKey: 'trainers' },
   jockeys: { title: 'Jockeys Today', prop: 'jockey', hot: HOT_JOCKEYS, setterName: 'setSelectedJockeys', storeKey: 'jockeys' },
@@ -129,9 +132,9 @@ const TrainerSelections = ({ races }) => {
     // 1. Resolve Explicit Green Selection Checks First
     let isChecked = false;
     if (selected === null) {
-      isChecked = cfg.hot.some(h => item.includes(h));
+      isChecked = cfg.hot.some(h => normalize(item).includes(normalize(h)));
     } else {
-      isChecked = selected.includes(item);
+      isChecked = selected.some(s => normalize(s) === normalize(item));
     }
 
     if (isChecked) {
@@ -195,7 +198,7 @@ const TrainerSelections = ({ races }) => {
 
     let current;
     if (selected === null) {
-      current = todaysData[key].filter(i => hot.some(h => i.includes(h)));
+      current = (todaysData[key] || []).filter(i => hot.some(h => normalize(i).includes(normalize(h))));
     } else {
       current = [...selected];
     }
@@ -267,8 +270,8 @@ const TrainerSelections = ({ races }) => {
         const currentQuery = searchQueries[key] || '';
 
         // Filter the items list dynamically on the fly based on what's typed
-        let filteredItems = todaysData[key].filter(item =>
-          item.toLowerCase().includes(currentQuery.toLowerCase())
+        let filteredItems = (todaysData[key] || []).filter(item =>
+          normalize(item).includes(normalize(currentQuery))
         );
 
         // If Show Only Active is on, further filter to checked or highlighted items
@@ -309,7 +312,7 @@ const TrainerSelections = ({ races }) => {
               </button>
               <button type="button" className="theButton" onClick={() => {
                 if (isSubParent) {
-                  const restoredDefaults = todaysData[key].filter(item => hot.some(h => item.includes(h)));
+                  const restoredDefaults = (todaysData[key] || []).filter(item => hot.some(h => normalize(item).includes(normalize(h))));
                   store[setterName](restoredDefaults, races);
                 } else {
                   store[setterName](hot, races);
