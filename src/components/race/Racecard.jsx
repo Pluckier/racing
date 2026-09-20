@@ -690,7 +690,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             </div>
 
             <div style={{ minWidth: '95px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
-              {suggestions.length === 3 && (
+              {suggestions.length > 2 && (
                 <div style={{
                   textAlign: 'right',
                   background: 'rgba(255, 255, 255, 0.05)',
@@ -698,9 +698,9 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
                   borderRadius: '6px',
                   border: '1px solid var(--border)'
                 }}>
-                  <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase' }}>Est. Tricast</div>
+                  <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase' }}>Est. FC/TC</div>
                   <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4ade80' }}>
-                    {Math.round(suggestions.reduce((acc, h) => acc * (parseFloat(h.odds?.[h.odds.length - 1]) || 0), 1))}/1
+                    {(() => { const product = suggestions.slice(0, 3).reduce((acc, h) => { const oddsArr = h.odds || []; const last = oddsArr[oddsArr.length - 1]; const val = (last && last !== "null" && last !== "NR" && !isNaN(last)) ? parseFloat(last) : 1; return acc * val; }, 1); return Math.round(product); })()}/1
                   </div>
                 </div>
               )}
