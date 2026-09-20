@@ -40,11 +40,13 @@ const HelpPage = ({ theme: currentTheme }) => {
         { id: 'help-toolbar', emoji: '🧭', label: 'Toolbar' },
         { id: 'help-timeline', emoji: '⏱️', label: 'Timeline' },
         { id: 'help-annotations', emoji: '🏷️', label: 'Annotations' },
-        { id: 'help-connections', emoji: '🔥', label: 'Hot Connections' },
-        { id: 'help-class', emoji: '👑', label: 'Classification' },
+        { id: 'help-connections', emoji: '🔥', label: 'Hot' },
+        { id: 'help-class', emoji: '👑', label: 'Icons' },
         { id: 'help-form', emoji: '📊', label: 'Form %' },
         { id: 'help-sliders', emoji: '🎚️', label: 'Sliders' },
         { id: 'help-sort', emoji: '🔀', label: 'Sort By' },
+        { id: 'help-suggestions', emoji: '⚡', label: 'Suggest' },
+        { id: 'help-notes', emoji: '📝', label: 'Notes' },
         { id: 'help-ai', emoji: '🤖', label: 'AI Models' },
         { id: 'help-charts', emoji: '📈', label: 'Charts' },
         { id: 'help-horse', emoji: '🏇', label: 'Horse Row' },
@@ -246,6 +248,14 @@ const HelpPage = ({ theme: currentTheme }) => {
                     <li><strong>ChatGPT (Emerald Icon):</strong> Uses OpenAI ChatGPT's predictive scoring and handicap adjustments.</li>
                 </ul>
                 <p>Toggling AI dynamically updates all ratings, averages, peak scores, and sort ordering in real time.</p>
+            </Section>
+
+            <Section id="help-suggestions" emoji="⚡" title="Market &amp; Form Suggestions">
+                <p>The ⚡ button on a race card opens the “Favoured Suggestions” modal. It shows a concise, algorithm‑driven shortlist of horses that the system believes have the strongest form or trainer advantage for the day’s race. The list is ordered by the latest odds and includes a market‑insight line summarising which horse(s) the market currently favours.</p>
+            </Section>
+
+            <Section id="help-notes" emoji="📝" title="Runners Notes">
+                <p>Click a number on a horse to add it into your Notes (like a stable).  The notes 📝 button is shown above the timeline and lists all noted horses.  These notes will be remembered for future racing.</p>
             </Section>
 
             {/* Section 7: Odds and Past Performance Charts */}
