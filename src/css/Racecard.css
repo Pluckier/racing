@@ -1,5 +1,6 @@
 /* RaceCard Styles */
 .race-card {
+  margin-bottom: 10px;
   border-bottom: 2px solid var(--accent);
 }
 
