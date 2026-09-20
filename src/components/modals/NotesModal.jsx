@@ -2,9 +2,37 @@ import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store/store';
 import '../../css/NotesModal.css';
 
-const NotesModal = ({ onClose, currentDateStr }) => {
-  const rawNotedHorses = useStore((state) => state.notedHorses);
-  const notedHorses = useMemo(() => rawNotedHorses || [], [rawNotedHorses]);
+const NotesModal = ({ onClose, currentDateStr, races }) => {
+  const rawNotedHorses = useStore((state) => state.notedHorses) || [];
+  const notedHorses = useMemo(() => {
+    const allHorses = (races || []).flatMap((r) => (r.horses || []).map((h) => ({ ...h, time: r.time, place: r.place })));
+    return rawNotedHorses.map((nh) => {
+      const match = allHorses.find((h) => (h.id || `${h.name}@${h.time}${h.place}`) === nh.id);
+      if (match) {
+        const oddsArr = match.odds || [];
+        const last = oddsArr[oddsArr.length - 1];
+        const latestOdds = (last && last !== "null" && last !== "NR" && !isNaN(last))
+          ? last
+          : oddsArr.slice().reverse().find(o => o && o !== "null" && o !== "NR" && !isNaN(o)) || '—';
+        return { ...match, id: nh.id, isRunning: true, currentOdds: latestOdds };
+      }
+      // Not running today – provide fallback values
+      return {
+        id: nh.id,
+        name: nh.name,
+        number: nh.number ?? '—',
+        silks: nh.silks ?? null,
+        draw: nh.draw ?? null,
+        trainer: nh.trainer ?? '—',
+        jockey: nh.jockey ?? '—',
+        form: nh.form ?? '—',
+        currentOdds: nh.currentOdds ?? '—',
+        time: null,
+        place: null,
+        isRunning: false,
+      };
+    });
+  }, [rawNotedHorses, races]);
   const clearNotedHorses = useStore((state) => state.clearNotedHorses);
   const removeNotedHorse = useStore((state) => state.removeNotedHorse);
 
@@ -108,7 +136,7 @@ const NotesModal = ({ onClose, currentDateStr }) => {
                 return (
                   <tr key={uniqueKey}>
                     <td>
-                      <div className="notes-horse-cell">
+                      <div className="notes-horse-cell" style={{ opacity: h.isRunning ? 1 : 0.5 }}>
                         {h.silks && (
                           <img src={h.silks} alt="silks" className="notes-silks" />
                         )}
@@ -120,10 +148,11 @@ const NotesModal = ({ onClose, currentDateStr }) => {
                     <td>
                       <span
                         className="notes-race-link"
-                        onClick={() => handleJump(h.time, h.place)}
-                        title={`Jump to ${h.time} ${h.place}`}
+                        onClick={h.isRunning && h.time && h.place ? () => handleJump(h.time, h.place) : undefined}
+                        title={h.isRunning && h.time && h.place ? `Jump to ${h.time} ${h.place}` : 'Not running today'}
+                        style={{ cursor: h.isRunning && h.time && h.place ? 'pointer' : 'default', color: h.isRunning && h.time && h.place ? 'inherit' : '#9ca3af' }}
                       >
-                        {h.time} {h.place}
+                        {h.isRunning && h.time && h.place ? `${h.time} ${h.place}` : '—'}
                       </span>
                     </td>
                     <td>

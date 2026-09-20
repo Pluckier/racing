@@ -523,7 +523,7 @@ function App() {
                 <TrainerSelections races={state.filteredRaces} onClose={() => state.setActiveModal(null)} />
               )}
               {state.activeModal === 'notes' && (
-                <NotesModal onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} />
+                <NotesModal onClose={() => state.setActiveModal(null)} currentDateStr={currentDateStr} races={state.filteredRaces} />
               )}
             </Modal>
 

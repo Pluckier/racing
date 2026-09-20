@@ -64,27 +64,23 @@ export const useStore = create(
             // 2b. NOTED HORSES ACTIONS
             // =================================================================
             toggleNotedHorse: (horse) => set((state) => {
-                const current = state.notedHorses || [];
-                const horseId = horse.id || `${horse.name}@${horse.time}${horse.place}`;
-                const exists = current.some(h => (h.id || `${h.name}@${h.time}${h.place}`) === horseId);
-                if (exists) {
-                    return {
-                        notedHorses: current.filter(h => (h.id || `${h.name}@${h.time}${h.place}`) !== horseId)
-                    };
-                }
-                return {
-                    notedHorses: [...current, { ...horse, id: horseId }]
-                };
-            }),
+    const current = state.notedHorses || [];
+    const horseId = horse.id || `${horse.name}@${horse.time}${horse.place}`;
+    const exists = current.some(h => h.id === horseId);
+    if (exists) {
+        return { notedHorses: current.filter(h => h.id !== horseId) };
+    }
+    // Store minimal data: id and name
+    return { notedHorses: [...current, { id: horseId, name: horse.name }] };
+}),
 
             addNotedHorse: (horse) => set((state) => {
                 const current = state.notedHorses || [];
                 const horseId = horse.id || `${horse.name}@${horse.time}${horse.place}`;
-                const exists = current.some(h => (h.id || `${h.name}@${h.time}${h.place}`) === horseId);
+                const exists = current.some(h => h.id === horseId);
                 if (exists) return state;
-                return {
-                    notedHorses: [...current, { ...horse, id: horseId }]
-                };
+                // Store minimal data
+                return { notedHorses: [...current, { id: horseId, name: horse.name }] };
             }),
 
             removeNotedHorse: (id) => set((state) => ({
