@@ -47,6 +47,9 @@ export const useStore = create(
             selectedBroodmareSires: null,
             selectedSires: null,
 
+            // Bloodline matching mode ('or' | 'and')
+            bloodlineMode: 'or',
+
             // =================================================================
             // 2. ALARM ACTIONS
             // =================================================================
@@ -108,6 +111,8 @@ export const useStore = create(
             setSelectedTrainers: (trainers) => set({ selectedTrainers: trainers }),
             setSelectedJockeys: (jockeys) => set({ selectedJockeys: jockeys }),
             setSelectedOwners: (owners) => set({ selectedOwners: owners }),
+
+            setBloodlineMode: (mode) => set({ bloodlineMode: mode }),
 
             // Left intact for direct overrides if legacy code updates it from outside
             setSelectedFoaled: (foaled) => set({ selectedFoaled: foaled }),

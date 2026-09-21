@@ -29,7 +29,6 @@ const CONFIG_ENTRIES = Object.entries(CONFIG);
 const TrainerSelections = ({ races }) => {
   // 1. Add the state line for tracking independent text filters per category block
   const [searchQueries, setSearchQueries] = useState({});
-  const [bloodlineMode, setBloodlineMode] = useState('or'); // 'or' | 'and'
 
   const [showOnlyActive, setShowOnlyActive] = useState({
     trainers: true,
@@ -54,6 +53,9 @@ const TrainerSelections = ({ races }) => {
   const setSelectedDams = useStore((s) => s.setSelectedDams);
   const setSelectedBroodmareSires = useStore((s) => s.setSelectedBroodmareSires);
   const setSelectedSires = useStore((s) => s.setSelectedSires);
+
+  const bloodlineMode = useStore((s) => s.bloodlineMode);
+  const setBloodlineMode = useStore((s) => s.setBloodlineMode);
 
   const store = {
     trainers, jockeys, owners, dams, broodmareSires, sires,
