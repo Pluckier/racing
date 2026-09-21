@@ -83,7 +83,7 @@ const FilterBar = ({ filters, setFilters, uniquePlaces, races = [], onShowMoveme
         >
           🏆 Nice
         </button>
-        <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Set hot connections">🔥 Connections</button>
+        <button className="filter-btn strong-favorites-btn" onClick={onShowTrainers} title="Set hot connections">🔥 Hot</button>
         <button className="filter-btn movement-summary-btn" onClick={onShowMovement} title="Show odds movements">📊 Odds</button>
       </div>
     </div>
