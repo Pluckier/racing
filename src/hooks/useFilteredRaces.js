@@ -8,12 +8,16 @@ export const useFilteredRaces = (races, filters) => {
   const selectedJockeys = useStore((state) => state.selectedJockeys);
   const selectedOwners = useStore((state) => state.selectedOwners);
   const selectedFoaled = useStore((state) => state.selectedFoaled);
+  const bloodlineMode = useStore((state) => state.bloodlineMode);
+  const selectedDams = useStore((state) => state.selectedDams);
+  const selectedBroodmareSires = useStore((state) => state.selectedBroodmareSires);
+  const selectedSires = useStore((state) => state.selectedSires);
 
   return useMemo(() => {
     const pool = Array.isArray(races) ? races : [];
 
     return pool
-      .map(race => augmentRaceWithStats(race, aiMode, selectedTrainers, selectedJockeys, selectedOwners, selectedFoaled))
+      .map(race => augmentRaceWithStats(race, aiMode, selectedTrainers, selectedJockeys, selectedOwners, selectedFoaled, bloodlineMode, selectedDams, selectedBroodmareSires, selectedSires))
       .filter(race => {
         if (!race?.time) return false;
 
@@ -25,5 +29,5 @@ export const useFilteredRaces = (races, filters) => {
 
         return matchesPlace && matchesTricast;
       });
-  }, [races, filters.places, filters.tricast, aiMode, selectedTrainers, selectedJockeys, selectedOwners, selectedFoaled]);
+  }, [races, filters.places, filters.tricast, aiMode, selectedTrainers, selectedJockeys, selectedOwners, selectedFoaled, bloodlineMode, selectedDams, selectedBroodmareSires, selectedSires]);
 };

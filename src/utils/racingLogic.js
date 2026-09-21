@@ -20,10 +20,20 @@ export const HOT_FOALED = [];
 
 export const HOT_JOCKEYS = [];
 
+// Helper to parse a foaled string into its three components
+const parseFoaledStr = (str) => {
+  if (!str) return { dam: '', broodmareSire: '', sire: '' };
+  const match = str.match(/D:\s*(.*?)\s*\((.*?)\)\s*S:\s*(.*)/i);
+  return match
+    ? { dam: match[1].trim(), broodmareSire: match[2].trim(), sire: match[3].trim() }
+    : { dam: str.trim(), broodmareSire: '', sire: '' };
+};
+
 /**
  * Determines if a horse is a "Fiddle" based on connections and odds.
+ * Respects bloodlineMode (or/and) and selected lineage arrays from the store.
  */
-export const isFiddleHorse = (horse, activeTrainersList = null, activeJockeysList = null, activeOwnersList = null, activeFoaledList = null) => {
+export const isFiddleHorse = (horse, activeTrainersList = null, activeJockeysList = null, activeOwnersList = null, activeFoaledList = null, bloodlineMode = 'or', selectedDams = null, selectedBroodmareSires = null, selectedSires = null) => {
   if (!horse) return false;
   const oddsArray = horse.odds || [];
   const latestOddRaw = oddsArray[oddsArray.length - 1];
@@ -44,17 +54,40 @@ export const isFiddleHorse = (horse, activeTrainersList = null, activeJockeysLis
   const ownersToUse = activeOwnersList !== null ? activeOwnersList : HOT_OWNERS;
   const foaledToUse = activeFoaledList !== null ? activeFoaledList : HOT_FOALED;
 
+  // bloodlineMode and lineage arrays are now passed as parameters
+
+  let foaledMatch = false;
+
+  if (bloodlineMode === 'and') {
+    // AND mode: parse the horse's foaled into components, then require
+    // every category that has selections to be satisfied
+    const parsed = parseFoaledStr(foaled);
+    const hasDamSel = selectedDams && selectedDams.length > 0;
+    const hasBMSel = selectedBroodmareSires && selectedBroodmareSires.length > 0;
+    const hasSireSel = selectedSires && selectedSires.length > 0;
+
+    if (hasDamSel || hasBMSel || hasSireSel) {
+      const damOk = !hasDamSel || selectedDams.includes(parsed.dam);
+      const bmsOk = !hasBMSel || selectedBroodmareSires.includes(parsed.broodmareSire);
+      const sireOk = !hasSireSel || selectedSires.includes(parsed.sire);
+      foaledMatch = damOk && bmsOk && sireOk;
+    }
+  } else {
+    // OR mode (default): existing behaviour — match full foaled strings
+    foaledMatch = foaledToUse.some(f => foaled.includes(f));
+  }
+
   return ownersToUse.some(o => owner.toLowerCase().replace(/\./g, "").includes(o.toLowerCase().replace(/\./g, ""))) ||
     trainersToUse.some(t => trainer.toLowerCase().replace(/\./g, "").includes(t.toLowerCase().replace(/\./g, ""))) ||
     jockeysToUse.some(j => jockey.toLowerCase().replace(/\./g, "").includes(j.toLowerCase().replace(/\./g, ""))) ||
-    foaledToUse.some(f => foaled.includes(f));
+    foaledMatch;
 };
 
 /**
  * Injects 'isValue' and 'isFiddle' flags into horse objects within a race.
  * NOW ACCEPTS aiMode AS A SECOND PARAMETER
  */
-export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null, activeJockeysList = null, activeOwnersList = null, activeFoaledList = null) => {
+export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null, activeJockeysList = null, activeOwnersList = null, activeFoaledList = null, bloodlineMode = 'or', selectedDams = null, selectedBroodmareSires = null, selectedSires = null) => {
   const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
   const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
 
@@ -93,7 +126,7 @@ export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null
 
       return {
         ...h,
-        isFiddle: isFiddleHorse(h, activeTrainersList, activeJockeysList, activeOwnersList, activeFoaledList),
+        isFiddle: isFiddleHorse(h, activeTrainersList, activeJockeysList, activeOwnersList, activeFoaledList, bloodlineMode, selectedDams, selectedBroodmareSires, selectedSires),
         isValue: isValue
       };
     })
