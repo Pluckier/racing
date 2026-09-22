@@ -150,7 +150,7 @@ const SystemRacesModal = ({ races = [] }) => {
 
         const lighterCount = getLighterPastRunsCount(horse);
         // Horses that ran lighter than today on fewer than or equal to maxLighterPastRuns occasions
-        const matchesLighterRuns = lighterCount <= maxLighterPastRuns && lighterCount > 0;
+        const matchesLighterRuns = lighterCount <= maxLighterPastRuns;
 
 
         // Distance beaten previously filter
