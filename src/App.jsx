@@ -6,6 +6,7 @@ import SkeletonRaceCard from './components/skeletons/SkeletonRaceCard';
 import SkeletonRaceTimeline from './components/skeletons/SkeletonRaceTimeline';
 import RaceTimeline from './components/race/RaceTimeline';
 import Modal from './components/common/Modal';
+import SystemRacesModal from './components/modals/SystemRacesModal';
 import OddsMovementSummary from './components/modals/OddsMovementSummary';
 import TrainerSelections from './components/modals/TrainerSelections';
 import NotesModal from './components/modals/NotesModal';
@@ -23,6 +24,8 @@ import './css/App.css';
 import './css/Notifications.css';
 import HelpPage from './components/common/HelpPage';
 import AntiSpamWrapper from './components/security/AntiSpamWrapper'; // Import AntiSpamWrapper
+
+
 
 function App() {
   const state = useAppState();
@@ -58,6 +61,7 @@ function App() {
   const [raceNumberInput, setRaceNumberInput] = useState('1');
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
   const [showNonRunnerNotifications, setShowNonRunnerNotifications] = useState(false);
+  const [showSystem, setShowSystem] = useState(false);
 
   useEffect(() => {
     const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -361,13 +365,22 @@ function App() {
                   </button>
                 </div>
 
+
                 <button
-                  onClick={toggleFullscreen}
-                  className={`filter-btn ${isFullscreen ? 'active' : ''}`}
-                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  onClick={() => setShowSystem(true)}
+                  className="filter-btn"
+                  title="System: Show R horses"
                 >
-                  {isFullscreen ? '⛶ Window' : '⛶ Full'}
+                  System
                 </button>
+
+                <Modal
+                  isOpen={showSystem}
+                  onClose={() => setShowSystem(false)}
+                  title="Racing Analysis"
+                >
+                  <SystemRacesModal races={state.races} displayDate={state.displayDate} />
+                </Modal>
 
                 <div className="donate-container">
                   <form action="https://www.paypal.com/donate" method="post" target="_blank">
@@ -512,8 +525,8 @@ function App() {
                 state.activeModal === 'movement'
                   ? "Card-wide Odds Movement"
                   : state.activeModal === 'notes'
-                  ? "Noted Horses"
-                  : "Today's Connections (Hot 🟠)"
+                    ? "Noted Horses"
+                    : "Today's Connections (Hot 🟠)"
               }
             >
               {state.activeModal === 'movement' && (
