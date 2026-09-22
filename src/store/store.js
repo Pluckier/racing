@@ -54,7 +54,7 @@ export const useStore = create(
             minRestrict: 0,
             maxRestrict: 0,
             minPastRuns: 0,
-            maxLighterPastRuns: 0,
+            maxLighterPastRuns: -1,
             distBeatenEnabled: false,
             maxDistBeaten: 5,
             distanceMargin: 0,

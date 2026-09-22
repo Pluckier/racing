@@ -149,8 +149,8 @@ const SystemRacesModal = ({ races = [] }) => {
         const matchesPastRuns = runCount >= minPastRuns;
 
         const lighterCount = getLighterPastRunsCount(horse);
-        // Horses that ran lighter than today on fewer than or equal to maxLighterPastRuns occasions
-        const matchesLighterRuns = lighterCount <= maxLighterPastRuns;
+        // Horses that ran lighter than today on fewer than or equal to maxLighterPastRuns occasions (or off)
+        const matchesLighterRuns = maxLighterPastRuns < 0 ? true : lighterCount <= maxLighterPastRuns;
 
 
         // Distance beaten previously filter
@@ -161,14 +161,20 @@ const SystemRacesModal = ({ races = [] }) => {
           matchesDistBeaten = prevDist !== null && prevDist <= maxDistBeaten;
         }
 
-        // Distance margin filter – compare today race distance with past run distance
+        // Distance margin filter – checks if ANY past race is within the slider range
         let matchesDistance = true;
-        if (distanceMargin >= 0) {
+        if (distanceMargin >= 0 && Array.isArray(horse.past)) {
           const todayFurlongs = parseDistanceToFurlongs(race.distance);
-          const prevRun = Array.isArray(horse.past) && horse.past.length > 0 ? horse.past[0] : null;
-          const prevFurlongs = parseDistanceToFurlongs(prevRun?.distance);
-          if (todayFurlongs !== null && prevFurlongs !== null) {
-            matchesDistance = Math.abs(todayFurlongs - prevFurlongs) <= distanceMargin;
+
+          if (todayFurlongs !== null) {
+            // .some() returns true if at least ONE past race meets the condition
+            matchesDistance = horse.past.some(run => {
+              const pastFurlongs = parseDistanceToFurlongs(run?.distance);
+              if (pastFurlongs === null) return false;
+
+              const diff = Math.abs(todayFurlongs - pastFurlongs);
+              return diff <= distanceMargin;
+            });
           }
         }
 
@@ -278,16 +284,11 @@ const SystemRacesModal = ({ races = [] }) => {
           </div>
           <div className="system-slider-group" style={{ marginLeft: '12px' }}>
             <label className="system-slider-label wider-label">
-              Number of past runs lighter than today: <strong>{maxLighterPastRuns}</strong>{' '}
-              <span style={{ opacity: 0.85 }}>
-                {maxLighterPastRuns === 0
-                  ? '(on 0 past occasions)'
-                  : `(on ${maxLighterPastRuns} past occasion${maxLighterPastRuns === 1 ? '' : 's'})`}
-              </span>
+              Past runs lighter than today: <strong>{maxLighterPastRuns}</strong>{' '}
             </label>
             <input
               type="range"
-              min="0"
+              min="-1"
               max={Math.max(absoluteMaxLighterRuns, 1)}
               value={maxLighterPastRuns}
               onChange={(e) => setMaxLighterPastRuns(Number(e.target.value))}
@@ -313,13 +314,6 @@ const SystemRacesModal = ({ races = [] }) => {
           <div className="system-slider-group">
             <label className="system-slider-label wider-label">
               Distance beaten previously: <strong>{maxDistBeaten} lengths</strong>{' '}
-              <span style={{ opacity: 0.85 }}>
-                {!distBeatenEnabled
-                  ? '(Off)'
-                  : maxDistBeaten === 0
-                    ? '(winners only)'
-                    : `(≤ ${maxDistBeaten} lengths)`}
-              </span>
             </label>
             <input
               type="range"
@@ -338,9 +332,6 @@ const SystemRacesModal = ({ races = [] }) => {
           <div className="system-slider-group" style={{ marginLeft: '12px' }}>
             <label className="system-slider-label wider-label">
               Distance match (± furlongs): <strong>{distanceMargin}</strong>{' '}
-              <span style={{ opacity: 0.85 }}>
-                {distanceMargin === 0 ? '(exact match)' : `(± ${distanceMargin} furlongs)`}
-              </span>
             </label>
             <input
               type="range"
