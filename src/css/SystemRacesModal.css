@@ -1,0 +1,239 @@
+/* SystemRacesModal.css */
+.system-modal-container {
+  padding: 16px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--text);
+  background-color: var(--modal-bg, var(--bg));
+}
+
+.system-filters-panel {
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.system-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.system-toggle-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85em;
+  white-space: nowrap;
+  background-color: var(--zebra, rgba(255, 255, 255, 0.05));
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.system-toggle-btn:hover {
+  border-color: var(--accent, #3b82f6);
+  color: var(--text-h);
+}
+
+.system-toggle-btn.active {
+  background-color: var(--accent, #3b82f6);
+  border-color: var(--accent, #3b82f6);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.system-separator {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border);
+}
+
+.system-slider-group {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.system-slider-label {
+  white-space: nowrap;
+  font-size: 0.88em;
+  color: var(--text);
+}
+
+.system-slider-label strong {
+  color: var(--text-h);
+}
+
+.system-slider-label.short-label {
+  width: 75px;
+}
+
+.system-slider-label.wide-label {
+  min-width: 180px;
+}
+
+.system-slider-label.wider-label {
+  min-width: 270px;
+}
+
+.system-range-input {
+  flex: 1;
+  cursor: pointer;
+  accent-color: var(--accent, #3b82f6);
+}
+
+.system-match-footer {
+  font-size: 0.8em;
+  color: var(--text);
+  opacity: 0.75;
+  margin-top: 2px;
+  text-align: right;
+}
+
+.system-races-list {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.system-no-matches {
+  color: var(--text);
+  opacity: 0.6;
+  text-align: center;
+  margin-top: 24px;
+  font-style: italic;
+}
+
+.system-race-card {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+}
+
+.system-race-header {
+  font-size: 1.05em;
+  color: var(--text-h);
+}
+
+.system-race-header strong {
+  color: var(--text-h);
+}
+
+.system-race-header span {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.system-race-detail {
+  font-size: 0.85em;
+  color: var(--text);
+  opacity: 0.85;
+  font-style: italic;
+  margin: 3px 0;
+}
+
+.system-race-runners {
+  font-size: 0.85em;
+  color: var(--text);
+  opacity: 0.75;
+  margin-bottom: 8px;
+}
+
+.system-horse-list {
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+  margin-left: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.system-horse-item {
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--text);
+}
+
+.system-horse-num {
+  min-width: 22px;
+  color: var(--text);
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.system-horse-name {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.system-badge-weight {
+  font-size: 0.8em;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-color: var(--zebra, rgba(255, 255, 255, 0.04));
+  color: var(--text);
+  font-weight: 500;
+}
+
+.system-badge-runs {
+  font-size: 0.78em;
+  color: var(--text);
+  opacity: 0.85;
+  background-color: var(--zebra, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.system-badge-lighter {
+  font-size: 0.78em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.system-badge-lighter.has-lighter {
+  color: var(--accent, #3b82f6);
+  background-color: var(--accent-bg, rgba(59, 130, 246, 0.15));
+  border: 1px solid var(--accent-border, rgba(59, 130, 246, 0.3));
+  font-weight: 600;
+}
+
+.system-badge-lighter.no-lighter {
+  color: var(--text);
+  opacity: 0.55;
+  background-color: var(--zebra, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border);
+}
+
+.system-badge-dist-beaten {
+  font-size: 0.78em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background-color: var(--zebra, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.system-badge-dist-beaten.won {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  font-weight: 600;
+}
+
