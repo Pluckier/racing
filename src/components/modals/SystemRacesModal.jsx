@@ -276,17 +276,13 @@ const SystemRacesModal = ({ races = [] }) => {
               className="system-range-input"
             />
           </div>
-        </div>
-
-        {/* Third Row Container: Number of past runs lighter than today */}
-        <div className="system-filter-row">
-          <div className="system-slider-group">
+          <div className="system-slider-group" style={{ marginLeft: '12px' }}>
             <label className="system-slider-label wider-label">
               Number of past runs lighter than today: <strong>{maxLighterPastRuns}</strong>{' '}
               <span style={{ opacity: 0.85 }}>
                 {maxLighterPastRuns === 0
                   ? '(on 0 past occasions - never lighter)'
-                  : `(on fewer than or equal to ${maxLighterPastRuns} past occasion${maxLighterPastRuns === 1 ? '' : 's'})`}
+                  : `(on ${maxLighterPastRuns} past occasion${maxLighterPastRuns === 1 ? '' : 's'})`}
               </span>
             </label>
             <input
@@ -297,22 +293,10 @@ const SystemRacesModal = ({ races = [] }) => {
               onChange={(e) => setMaxLighterPastRuns(Number(e.target.value))}
               className="system-range-input"
             />
-            {/* Distance margin filter */}
-            <div className="system-slider-group" style={{ marginLeft: '12px' }}>
-              <label className="system-slider-label wider-label">
-                Distance match ± furlongs: <strong>{distanceMargin}</strong>
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="5"
-                value={distanceMargin}
-                onChange={(e) => setDistanceMargin(Number(e.target.value))}
-                className="system-range-input"
-              />
-            </div>
           </div>
         </div>
+
+
 
         {/* Fourth Row Container: Distance Beaten Previously Filter */}
         <div className="system-filter-row">
@@ -347,6 +331,23 @@ const SystemRacesModal = ({ races = [] }) => {
                 setMaxDistBeaten(Number(e.target.value));
                 if (!distBeatenEnabled) setDistBeatenEnabled(true);
               }}
+              className="system-range-input"
+            />
+          </div>
+          <div className="system-separator" />
+          <div className="system-slider-group" style={{ marginLeft: '12px' }}>
+            <label className="system-slider-label wider-label">
+              Distance match (± furlongs): <strong>{distanceMargin}</strong>{' '}
+              <span style={{ opacity: 0.85 }}>
+                {distanceMargin === 0 ? '(exact match)' : `(± ${distanceMargin} furlongs)`}
+              </span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="4"
+              value={distanceMargin}
+              onChange={(e) => setDistanceMargin(Number(e.target.value))}
               className="system-range-input"
             />
           </div>
