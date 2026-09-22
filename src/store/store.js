@@ -49,6 +49,15 @@ export const useStore = create(
 
             // Bloodline matching mode ('or' | 'and')
             bloodlineMode: 'or',
+            // SystemRacesModal filter state
+            onlyHandicaps: false,
+            minRestrict: 0,
+            maxRestrict: 0,
+            minPastRuns: 0,
+            maxLighterPastRuns: 0,
+            distBeatenEnabled: false,
+            maxDistBeaten: 5,
+            distanceMargin: 0,
 
             // =================================================================
             // 2. ALARM ACTIONS
@@ -113,6 +122,15 @@ export const useStore = create(
             setSelectedOwners: (owners) => set({ selectedOwners: owners }),
 
             setBloodlineMode: (mode) => set({ bloodlineMode: mode }),
+            // SystemRacesModal filter setters
+            setOnlyHandicaps: (v) => set({ onlyHandicaps: v }),
+            setMinRestrict: (v) => set({ minRestrict: v }),
+            setMaxRestrict: (v) => set({ maxRestrict: v }),
+            setMinPastRuns: (v) => set({ minPastRuns: v }),
+            setMaxLighterPastRuns: (v) => set({ maxLighterPastRuns: v }),
+            setDistBeatenEnabled: (v) => set({ distBeatenEnabled: v }),
+            setMaxDistBeaten: (v) => set({ maxDistBeaten: v }),
+            setDistanceMargin: (v) => set({ distanceMargin: v }),
 
             // Left intact for direct overrides if legacy code updates it from outside
             setSelectedFoaled: (foaled) => set({ selectedFoaled: foaled }),

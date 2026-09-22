@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { useStore } from '../../store/store';
 import '../../css/SystemRacesModal.css';
 
 // Helper function to parse stones-pounds weight string (e.g., "9-7") to total pounds (lbs)
@@ -89,16 +90,26 @@ const parseDistBeaten = (run) => {
  * a minimum past runs requirement, past runs lighter than today, and distance beaten previously.
  */
 const SystemRacesModal = ({ races = [] }) => {
-  // 1. Filter States
-  const [onlyHandicaps, setOnlyHandicaps] = useState(false);
-  const [minRestrict, setMinRestrict] = useState(0);
-  const [maxRestrict, setMaxRestrict] = useState(0);
-  const [minPastRuns, setMinPastRuns] = useState(0);
-  const [maxLighterPastRuns, setMaxLighterPastRuns] = useState(0);
-  const [distBeatenEnabled, setDistBeatenEnabled] = useState(false);
-  const [maxDistBeaten, setMaxDistBeaten] = useState(5);
-  // Distance margin (furlongs) slider – 0 means exact match, 1 means ±1 furlong, etc.
-  const [distanceMargin, setDistanceMargin] = useState(0);
+  // 1. Filter States – using Zustand store
+  const {
+    onlyHandicaps,
+    setOnlyHandicaps,
+    minRestrict,
+    setMinRestrict,
+    maxRestrict,
+    setMaxRestrict,
+    minPastRuns,
+    setMinPastRuns,
+    maxLighterPastRuns,
+    setMaxLighterPastRuns,
+    distBeatenEnabled,
+    setDistBeatenEnabled,
+    maxDistBeaten,
+    setMaxDistBeaten,
+    distanceMargin,
+    setDistanceMargin,
+  } = useStore(state => state); // Directly return the store reference to cache the snapshot correctly
+
 
   // 2. Lock the absolute limits using useMemo so they remain stable during filtering
   const { absoluteMin, absoluteMax, absoluteMaxPastRuns, absoluteMaxLighterRuns } = useMemo(() => {
