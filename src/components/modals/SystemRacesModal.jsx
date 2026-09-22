@@ -281,7 +281,7 @@ const SystemRacesModal = ({ races = [] }) => {
               Number of past runs lighter than today: <strong>{maxLighterPastRuns}</strong>{' '}
               <span style={{ opacity: 0.85 }}>
                 {maxLighterPastRuns === 0
-                  ? '(on 0 past occasions - never lighter)'
+                  ? '(on 0 past occasions)'
                   : `(on ${maxLighterPastRuns} past occasion${maxLighterPastRuns === 1 ? '' : 's'})`}
               </span>
             </label>
