@@ -57,6 +57,7 @@ export const useStore = create(
             maxLighterPastRuns: -1,
             distBeatenEnabled: false,
             maxDistBeaten: 5,
+            distanceMatchEnabled: false,
             distanceMargin: 0,
 
             // =================================================================
@@ -130,6 +131,7 @@ export const useStore = create(
             setMaxLighterPastRuns: (v) => set({ maxLighterPastRuns: v }),
             setDistBeatenEnabled: (v) => set({ distBeatenEnabled: v }),
             setMaxDistBeaten: (v) => set({ maxDistBeaten: v }),
+            setDistanceMatchEnabled: (v) => set({ distanceMatchEnabled: v }),
             setDistanceMargin: (v) => set({ distanceMargin: v }),
 
             // Left intact for direct overrides if legacy code updates it from outside

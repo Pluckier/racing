@@ -106,6 +106,8 @@ const SystemRacesModal = ({ races = [] }) => {
     setDistBeatenEnabled,
     maxDistBeaten,
     setMaxDistBeaten,
+    distanceMatchEnabled,
+    setDistanceMatchEnabled,
     distanceMargin,
     setDistanceMargin,
   } = useStore(state => state); // Directly return the store reference to cache the snapshot correctly
@@ -163,18 +165,22 @@ const SystemRacesModal = ({ races = [] }) => {
 
         // Distance margin filter – checks if ANY past race is within the slider range
         let matchesDistance = true;
-        if (distanceMargin >= 0 && Array.isArray(horse.past)) {
-          const todayFurlongs = parseDistanceToFurlongs(race.distance);
+        if (distanceMatchEnabled) {
+          if (!Array.isArray(horse.past) || horse.past.length === 0) {
+            matchesDistance = false;
+          } else {
+            const todayFurlongs = parseDistanceToFurlongs(race.distance);
 
-          if (todayFurlongs !== null) {
-            // .some() returns true if at least ONE past race meets the condition
-            matchesDistance = horse.past.some(run => {
-              const pastFurlongs = parseDistanceToFurlongs(run?.distance);
-              if (pastFurlongs === null) return false;
+            if (todayFurlongs !== null) {
+              // .some() returns true if at least ONE past race meets the condition
+              matchesDistance = horse.past.some(run => {
+                const pastFurlongs = parseDistanceToFurlongs(run?.distance);
+                if (pastFurlongs === null) return false;
 
-              const diff = Math.abs(todayFurlongs - pastFurlongs);
-              return diff <= distanceMargin;
-            });
+                const diff = Math.abs(todayFurlongs - pastFurlongs);
+                return diff <= distanceMargin;
+              });
+            }
           }
         }
 
@@ -299,7 +305,7 @@ const SystemRacesModal = ({ races = [] }) => {
 
 
 
-        {/* Fourth Row Container: Distance Beaten Previously Filter */}
+        {/* Fourth Row Container: Distance Beaten Previously & Distance Match Filters */}
         <div className="system-filter-row">
           <button
             onClick={() => setDistBeatenEnabled(!distBeatenEnabled)}
@@ -328,8 +334,20 @@ const SystemRacesModal = ({ races = [] }) => {
               className="system-range-input"
             />
           </div>
+
           <div className="system-separator" />
-          <div className="system-slider-group" style={{ marginLeft: '12px' }}>
+
+          <button
+            onClick={() => setDistanceMatchEnabled(!distanceMatchEnabled)}
+            className={`system-toggle-btn ${distanceMatchEnabled ? 'active' : ''}`}
+            title="Toggle distance match filter"
+          >
+            {distanceMatchEnabled ? '✓ Dist Match Active' : 'Dist Match (Off)'}
+          </button>
+
+          <div className="system-separator" />
+
+          <div className="system-slider-group">
             <label className="system-slider-label wider-label">
               Distance match (± furlongs): <strong>{distanceMargin}</strong>{' '}
             </label>
@@ -338,7 +356,10 @@ const SystemRacesModal = ({ races = [] }) => {
               min="0"
               max="4"
               value={distanceMargin}
-              onChange={(e) => setDistanceMargin(Number(e.target.value))}
+              onChange={(e) => {
+                setDistanceMargin(Number(e.target.value));
+                if (!distanceMatchEnabled) setDistanceMatchEnabled(true);
+              }}
               className="system-range-input"
             />
           </div>
