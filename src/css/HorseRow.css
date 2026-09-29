@@ -212,10 +212,20 @@
 
 .indicator.value.second {
   background-color: #2e7d32;
+  color: #fff;
 }
 
 .indicator.value.second::after {
   content: '2';
+}
+
+.indicator.value.third {
+  background-color: #1b5e20;
+  color: #fff;
+}
+
+.indicator.value.third::after {
+  content: '3';
 }
 
 .indicator.value.massive {

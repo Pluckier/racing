@@ -341,12 +341,14 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
     const top1 = uniqueRatings[0];
     const top2 = uniqueRatings[1];
+    const top3 = uniqueRatings[2];
 
     activeRunners.forEach(h => {
       const rtg = getMax(h);
       const horseId = h.number === 'NR' ? h.name : h.number;
       if (top1 !== undefined && rtg === top1) ranks.set(horseId, 'top');
       else if (top2 !== undefined && rtg === top2) ranks.set(horseId, 'second');
+      else if (top3 !== undefined && rtg === top3) ranks.set(horseId, 'third');
     });
 
     return ranks;
