@@ -302,6 +302,12 @@ const HelpPage = ({ theme: currentTheme }) => {
             <div className="help-version">
                 <p>Version: 3.0</p>
                 <p>Last Updated: 07 Aug 2026 00:51 BST</p>
+                <p>
+                    Visit our <a href="https://pluckier.github.io/tips" target="_blank" rel="noopener noreferrer">Tips Site</a>
+                </p>
+                <p>
+                    Or hit lucky <a href="https://pluckier.github.io/tricasts" target="_blank" rel="noopener noreferrer">Tricasts</a>
+                </p>
             </div>
 
         </div>
