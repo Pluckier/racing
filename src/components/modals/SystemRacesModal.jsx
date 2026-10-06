@@ -360,6 +360,10 @@ const SystemRacesModal = ({ races = [] }) => {
               className="system-range-input"
             />
           </div>
+          {/* Match Count Footer */}
+          <div className="system-match-footer">
+            Showing {filteredRaces.length} of {races.length} races
+          </div>
         </div>
       </div>
 
