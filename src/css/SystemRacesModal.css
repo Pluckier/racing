@@ -1,40 +1,45 @@
 /* SystemRacesModal.css */
 .system-modal-container {
-  padding: 16px;
-  max-height: 70vh;
+  padding: 10px 14px;
+  height: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   color: var(--text);
   background-color: var(--modal-bg, var(--bg));
+  box-sizing: border-box;
 }
 
 .system-filters-panel {
-  padding-bottom: 14px;
-  border-bottom: 2px solid var(--border);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 .system-filter-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 7px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 2px 0 4px 0;
+  scrollbar-width: thin;
 }
 
 .system-toggle-btn {
-  padding: 6px 14px;
-  border-radius: 6px;
+  padding: 4px 9px;
+  border-radius: 5px;
   border: 1px solid var(--border);
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.85em;
+  font-size: 0.76em;
   white-space: nowrap;
   background-color: var(--zebra, rgba(255, 255, 255, 0.05));
   color: var(--text);
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .system-toggle-btn:hover {
@@ -46,26 +51,27 @@
   background-color: var(--accent, #3b82f6);
   border-color: var(--accent, #3b82f6);
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.3);
 }
 
 .system-separator {
   width: 1px;
-  height: 24px;
+  height: 18px;
   background-color: var(--border);
+  flex-shrink: 0;
+  margin: 0 1px;
 }
 
 .system-slider-group {
-  flex: 1;
-  min-width: 160px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .system-slider-label {
   white-space: nowrap;
-  font-size: 0.88em;
+  font-size: 0.76em;
   color: var(--text);
 }
 
@@ -73,22 +79,12 @@
   color: var(--text-h);
 }
 
-.system-slider-label.short-label {
-  width: 75px;
-}
-
-.system-slider-label.wide-label {
-  min-width: 180px;
-}
-
-.system-slider-label.wider-label {
-  min-width: 270px;
-}
-
 .system-range-input {
-  flex: 1;
+  width: 60px;
+  height: 14px;
   cursor: pointer;
   accent-color: var(--accent, #3b82f6);
+  vertical-align: middle;
 }
 
 .system-match-footer {
@@ -236,4 +232,3 @@
   border-color: rgba(16, 185, 129, 0.3);
   font-weight: 600;
 }
-

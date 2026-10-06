@@ -220,22 +220,21 @@ const SystemRacesModal = ({ races = [] }) => {
     <div className="system-modal-container">
       {/* --- Filter Controls Panel --- */}
       <div className="system-filters-panel">
-        {/* First Row Container: Handicaps + Runners Sliders */}
         <div className="system-filter-row">
           {/* Handicaps Toggle Button */}
           <button
             onClick={() => setOnlyHandicaps(!onlyHandicaps)}
             className={`system-toggle-btn ${onlyHandicaps ? 'active' : ''}`}
+            title="Filter to Handicaps only"
           >
-            {onlyHandicaps ? '✓ Handicaps Only' : 'Handicaps'}
+            {onlyHandicaps ? '✓ Handicaps' : 'Handicaps'}
           </button>
 
-          {/* Vertical Separator */}
           <div className="system-separator" />
 
-          {/* Min Runners Slider Group */}
-          <div className="system-slider-group">
-            <label className="system-slider-label short-label">
+          {/* Min Runners Slider */}
+          <div className="system-slider-group" title="Minimum runners">
+            <label className="system-slider-label">
               Min: <strong>{activeMin}</strong>
             </label>
             <input
@@ -251,12 +250,9 @@ const SystemRacesModal = ({ races = [] }) => {
             />
           </div>
 
-          {/* Middle Separator Line */}
-          <div className="system-separator" />
-
-          {/* Max Runners Slider Group */}
-          <div className="system-slider-group">
-            <label className="system-slider-label short-label">
+          {/* Max Runners Slider */}
+          <div className="system-slider-group" title="Maximum runners">
+            <label className="system-slider-label">
               Max: <strong>{activeMax}</strong>
             </label>
             <input
@@ -271,13 +267,13 @@ const SystemRacesModal = ({ races = [] }) => {
               className="system-range-input"
             />
           </div>
-        </div>
 
-        {/* Second Row Container: Past Runs Filter */}
-        <div className="system-filter-row">
-          <div className="system-slider-group">
-            <label className="system-slider-label wide-label">
-              Min Past Runs required: <strong>{minPastRuns}</strong>
+          <div className="system-separator" />
+
+          {/* Min Past Runs */}
+          <div className="system-slider-group" title="Minimum past runs required">
+            <label className="system-slider-label">
+              Runs ≥ <strong>{minPastRuns}</strong>
             </label>
             <input
               type="range"
@@ -288,9 +284,11 @@ const SystemRacesModal = ({ races = [] }) => {
               className="system-range-input"
             />
           </div>
-          <div className="system-slider-group" style={{ marginLeft: '12px' }}>
-            <label className="system-slider-label wider-label">
-              Past runs lighter than today: <strong>{maxLighterPastRuns}</strong>{' '}
+
+          {/* Past runs lighter than today */}
+          <div className="system-slider-group" title="Max past runs lighter than today (-1 for off)">
+            <label className="system-slider-label">
+              Light ≤ <strong>{maxLighterPastRuns < 0 ? 'Off' : maxLighterPastRuns}</strong>
             </label>
             <input
               type="range"
@@ -301,25 +299,20 @@ const SystemRacesModal = ({ races = [] }) => {
               className="system-range-input"
             />
           </div>
-        </div>
-
-
-
-        {/* Fourth Row Container: Distance Beaten Previously & Distance Match Filters */}
-        <div className="system-filter-row">
-          <button
-            onClick={() => setDistBeatenEnabled(!distBeatenEnabled)}
-            className={`system-toggle-btn ${distBeatenEnabled ? 'active' : ''}`}
-            title="Toggle distance beaten filter"
-          >
-            {distBeatenEnabled ? '✓ Dist Beaten Active' : 'Dist Beaten (Off)'}
-          </button>
 
           <div className="system-separator" />
 
-          <div className="system-slider-group">
-            <label className="system-slider-label wider-label">
-              Distance beaten previously: <strong>{maxDistBeaten} lengths</strong>{' '}
+          {/* Distance Beaten Previously */}
+          <button
+            onClick={() => setDistBeatenEnabled(!distBeatenEnabled)}
+            className={`system-toggle-btn ${distBeatenEnabled ? 'active' : ''}`}
+            title="Toggle previous distance beaten filter"
+          >
+            {distBeatenEnabled ? '✓ Prev Btn' : 'Prev Btn'}
+          </button>
+          <div className="system-slider-group" title="Max distance beaten in previous race">
+            <label className="system-slider-label">
+              ≤ <strong>{maxDistBeaten}L</strong>
             </label>
             <input
               type="range"
@@ -337,19 +330,17 @@ const SystemRacesModal = ({ races = [] }) => {
 
           <div className="system-separator" />
 
+          {/* Distance Match */}
           <button
             onClick={() => setDistanceMatchEnabled(!distanceMatchEnabled)}
             className={`system-toggle-btn ${distanceMatchEnabled ? 'active' : ''}`}
             title="Toggle distance match filter"
           >
-            {distanceMatchEnabled ? '✓ Dist Match Active' : 'Dist Match (Off)'}
+            {distanceMatchEnabled ? '✓ Dist ±' : 'Dist ±'}
           </button>
-
-          <div className="system-separator" />
-
-          <div className="system-slider-group">
-            <label className="system-slider-label wider-label">
-              Distance match (± furlongs): <strong>{distanceMargin}</strong>{' '}
+          <div className="system-slider-group" title="Distance difference margin (furlongs)">
+            <label className="system-slider-label">
+              ± <strong>{distanceMargin}f</strong>
             </label>
             <input
               type="range"
@@ -363,11 +354,6 @@ const SystemRacesModal = ({ races = [] }) => {
               className="system-range-input"
             />
           </div>
-        </div>
-
-        {/* Match Count Footer */}
-        <div className="system-match-footer">
-          Showing {filteredRaces.length} of {races.length} races
         </div>
       </div>
 
