@@ -175,6 +175,11 @@
   font-weight: 600;
 }
 
+.system-horse-odds {
+  color: var(--text);
+  font-weight: 200;
+}
+
 .system-badge-weight {
   font-size: 0.8em;
   padding: 2px 7px;

@@ -412,6 +412,11 @@ const SystemRacesModal = ({ races = [] }) => {
                           </span>
                         )}
                         <strong className="system-horse-name">{horse.name}</strong>
+                        <strong className="system-horse-odds">
+                          {Array.isArray(horse.odds) && horse.odds.length > 0
+                            ? horse.odds[horse.odds.length - 1]
+                            : horse.odds || 'N/A'}
+                        </strong>
 
                         {horse.weight && (
                           <span className="system-badge-weight">
