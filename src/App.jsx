@@ -59,25 +59,8 @@ function App() {
   const [viewMode, setViewMode] = useState('single'); // 'all' (Grid) or 'single'
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
   const [raceNumberInput, setRaceNumberInput] = useState('1');
-  const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
   const [showNonRunnerNotifications, setShowNonRunnerNotifications] = useState(false);
   const [showSystem, setShowSystem] = useState(false);
-
-  useEffect(() => {
-    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
-    } else if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
-  };
 
   const {
     notifications,
