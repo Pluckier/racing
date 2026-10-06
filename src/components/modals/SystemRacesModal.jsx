@@ -158,9 +158,15 @@ const SystemRacesModal = ({ races = [] }) => {
         // Distance beaten previously filter
         let matchesDistBeaten = true;
         if (distBeatenEnabled) {
-          const prevRun = Array.isArray(horse.past) && horse.past.length > 0 ? horse.past[0] : null;
-          const prevDist = parseDistBeaten(prevRun);
-          matchesDistBeaten = prevDist !== null && prevDist <= maxDistBeaten;
+          if (!Array.isArray(horse.past) || horse.past.length === 0) {
+            matchesDistBeaten = false;
+          } else {
+            // Returns true if at least ONE past run was beaten by less than or equal to the maximum slider value
+            matchesDistBeaten = horse.past.some(run => {
+              const dist = parseDistBeaten(run);
+              return dist !== null && dist <= maxDistBeaten;
+            });
+          }
         }
 
         // Distance margin filter – checks if ANY past race is within the slider range
@@ -312,7 +318,7 @@ const SystemRacesModal = ({ races = [] }) => {
           </button>
           <div className="system-slider-group" title="Max distance beaten in previous race">
             <label className="system-slider-label">
-              ≤ <strong>{maxDistBeaten}L</strong>
+              ≤ <strong>{maxDistBeaten.toFixed(1)}L</strong>
             </label>
             <input
               type="range"
@@ -387,8 +393,13 @@ const SystemRacesModal = ({ races = [] }) => {
                   {race.horses.map((horse, horseIdx) => {
                     const totalRuns = Array.isArray(horse.past) ? horse.past.length : 0;
                     const lighterRuns = getLighterPastRunsCount(horse);
-                    const prevRun = totalRuns > 0 ? horse.past[0] : null;
-                    const prevDist = parseDistBeaten(prevRun);
+                    const matchingRunsCount = totalRuns > 0
+                      ? horse.past.filter(run => {
+                        const dist = parseDistBeaten(run);
+                        // If the slider filter is toggled off, count ALL runs with a valid distance record
+                        return dist !== null && (!distBeatenEnabled || dist <= maxDistBeaten);
+                      }).length
+                      : 0;
                     return (
                       <div key={horseIdx} className="system-horse-item">
                         {(horse.number || horse.draw) && (
@@ -412,13 +423,9 @@ const SystemRacesModal = ({ races = [] }) => {
                           {lighterRuns} lighter {lighterRuns === 1 ? 'run' : 'runs'}
                         </span>
 
-                        {prevRun && (
-                          <span className={`system-badge-dist-beaten ${prevDist === 0 ? 'won' : ''}`}>
-                            {prevDist === 0
-                              ? 'Won prev'
-                              : prevDist !== null
-                                ? `Prev btn: ${prevRun.distBeaten || prevDist}L`
-                                : 'Prev: unplaced'}
+                        {distBeatenEnabled && totalRuns > 0 && (
+                          <span className={`system-badge-dist-beaten ${matchingRunsCount > 0 ? 'won' : 'no-lighter'}`}>
+                            {matchingRunsCount} matching {matchingRunsCount === 1 ? 'run' : 'runs'} (≤ {maxDistBeaten}L)
                           </span>
                         )}
                       </div>
