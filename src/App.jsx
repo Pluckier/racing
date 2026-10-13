@@ -35,7 +35,7 @@ function speakRace(time, place) {
 
   try {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(`${time}, ${place}`);
+    const utterance = new SpeechSynthesisUtterance(`Post, time, ${time}, at, ${place}`);
     window.speechSynthesis.speak(utterance);
   } catch (err) {
     console.error('Speech synthesis failed:', err);
