@@ -532,6 +532,22 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
           <h2 className="race-title">
 
             <button
+              onClick={onToggleAlarm}
+              title={isAlarmEnabled ? "Alarm active (4 mins before start)" : "Click to set alarm for this race"}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                padding: 0,
+                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                filter: isAlarmEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.3)',
+                transform: isAlarmEnabled ? 'scale(1.15)' : 'scale(1)'
+              }}
+            >
+              🔔
+            </button>
+            <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
@@ -543,7 +559,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '1.2rem',
-                marginRight: '8px',
+                marginRight: '3px',
                 padding: 0,
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                 opacity: 0.6,
@@ -569,27 +585,10 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               ⚡
             </button>
 
+
             <a href={currentDateStr ? `#${currentDateStr}@${raceId}` : `#${raceId}`} className="race-title-link">
               {race.time} {race.place}
             </a>
-
-            <button
-              onClick={onToggleAlarm}
-              title={isAlarmEnabled ? "Alarm active (4 mins before start)" : "Click to set alarm for this race"}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1.2rem',
-                marginLeft: '10px',
-                padding: 0,
-                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                filter: isAlarmEnabled ? 'drop-shadow(0 0 5px #ffcc00) brightness(1.1)' : 'grayscale(1) opacity(0.3)',
-                transform: isAlarmEnabled ? 'scale(1.15)' : 'scale(1)'
-              }}
-            >
-              🔔
-            </button>
 
           </h2>
           <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners}) FORM:{finalDisplay}</h5>

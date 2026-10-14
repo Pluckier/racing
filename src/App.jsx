@@ -35,12 +35,38 @@ function speakRace(time, place) {
 
   try {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(`Post, time, ${time}, at, ${place}`);
+    const utterance = new SpeechSynthesisUtterance(`Post time, ${time}, at, ${place}`);
+
+    // CRITICAL FIX 1: Explicitly tell the engine to use US English if specific voice fails
+    utterance.lang = 'en-US';
+
+    // Fetch the loaded system voices
+    const voices = window.speechSynthesis.getVoices();
+
+    // Option A: Target a specific high-quality voice directly by name
+    let selectedVoice = voices.find(voice => voice.name === 'Google US English');
+
+    // Option B: Fallback to a native Microsoft US voice if Google isn't available
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => voice.name === 'Microsoft Zira - English (United States)');
+    }
+
+    // Option C: Generic fallback for any available US English voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => voice.lang === 'en-US' || voice.lang.startsWith('en-US'));
+    }
+
+    // Apply the voice if we found an American one
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
     window.speechSynthesis.speak(utterance);
   } catch (err) {
     console.error('Speech synthesis failed:', err);
   }
 }
+
 
 function playAudioWithRetry(src, retries = 3, delay = 1000, onEnded = null) {
   const audio = new Audio(src);

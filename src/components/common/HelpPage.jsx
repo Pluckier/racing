@@ -301,7 +301,7 @@ const HelpPage = ({ theme: currentTheme }) => {
             {/* Version footer */}
             <div className="help-version">
                 <p>Version: 3.0</p>
-                <p>Last Updated: 07 Aug 2026 00:51 BST</p>
+                <p>Last Updated: 14 Oct 2026 23:17 BST</p>
                 <p>
                     Visit our <a href="https://pluckier.github.io/tips" target="_blank" rel="noopener noreferrer">Tips Site</a>
                 </p>
