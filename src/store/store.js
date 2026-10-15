@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { HOT_TRAINERS, HOT_JOCKEYS, HOT_OWNERS } from '../utils/racingLogic';
+import { HOT_TRAINERS, HOT_JOCKEYS, HOT_OWNERS } from '../utils/racingLogic.js';
 
 // Internal parser matching your component logic exactly
 const parseFoaled = (str) => {

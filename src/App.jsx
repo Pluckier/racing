@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthGuard from './components/security/AuthGuard';
 import { useAppState } from './hooks/useAppState';
 import { useNonRunnerNotifications } from './hooks/useNonRunnerNotifications';
+import { useAlarms } from './hooks/useAlarms';
+import { useCountdown } from './hooks/useCountdown';
+import { useHashSync } from './hooks/useHashSync';
 import SkeletonRaceCard from './components/skeletons/SkeletonRaceCard';
 import SkeletonRaceTimeline from './components/skeletons/SkeletonRaceTimeline';
 import RaceTimeline from './components/race/RaceTimeline';
@@ -16,118 +19,32 @@ import FilterBar from './components/filters/FilterBar';
 import RaceGrid from './components/race/RaceGrid';
 import RaceCard from './components/race/Racecard';
 import Chatter from './components/chat/Chatter';
-import { useStore } from './store/store';
 import NonRunnerNotifications from './components/layout/NonRunnerNotifications';
-import TrackWorker from './components/obs/TrackWorker'; // Import TrackWorker
-import SearchOverlay from './components/layout/SearchOverlay'; // Import SearchOverlay
+import TrackWorker from './components/obs/TrackWorker';
+import SearchOverlay from './components/layout/SearchOverlay';
 import './css/App.css';
 import './css/Notifications.css';
 import HelpPage from './components/common/HelpPage';
-import AntiSpamWrapper from './components/security/AntiSpamWrapper'; // Import AntiSpamWrapper
-
-
-
-function speakRace(time, place) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-    console.warn('Web Speech API (speechSynthesis) is not supported in this browser.');
-    return;
-  }
-
-  try {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(`Post time, ${time}, at, ${place}`);
-
-    // CRITICAL FIX 1: Explicitly tell the engine to use US English if specific voice fails
-    utterance.lang = 'en-US';
-
-    // Fetch the loaded system voices
-    const voices = window.speechSynthesis.getVoices();
-
-    // Option A: Target a specific high-quality voice directly by name
-    let selectedVoice = voices.find(voice => voice.name === 'Google US English');
-
-    // Option B: Fallback to a native Microsoft US voice if Google isn't available
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.name === 'Microsoft Zira - English (United States)');
-    }
-
-    // Option C: Generic fallback for any available US English voice
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.lang === 'en-US' || voice.lang.startsWith('en-US'));
-    }
-
-    // Apply the voice if we found an American one
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-    }
-
-    window.speechSynthesis.speak(utterance);
-  } catch (err) {
-    console.error('Speech synthesis failed:', err);
-  }
-}
-
-
-function playAudioWithRetry(src, retries = 3, delay = 1000, onEnded = null) {
-  const audio = new Audio(src);
-
-  if (onEnded) {
-    audio.addEventListener('ended', onEnded, { once: true });
-  }
-
-  audio.play().catch((error) => {
-    // Check if we have retries left
-    if (retries > 0) {
-      console.warn(`Audio playback failed. Retrying in ${delay}ms... (${retries} retries left)`, error);
-
-      setTimeout(() => {
-        // Appending a timestamp forces the browser to bypass any broken connections or bad cache
-        const freshSrc = `${src}?t=${Date.now()}`;
-        playAudioWithRetry(freshSrc, retries - 1, delay * 1.5, onEnded);
-      }, delay);
-    } else {
-      console.error(`Audio failed to play after multiple attempts for source: ${src}`);
-      if (onEnded) {
-        onEnded();
-      }
-    }
-  });
-}
+import AntiSpamWrapper from './components/security/AntiSpamWrapper';
 
 function App() {
   const state = useAppState();
-  const [refreshMinutes, setRefreshMinutes] = useState(15);
-  const aiNames = { 0: 0, 1: 1, 2: 2 };
+  const refreshMinutes = useCountdown(state.races, 15);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-
-  // Handle the countdown timer for the Auto-Refresh UI
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setRefreshMinutes(prev => (prev > 1 ? prev - 1 : 15));
-    }, 60000); // Update every minute
-    return () => clearInterval(timer);
-  }, []);
-
-  // Reset the countdown whenever the race data is refreshed/updated
-  useEffect(() => {
-    setRefreshMinutes(15);
-  }, [state.races]);
+  const [viewMode, setViewMode] = useState('single'); // 'all' (Grid) or 'single'
+  const [showNonRunnerNotifications, setShowNonRunnerNotifications] = useState(false);
+  const [showSystem, setShowSystem] = useState(false);
 
   // Set default filters on mount: Value (⭐), Fiddle (🎻), and Select (🎯)
+  const { setFilters } = state;
   useEffect(() => {
-    state.setFilters(prev => ({
+    setFilters(prev => ({
       ...prev,
       value: true,
       fiddle: true,
       select: true
     }));
-  }, []);
-
-  const [viewMode, setViewMode] = useState('single'); // 'all' (Grid) or 'single'
-  const [activeRaceIndex, setActiveRaceIndex] = useState(0);
-  const [raceNumberInput, setRaceNumberInput] = useState('1');
-  const [showNonRunnerNotifications, setShowNonRunnerNotifications] = useState(false);
-  const [showSystem, setShowSystem] = useState(false);
+  }, [setFilters]);
 
   const {
     notifications,
@@ -139,198 +56,36 @@ function App() {
     clearAll,
   } = useNonRunnerNotifications(state.races, state.displayDate);
 
-  // Auto-close the panel once the user has dealt with every notification,
-  // so new non-runners from the next refresh won't appear without a click.
-  useEffect(() => {
-    if (notifications.length === 0) {
-      setShowNonRunnerNotifications(false);
-    }
-  }, [notifications.length]);
+  // Auto-close panel once user has dealt with every notification
+  if (notifications.length === 0 && showNonRunnerNotifications) {
+    setShowNonRunnerNotifications(false);
+  }
 
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
   const currentDateStr = state.displayDate instanceof Date
     ? `${state.displayDate.getFullYear()}-${String(state.displayDate.getMonth() + 1).padStart(2, '0')}-${String(state.displayDate.getDate()).padStart(2, '0')}`
     : state.displayDate;
 
-  const enabledAlarms = useStore((state) => state.alarms);
-  const addAlarm = useStore((state) => state.addAlarm);
-  const removeAlarm = useStore((state) => state.removeAlarm);
+  const { enabledAlarms, toggleAlarm, isAlarmEnabled } = useAlarms(state.races);
 
-  const toggleAlarm = (raceId) => {
-    if (enabledAlarms.includes(raceId)) {
-      removeAlarm(raceId);
-    } else {
-      addAlarm(raceId);
-    }
-  };
-
-
-
-  // Global timer to check for upcoming races with enabled alarms
-  useEffect(() => {
-    // FIXED: Arrays use .length, not .size
-    if (enabledAlarms.length === 0) return;
-
-    const interval = setInterval(() => {
-      const now = new Date();
-
-      state.races.forEach(race => {
-        const id = `${race.time}${race.place.replace(/\s+/g, '')}`;
-
-        // 1. Is this alarm actively enabled by the user in the Zustand store?
-        if (enabledAlarms.includes(id)) {
-          const [hours, minutes] = race.time.split(':').map(Number);
-          const raceDate = new Date();
-          raceDate.setHours(hours, minutes, 0, 0);
-
-          const triggerTime = raceDate.getTime() - 240000; // 4 minutes before
-
-          // 2. Are we inside the 2-minute alarm trigger window?
-          if (now.getTime() >= triggerTime && now.getTime() < raceDate.getTime()) {
-
-            // 3. Play the audio file with automatic retry logic, then announce race details
-            playAudioWithRetry('music.mp3', 3, 1000, () => {
-              speakRace(race.time, race.place);
-            });
-
-            // 4. FIXED: Instantly remove it from the store as requested.
-            removeAlarm(id);
-          }
-          else if (now.getTime() >= raceDate.getTime()) {
-            removeAlarm(id);
-          }
-        }
-      });
-    }, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [enabledAlarms, state.races, removeAlarm]);
-
-  // Keep refs updated so listeners always access latest values without stale closures
-  const filteredRacesRef = useRef(state.filteredRaces);
-  filteredRacesRef.current = state.filteredRaces;
-
-  const currentDateStrRef = useRef(currentDateStr);
-  currentDateStrRef.current = currentDateStr;
-
-  const setDisplayDateRef = useRef(state.setDisplayDate);
-  setDisplayDateRef.current = state.setDisplayDate;
-
-  const viewModeRef = useRef(viewMode);
-  viewModeRef.current = viewMode;
-
-  const loadingRef = useRef(state.loading);
-  loadingRef.current = state.loading;
-
-  // Listen for hash changes (e.g. user navigation, timeline clicks, Prev/Next)
-  useEffect(() => {
-    const handleHashSync = () => {
-      if (loadingRef.current) return;
-
-      const hash = decodeURIComponent(window.location.hash.substring(1));
-      const races = filteredRacesRef.current || [];
-      if (races.length === 0) return;
-
-      let raceId = hash;
-      if (hash.includes('@')) {
-        const [datePart, idPart] = hash.split('@');
-        raceId = idPart;
-
-        if (datePart && datePart !== currentDateStrRef.current) {
-          const [y, m, d] = datePart.split('-').map(Number);
-          if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-            setDisplayDateRef.current(new Date(y, m - 1, d));
-            return;
-          }
-        }
-      }
-
-      const index = races.findIndex(r =>
-        `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
-      );
-
-      if (index !== -1) {
-        setActiveRaceIndex(index);
-      }
-
-      if (viewModeRef.current === 'all') {
-        setTimeout(() => {
-          const el = document.getElementById(raceId);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 100);
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashSync);
-    return () => window.removeEventListener('hashchange', handleHashSync);
-  }, []);
-
-  // Sync active race index and hash whenever filteredRaces or currentDateStr updates
-  useEffect(() => {
-    if (state.loading || state.filteredRaces.length === 0) return;
-
-    const hash = decodeURIComponent(window.location.hash.substring(1));
-    let raceId = hash;
-    if (hash.includes('@')) {
-      const [, idPart] = hash.split('@');
-      raceId = idPart;
-    }
-
-    const foundIndex = state.filteredRaces.findIndex(r =>
-      `${r.time}${r.place.replace(/\s+/g, '')}` === raceId
-    );
-
-    if (foundIndex !== -1) {
-      setActiveRaceIndex(foundIndex);
-    } else {
-      // If current hash is not in filtered races (e.g. venue filter selected, or initial load),
-      // choose the upcoming race (if today) or the first available race
-      let selectedRace = state.filteredRaces[0];
-      let selectedIndex = 0;
-
-      const now = new Date();
-      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-      if (currentDateStr === todayStr) {
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const upcomingIdx = state.filteredRaces.findIndex(r => {
-          if (!r.time) return false;
-          const [hours, minutes] = r.time.split(':').map(Number);
-          return (hours * 60 + minutes) >= currentMinutes;
-        });
-        if (upcomingIdx !== -1) {
-          selectedRace = state.filteredRaces[upcomingIdx];
-          selectedIndex = upcomingIdx;
-        }
-      }
-
-      setActiveRaceIndex(selectedIndex);
-      const targetId = `${selectedRace.time}${selectedRace.place.replace(/\s+/g, '')}`;
-      window.location.hash = `${currentDateStr}@${targetId}`;
-    }
-  }, [state.filteredRaces, currentDateStr, state.loading]);
-
-  useEffect(() => {
-    setRaceNumberInput(String(activeRaceIndex + 1));
-  }, [activeRaceIndex]);
-
-  const jumpToRaceNumber = (value) => {
-    const num = parseInt(value, 10);
-    if (isNaN(num) || num < 1 || num > state.filteredRaces.length) {
-      setRaceNumberInput(String(activeRaceIndex + 1));
-      return;
-    }
-    const race = state.filteredRaces[num - 1];
-    window.location.hash = `${currentDateStr}@${race.time}${race.place.replace(/\s+/g, '')}`;
-  };
+  const {
+    activeRaceIndex,
+    raceNumberInput,
+    setRaceNumberInput,
+    jumpToRaceNumber
+  } = useHashSync({
+    filteredRaces: state.filteredRaces,
+    loading: state.loading,
+    currentDateStr,
+    setDisplayDate: state.setDisplayDate,
+    viewMode
+  });
 
   // 🟢 SET TO 'false' TO DISABLE AUTH GUARD
   const AUTH_ACTIVE = false;
 
-  // 1. Define your UI in a single block
-  const content = (auth = {}) => {
+  // Define UI in a single block
+  const content = () => {
     const activeRace = state.filteredRaces[activeRaceIndex] || state.filteredRaces[0];
     const activeRaceId = activeRace ? `${activeRace.time}${activeRace.place.replace(/\s+/g, '')}` : null;
 
@@ -399,7 +154,6 @@ function App() {
                   </button>
                 </div>
 
-
                 <button
                   onClick={() => setShowSystem(true)}
                   className="filter-btn"
@@ -455,8 +209,7 @@ function App() {
           <div className="full-page-center">
             <p className="error">Error: {state.error}</p>
             <button className="filter-btn error-retry-btn" onClick={() => {
-              // Clear the URL state (hash and search) so synchronization doesn't pull us back to the old date
-
+              // Clear URL state (hash and search) so synchronization doesn't pull back to old date
               window.history.replaceState(null, '', window.location.pathname);
               state.setDisplayDate(new Date());
             }}>
@@ -473,7 +226,6 @@ function App() {
                   style={{
                     flex: 1,
                     padding: '21px 0',
-                    /* Adds conditional visual styling */
                     opacity: activeRaceIndex === 0 ? 0.5 : 1,
                     cursor: activeRaceIndex === 0 ? 'not-allowed' : 'pointer'
                   }}
@@ -493,7 +245,7 @@ function App() {
                   style={{
                     borderRadius: '25px',
                     padding: '6px 18px',
-                    minWidth: '10viewMode0px'
+                    minWidth: '100px'
                   }}
                 >
                   {viewMode === 'all' ? 'One 👀' : 'All 👀'}
@@ -532,7 +284,6 @@ function App() {
                   style={{
                     flex: 1,
                     padding: '21px 0',
-                    /* Matches the same visual disabled states */
                     opacity: activeRaceIndex >= state.filteredRaces.length - 1 ? 0.5 : 1,
                     cursor: activeRaceIndex >= state.filteredRaces.length - 1 ? 'not-allowed' : 'pointer'
                   }}
@@ -583,7 +334,7 @@ function App() {
                     highlightFiddles={state.filters.fiddle}
                     highlightValues={state.filters.value}
                     highlightSelects={state.filters.select}
-                    isAlarmEnabled={enabledAlarms.includes(activeRaceId)}
+                    isAlarmEnabled={isAlarmEnabled(activeRaceId)}
                     onToggleAlarm={() => toggleAlarm(activeRaceId)}
                     viewMode={viewMode}
                     currentDateStr={currentDateStr}
@@ -633,7 +384,7 @@ function App() {
         content()
       ) : (
         <AuthGuard>
-          {(authData) => content(authData)}
+          {() => content()}
         </AuthGuard>
       )}
     </AntiSpamWrapper>
