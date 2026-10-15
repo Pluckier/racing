@@ -1,7 +1,40 @@
 import { useRef, useEffect, useCallback } from 'react';
 
+// Shared fallback cache for the selected UK male voice across the module
+let cachedMaleVoice = null;
+
 /**
- * Speaks the race post time and venue using Web Speech API with American voice fallbacks.
+ * Searches for and caches the Google UK English Male voice or a British male alternative.
+ */
+function getMaleUKVoice() {
+  if (cachedMaleVoice) return cachedMaleVoice;
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length === 0) return null;
+
+  // Tiered fallback strategy targeting British MALE voices
+  const voice =
+    // Option A: Your exact preferred Google UK Male voice
+    voices.find(v => v.name === 'Google UK English Male') ||
+    // Option B: Standard Microsoft Windows Male UK voice (George)
+    voices.find(v => v.name === 'Microsoft George - English (United Kingdom)') ||
+    // Option C: Any UK voice containing the keyword "male" (case-insensitive)
+    voices.find(v =>
+      (v.lang === 'en-GB' || v.lang.startsWith('en-GB')) &&
+      v.name.toLowerCase().includes('male')
+    ) ||
+    // Option D: System default UK voice if no explicit male voice is found
+    voices.find(v => v.lang === 'en-GB' || v.lang.startsWith('en-GB'));
+
+  if (voice) {
+    cachedMaleVoice = voice;
+  }
+  return voice;
+}
+
+/**
+ * Speaks the race post time and venue using Web Speech API with British male voice fallbacks.
  *
  * @param {string} time - Race post time (e.g. "14:30")
  * @param {string} place - Racecourse venue (e.g. "Ascot")
@@ -16,26 +49,10 @@ export function speakRace(time, place) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(`Post time, ${time}, at, ${place}`);
 
-    // Explicitly tell the engine to use US English if specific voice fails
-    utterance.lang = 'en-US';
+    // Tell the engine to prefer British English rules if the specific voice fails
+    utterance.lang = 'en-GB';
 
-    // Fetch the loaded system voices
-    const voices = window.speechSynthesis.getVoices();
-
-    // Option A: Target a specific high-quality voice directly by name
-    let selectedVoice = voices.find(voice => voice.name === 'Google US English');
-
-    // Option B: Fallback to a native Microsoft US voice if Google isn't available
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.name === 'Microsoft Zira - English (United States)');
-    }
-
-    // Option C: Generic fallback for any available US English voice
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.lang === 'en-US' || voice.lang.startsWith('en-US'));
-    }
-
-    // Apply the voice if we found an American one
+    const selectedVoice = getMaleUKVoice();
     if (selectedVoice) {
       utterance.voice = selectedVoice;
     }
@@ -72,7 +89,6 @@ export function playAudioWithRetry(src, retries = 3, delay = 1000, onEnded = nul
       console.warn(`Audio playback failed. Retrying in ${delay}ms... (${retries} retries left)`, error);
 
       setTimeout(() => {
-        // Appending a timestamp forces the browser to bypass any broken connections or bad cache
         const freshSrc = `${src}?t=${Date.now()}`;
         playAudioWithRetry(freshSrc, retries - 1, delay * 1.5, onEnded);
       }, delay);
@@ -92,6 +108,25 @@ export function playAudioWithRetry(src, retries = 3, delay = 1000, onEnded = nul
  */
 export function useAudioAlarms() {
   const timeoutsRef = useRef([]);
+
+  // Initialise/update speech synthesis voices as soon as they become ready in the browser
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    // Trigger voice discovery immediately
+    getMaleUKVoice();
+
+    // Re-evaluate when Chrome/Firefox signals that voices have populated
+    window.speechSynthesis.onvoiceschanged = () => {
+      getMaleUKVoice();
+    };
+
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, []);
 
   const safePlayAudio = useCallback((src, retries = 3, delay = 1000, onEnded = null) => {
     function attemptPlay(currentSrc, remainingRetries, currentDelay) {
