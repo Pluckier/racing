@@ -10,13 +10,7 @@ const NotificationItem = ({ notification, onAccept, onReject }) => {
         </span>
       </div>
       <div className="nr-notification-actions">
-        <button
-          className="nr-action-btn nr-accept-btn"
-          onClick={() => onAccept(notification.id)}
-          title="Confirm this horse is a non-runner"
-        >
-          ✅ Accept NR
-        </button>
+
         <button
           className="nr-action-btn nr-reject-btn"
           onClick={() => onReject(notification.id)}
@@ -24,6 +18,15 @@ const NotificationItem = ({ notification, onAccept, onReject }) => {
         >
           ❌ Keep Active
         </button>
+
+        <button
+          className="nr-action-btn nr-accept-btn"
+          onClick={() => onAccept(notification.id)}
+          title="Confirm this horse is a non-runner"
+        >
+          ✅ Accept NR
+        </button>
+
       </div>
     </div>
   );
