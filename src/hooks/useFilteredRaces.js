@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { augmentRaceWithStats } from '../utils/racingLogic';
+import { augmentRaceWithStats, isNiceRace } from '../utils/racingLogic';
 import { useStore } from '../store/store';
 
 export const useFilteredRaces = (races, filters) => {
@@ -22,10 +22,7 @@ export const useFilteredRaces = (races, filters) => {
         if (!race?.time) return false;
 
         const matchesPlace = filters.places.length === 0 || filters.places.includes(race.place);
-        const isHandicap = race.detail?.toLowerCase().includes('handicap') || race.detail?.toLowerCase().includes('nursery');
-        const isClass1 = race.detail?.toLowerCase().includes('class 1') || race.detail?.toLowerCase().includes('class 2');
-        const hasMinRunners = (race.horses?.length || 0) >= 8;
-        const matchesTricast = !filters.tricast || ((isHandicap || isClass1) && hasMinRunners);
+        const matchesTricast = !filters.tricast || isNiceRace(race);
 
         return matchesPlace && matchesTricast;
       });

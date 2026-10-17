@@ -89,7 +89,7 @@ export const isFiddleHorse = (horse, activeTrainersList = null, activeJockeysLis
  */
 export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null, activeJockeysList = null, activeOwnersList = null, activeFoaledList = null, bloodlineMode = 'or', selectedDams = null, selectedBroodmareSires = null, selectedSires = null) => {
   const formMatch = race.detail?.match(/FORM\s+(\d+)%/i);
-  const formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
+  const _formPercentage = formMatch ? parseInt(formMatch[1], 10) : 0;
 
   const activeHorses = (race.horses || []).filter(h => {
     const lastOdd = h.odds?.[h.odds.length - 1];
@@ -132,3 +132,20 @@ export const augmentRaceWithStats = (race, aiMode = 0, activeTrainersList = null
     })
   };
 };
+
+/**
+ * Determines whether a race qualifies as a "Nice" race:
+ * Tricasts & Class 1 & 2 with 8+ runners (Handicap, Nursery, Class 1, or Class 2).
+ *
+ * @param {Object} race
+ * @returns {boolean}
+ */
+export const isNiceRace = (race) => {
+  if (!race) return false;
+  const detail = String(race.detail || '').toLowerCase();
+  const isHandicap = detail.includes('handicap') || detail.includes('nursery');
+  const isClass1Or2 = detail.includes('class 1') || detail.includes('class 2');
+  const hasMinRunners = (race.horses?.length || 0) >= 8;
+  return Boolean((isHandicap || isClass1Or2) && hasMinRunners);
+};
+

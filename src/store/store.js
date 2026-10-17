@@ -67,9 +67,22 @@ export const useStore = create(
                 alarms: state.alarms.includes(id) ? state.alarms : [...state.alarms, id]
             })),
 
+            addAlarms: (ids) => set((state) => {
+                if (!Array.isArray(ids) || ids.length === 0) return state;
+                const toAdd = ids.filter(id => id && !state.alarms.includes(id));
+                if (toAdd.length === 0) return state;
+                return { alarms: [...state.alarms, ...toAdd] };
+            }),
+
             removeAlarm: (id) => set((state) => ({
                 alarms: state.alarms.filter(alarmId => alarmId !== id)
             })),
+
+            removeAlarms: (ids) => set((state) => {
+                if (!Array.isArray(ids) || ids.length === 0) return state;
+                const idsSet = new Set(ids);
+                return { alarms: state.alarms.filter(alarmId => !idsSet.has(alarmId)) };
+            }),
 
             clearAlarms: () => set({ alarms: [] }),
 
