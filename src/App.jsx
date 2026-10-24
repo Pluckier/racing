@@ -56,10 +56,25 @@ function App() {
     clearAll,
   } = useNonRunnerNotifications(state.races, state.displayDate);
 
-  // Auto-close panel once user has dealt with every notification
-  if (notifications.length === 0 && showNonRunnerNotifications) {
+  // Event handlers to auto-close panel once user has dealt with all notifications
+  const handleAcceptNotification = (id) => {
+    acceptNotification(id);
+    if (notifications.length <= 1) {
+      setShowNonRunnerNotifications(false);
+    }
+  };
+
+  const handleRejectNotification = (id) => {
+    rejectNotification(id);
+    if (notifications.length <= 1) {
+      setShowNonRunnerNotifications(false);
+    }
+  };
+
+  const handleClearAllNotifications = () => {
+    clearAll();
     setShowNonRunnerNotifications(false);
-  }
+  };
 
   // Local-safe date string generation (ISO strings use UTC and can cause off-by-one day errors)
   const currentDateStr = state.displayDate instanceof Date
@@ -369,9 +384,9 @@ function App() {
         {showNonRunnerNotifications && (
           <NonRunnerNotifications
             notifications={notifications}
-            onAccept={acceptNotification}
-            onReject={rejectNotification}
-            onClearAll={clearAll}
+            onAccept={handleAcceptNotification}
+            onReject={handleRejectNotification}
+            onClearAll={handleClearAllNotifications}
           />
         )}
       </Layout>
