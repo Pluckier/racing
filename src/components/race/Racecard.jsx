@@ -192,14 +192,14 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     [race.horses, sortBy, aiMode, wValue, dValue, gValue, approvedNonRunners, rejectedNonRunners, pendingNonRunners]
   );
 
-  const getFavouredSelections = (horses) => {
+  const getFavouredSelections = (race, horses) => {
     // Filter active runners first
     const activeRunners = (horses || []).filter(h => {
       const lastOdd = h.odds?.[h.odds.length - 1];
       return lastOdd !== "null" && lastOdd !== "NR" && !isHorseNR(h);
     });
 
-    const totalRunners = activeRunners.length;
+    const totalRunners = race?.runners ?? 0;
     if (totalRunners === 0) return [];
 
     // Determine the count based on the number of active runners today
@@ -322,7 +322,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const showSuggestions = (selectedRace) => {
     const targetRace = selectedRace || race;
     setActiveChartRace(targetRace);
-    const list = getFavouredSelections(targetRace.horses, 3);
+    const list = getFavouredSelections(targetRace, targetRace.horses, 3);
     setSuggestions(list);
     setIsOpen(true);
   };
@@ -429,7 +429,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       const prevRace = allRaces[currentIndex - 1];
       setActiveChartRace(prevRace);
       if (isOpen) {
-        setSuggestions(getFavouredSelections(prevRace.horses, 3));
+        setSuggestions(getFavouredSelections(prevRace, prevRace.horses, 3));
       }
       window.location.hash = `${currentDateStr}@${prevRace.time}${prevRace.place.replace(/\s+/g, '')}`;
     }
@@ -440,7 +440,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       const nextRace = allRaces[currentIndex + 1];
       setActiveChartRace(nextRace);
       if (isOpen) {
-        setSuggestions(getFavouredSelections(nextRace.horses, 3));
+        setSuggestions(getFavouredSelections(nextRace, nextRace.horses, 3));
       }
       window.location.hash = `${currentDateStr}@${nextRace.time}${nextRace.place.replace(/\s+/g, '')}`;
     }
