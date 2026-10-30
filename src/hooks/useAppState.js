@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRaces } from './useRaces';
 import { useTheme } from './useTheme';
 import { useFilteredRaces } from './useFilteredRaces';
-import { useAutoScroll } from './useAutoScroll';
 import { formatDisplayDateTime } from '../utils/dateUtils';
 import { useStore } from '../store/store';
 
@@ -80,8 +79,6 @@ export function useAppState() {
   );
 
   const filteredRaces = useFilteredRaces(races, filters);
-
-  useAutoScroll(loading, filteredRaces);
 
   return {
     displayDate, setDisplayDate,

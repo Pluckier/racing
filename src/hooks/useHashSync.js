@@ -62,7 +62,7 @@ export function useHashSync({
   filteredRaces = [],
   loading = false,
   currentDateStr = '',
-  setDisplayDate = () => {},
+  setDisplayDate = () => { },
   viewMode = 'single'
 }) {
   const [activeRaceIndex, setActiveRaceIndex] = useState(0);
