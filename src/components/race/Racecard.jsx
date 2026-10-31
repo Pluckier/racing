@@ -524,6 +524,11 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
 
   const currentConfig = aiButtonConfig[aiMode] || aiButtonConfig[0];
 
+  const detailLength = (getRaceIcon(race) + " " + race.detail + " " + race.going + " Runners " + race.runners + " FORM: " + finalDisplay).length || 0;
+  const dynamicFontSize = detailLength > 150
+    ? '11px'  // Fits massive text strings neatly on 2 lines
+    : '15px';
+
 
   return (
     <div id={raceId} className="race-card">
@@ -591,7 +596,7 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
             </a>
 
           </h2>
-          <h5 className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners}) FORM:{finalDisplay}</h5>
+          <h5 style={{ fontSize: dynamicFontSize }} className="race-detail">{getRaceIcon(race)} {race.detail} {race.going} (Runners {race.runners}) FORM:{finalDisplay}</h5>
         </div>
         <div className="race-controls">
           <div style={{
