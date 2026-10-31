@@ -525,9 +525,10 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
   const currentConfig = aiButtonConfig[aiMode] || aiButtonConfig[0];
 
   const detailLength = (getRaceIcon(race) + " " + race.detail + " " + race.going + " Runners " + race.runners + " FORM: " + finalDisplay).length || 0;
-  const dynamicFontSize = detailLength > 150
-    ? '11px'  // Fits massive text strings neatly on 2 lines
-    : '15px';
+  const dynamicFontSize =
+    detailLength > 200 ? '10px' :  // For absolute monsters (212+ chars) to stay on 2 lines
+      detailLength > 150 ? '11px' : // For standard long text (150-210 chars)
+        '15px';   // Your crisp standard layout text size
 
 
   return (
