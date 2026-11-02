@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { getPaletteSync } from 'colorthief';
 import { LINE_COLORS } from '../../constants/chartConstants';
 
 // Horse coat color palette based on breeding
@@ -43,6 +44,62 @@ const lightenColor = (hex, percent = 25) => {
     const g = Math.min(255, Math.floor(((num >> 8) & 255) + (255 - ((num >> 8) & 255)) * (percent / 100)));
     const b = Math.min(255, Math.floor((num & 255) + (255 - (num & 255)) * (percent / 100)));
     return `rgb(${r}, ${g}, ${b})`;
+};
+
+// Helper to extract primary, sleeve, and cap colors from a silks Image using colorthief
+export const extractSilksColors = (img, fallbackColor) => {
+    const fallback = fallbackColor || '#4363d8';
+    if (!img || !img.complete || img.naturalWidth === 0) {
+        return {
+            shirtCol: fallback,
+            sleeveCol: lightenColor(fallback, 28),
+            capCol: fallback
+        };
+    }
+
+    try {
+        const palette = getPaletteSync(img, { colorCount: 4, quality: 5 });
+        if (palette && palette.length > 0) {
+            const shirtCol = palette[0].hex();
+            const sleeveCol = palette[1] ? palette[1].hex() : lightenColor(shirtCol, 28);
+            const capCol = palette[2] ? palette[2].hex() : (palette[1] ? palette[1].hex() : shirtCol);
+            return { shirtCol, sleeveCol, capCol };
+        }
+    } catch {
+        // Fall back gracefully if canvas is tainted by CORS or image invalid
+    }
+
+    return {
+        shirtCol: fallback,
+        sleeveCol: lightenColor(fallback, 28),
+        capCol: fallback
+    };
+};
+
+// Generates a tinted HTMLImageElement from raw SVG with horse coat and jockey silks colors
+export const createTintedHorseSvg = (rawSvg, coat, silksColors) => {
+    const coatBody = coat?.body || HORSE_COAT_COLORS.bay.body;
+    const coatLeg = coat?.leg || coat?.body || HORSE_COAT_COLORS.bay.body;
+    const coatMane = coat?.mane || HORSE_COAT_COLORS.bay.mane;
+
+    const { shirtCol, sleeveCol, capCol } = silksColors;
+
+    const tinted = rawSvg
+        // 1. Horse coat body, legs, mane
+        .replace(/fill="#C1694F"/gi, `fill="${coatBody}"`)
+        .replace(/fill="#8A4B38"/gi, `fill="${coatLeg}"`)
+        .replace(/fill="#623120"/gi, `fill="${coatLeg}"`)
+        .replace(/fill="#292F33"/gi, `fill="${coatMane}"`)
+        // 2. Jockey shirt, sleeve highlight, cap, and blinkers with the silks color
+        .replace(/fill="#5C913B"/gi, `fill="${shirtCol}"`)
+        .replace(/fill="#A6D388"/gi, `fill="${sleeveCol}"`)
+        .replace(/fill="#9266CC"/gi, `fill="${capCol}"`);
+
+    const blob = new Blob([tinted], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const tintedImg = new Image();
+    tintedImg.src = url;
+    return tintedImg;
 };
 
 // Helper to parse horse coat color from breeding string (e.g. "gelding b", "gelding ch", "filly gr")
@@ -180,6 +237,8 @@ export default function HorseRaceSimulator({
     const silksImagesRef = useRef(new Map());
     const defaultHorseImgRef = useRef(null);
     const horseSvgCacheRef = useRef(new Map());
+    const silksColorsRef = useRef(new Map());
+    const rawHorseSvgRef = useRef(null);
 
     const [raceState, setRaceState] = useState('ready'); // ready, racing, finished
     const [statusMessage, setStatusMessage] = useState('');
@@ -293,7 +352,7 @@ export default function HorseRaceSimulator({
         return processed;
     }, [race, horses, time, place, pendingNonRunners, approvedNonRunners, rejectedNonRunners]);
 
-    // Preload silks images asynchronously and cache them
+    // Preload silks images asynchronously, extract palette via colorthief, and cache tinted horse SVGs
     useEffect(() => {
         fieldData.forEach((h) => {
             if (h.silks && !silksImagesRef.current.has(h.silks)) {
@@ -302,7 +361,24 @@ export default function HorseRaceSimulator({
                 img.src = h.silks;
                 img.onload = () => {
                     silksImagesRef.current.set(h.silks, img);
-                    if (canvasRef.current && (raceState === 'ready' || raceState === 'finished')) {
+
+                    // Extract colors with colorthief
+                    const silksColors = extractSilksColors(img, h.color);
+                    silksColorsRef.current.set(h.silks, silksColors);
+
+                    // If raw horse.svg has already been fetched, generate/update tinted variant
+                    if (rawHorseSvgRef.current) {
+                        const cacheKey = `${h.id}_${h.coat?.code || 'b'}_${h.color}`;
+                        const coat = h.coat || HORSE_COAT_COLORS.bay;
+                        const tintedImg = createTintedHorseSvg(rawHorseSvgRef.current, coat, silksColors);
+                        tintedImg.onload = () => {
+                            horseSvgCacheRef.current.set(cacheKey, tintedImg);
+                            if (canvasRef.current && (raceState === 'ready' || raceState === 'finished')) {
+                                const ctx = canvasRef.current.getContext('2d');
+                                drawTrackAndField(ctx, canvasRef.current.width, canvasRef.current.height);
+                            }
+                        };
+                    } else if (canvasRef.current && (raceState === 'ready' || raceState === 'finished')) {
                         const ctx = canvasRef.current.getContext('2d');
                         drawTrackAndField(ctx, canvasRef.current.width, canvasRef.current.height);
                     }
@@ -332,29 +408,29 @@ export default function HorseRaceSimulator({
         fetch(svgUrl)
             .then(res => res.text())
             .then(rawSvg => {
+                rawHorseSvgRef.current = rawSvg;
+
                 fieldData.forEach((h) => {
                     const cacheKey = `${h.id}_${h.coat?.code || 'b'}_${h.color}`;
-                    if (horseSvgCacheRef.current.has(cacheKey)) return;
+                    // If an image with extracted silks is already in cache, keep it
+                    if (horseSvgCacheRef.current.has(cacheKey) && silksColorsRef.current.has(h.silks)) return;
 
                     const coat = h.coat || HORSE_COAT_COLORS.bay;
-                    const silksCol = h.color || '#4363d8';
-                    const sleeveCol = lightenColor(silksCol, 28);
+                    let silksColors = h.silks ? silksColorsRef.current.get(h.silks) : null;
+                    if (!silksColors && h.silks && silksImagesRef.current.get(h.silks)) {
+                        silksColors = extractSilksColors(silksImagesRef.current.get(h.silks), h.color);
+                        silksColorsRef.current.set(h.silks, silksColors);
+                    }
+                    if (!silksColors) {
+                        const silksCol = h.color || '#4363d8';
+                        silksColors = {
+                            shirtCol: silksCol,
+                            sleeveCol: lightenColor(silksCol, 28),
+                            capCol: silksCol
+                        };
+                    }
 
-                    let tinted = rawSvg
-                        // 1. Horse coat body, legs, mane
-                        .replace(/fill="#C1694F"/gi, `fill="${coat.body}"`)
-                        .replace(/fill="#8A4B38"/gi, `fill="${coat.leg || coat.body}"`)
-                        .replace(/fill="#623120"/gi, `fill="${coat.leg || coat.body}"`)
-                        .replace(/fill="#292F33"/gi, `fill="${coat.mane}"`)
-                        // 2. Jockey shirt, sleeve highlight, cap, and blinkers with the silks color
-                        .replace(/fill="#5C913B"/gi, `fill="${silksCol}"`)
-                        .replace(/fill="#A6D388"/gi, `fill="${sleeveCol}"`)
-                        .replace(/fill="#9266CC"/gi, `fill="${silksCol}"`);
-
-                    const blob = new Blob([tinted], { type: 'image/svg+xml;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const tintedImg = new Image();
-                    tintedImg.src = url;
+                    const tintedImg = createTintedHorseSvg(rawSvg, coat, silksColors);
                     tintedImg.onload = () => {
                         horseSvgCacheRef.current.set(cacheKey, tintedImg);
                         if (canvasRef.current && (raceState === 'ready' || raceState === 'finished')) {
