@@ -59,6 +59,7 @@ export default function HorseRaceSimulator({
     hasNext = false,
     hasPrev = false
 }) {
+    const hudHeight = 50;
     const containerRef = useRef(null);
     const canvasRef = useRef(null);
     const requestRef = useRef(null);
@@ -249,7 +250,8 @@ export default function HorseRaceSimulator({
         horsesRef.current.forEach((horse) => {
             const acceleration = (Math.random() - 0.5) * horse.variance;
             const scaleFactor = canvas.width / 1100;
-            horse.x += Math.max(0.1, (horse.baseSpeed + acceleration) * scaleFactor);
+            const speedMultiplier = 2; // Higher = faster race (e.g., 2 to 3 seconds total)
+            horse.x += Math.max(0.1, (horse.baseSpeed + acceleration) * scaleFactor * speedMultiplier);
 
             if (horse.x >= finishLineX && !winnerFound) {
                 winnerFound = horse;
@@ -282,8 +284,10 @@ export default function HorseRaceSimulator({
         }
 
         const handleResize = () => {
+            // Let Flexbox handle the height, read the exact space available for the canvas
             const width = container.clientWidth || 800;
-            const height = container.clientHeight ? Math.max(container.clientHeight - 50, 300) : 450;
+            const height = canvas.clientHeight || 400; // Reads the exact rendered box height
+
             canvas.width = width;
             canvas.height = height;
 
@@ -298,8 +302,13 @@ export default function HorseRaceSimulator({
             drawTrackAndField(ctx, width, height);
         };
 
+        // Get initial layout container values cleanly
         const initialWidth = container.clientWidth || 800;
-        const initialHeight = container.clientHeight ? Math.max(container.clientHeight - 50, 300) : 450;
+        const initialHeight = container.clientHeight ? Math.max(container.clientHeight - hudHeight, 300) : 400;
+
+        canvas.width = initialWidth;
+        canvas.height = initialHeight;
+
         initHorses(initialWidth, initialHeight);
         handleResize();
         setRaceState('ready');
@@ -308,6 +317,7 @@ export default function HorseRaceSimulator({
         let resizeObserver;
         if (window.ResizeObserver) {
             resizeObserver = new ResizeObserver(() => {
+                // Throttle/De-bounce lookups natively through standard layout boundaries
                 handleResize();
             });
             resizeObserver.observe(container);
@@ -320,6 +330,7 @@ export default function HorseRaceSimulator({
             window.removeEventListener('resize', handleResize);
         };
     }, [fieldData, raceTitle]);
+
 
     const handleControlClick = () => {
         if (raceState === 'racing') return;
