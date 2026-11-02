@@ -64,5 +64,5 @@ test('racing homepage loads successfully with multiple race meetings', async ({ 
 
   // 5. Assert that horses from both separate meetings are present
   //await expect(appBody).toContainText('Hard Stare');
-  await expect(appBody).toContainText('Tom Taggle');
+  await expect(appBody).toContainText('Hard Stare');
 });
