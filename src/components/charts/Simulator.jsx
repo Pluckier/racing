@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { LINE_COLORS } from '../../constants/chartConstants';
 
 // Default fallback field if no race/horses are passed
 // Structured so that:
@@ -147,6 +148,10 @@ export default function HorseRaceSimulator({
 
             const oddsInfo = getLatestOddsInfo(h);
 
+            const originalIndex = rawList ? rawList.indexOf(h) : index;
+            const colorIndex = originalIndex >= 0 ? originalIndex : index;
+            const horseColor = h.color || LINE_COLORS[colorIndex % LINE_COLORS.length];
+
             return {
                 id: h.id ?? h.number ?? (index + 1),
                 number: h.number ?? (index + 1),
@@ -155,7 +160,7 @@ export default function HorseRaceSimulator({
                 jockey: h.jockey,
                 trainer: h.trainer,
                 latestOdds: oddsInfo?.display || null,
-                color: h.color || `hsl(${(index * 360) / runners.length}, 85%, 55%)`,
+                color: horseColor,
                 recentRating,
                 bestEverRating,
                 avg3Rating,
@@ -307,7 +312,7 @@ export default function HorseRaceSimulator({
         const startX = 60;
         const totalDistance = finishLineX - startX;
 
-        const raceDurationMs = 5000; // 6.5s full race
+        const raceDurationMs = 5000; // 5s full race
         const elapsed = performance.now() - startTimeRef.current;
         const tau = Math.min(1.0, elapsed / raceDurationMs);
 
