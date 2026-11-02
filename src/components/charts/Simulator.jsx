@@ -1,22 +1,33 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 
 // Default fallback field if no race/horses are passed
+// Structured so that:
+// - #2 Bay City Roller has highest recent rating (99) -> leads out of gates
+// - #3 Benvenuto Cellini has highest best ever rating (105) -> leads midway
+// - #1 Diamond Necklace has highest 3-run average (93.7) -> wins the race at the line
 const DEFAULT_TURF_FIELD = [
-    { id: 1, name: "Diamond Necklace", baseSpeed: 2.30, variance: 0.35, number: 1 },
-    { id: 2, name: "Bay City Roller", baseSpeed: 2.25, variance: 0.40, number: 2 },
-    { id: 3, name: "Benvenuto Cellini", baseSpeed: 2.22, variance: 0.42, number: 3 },
-    { id: 4, name: "Burnham Square", baseSpeed: 2.18, variance: 0.45, number: 4 },
-    { id: 5, name: "Ethical Diamond", baseSpeed: 2.15, variance: 0.50, number: 5 },
-    { id: 6, name: "Tiffany", baseSpeed: 2.15, variance: 0.48, number: 6 },
-    { id: 7, name: "Johanna Walsh", baseSpeed: 2.12, variance: 0.52, number: 7 },
-    { id: 8, name: "Bay Bridge", baseSpeed: 2.14, variance: 0.44, number: 8 },
-    { id: 9, name: "El Cordobes", baseSpeed: 2.10, variance: 0.55, number: 9 },
-    { id: 10, name: "Hotazhell", baseSpeed: 2.10, variance: 0.58, number: 10 },
-    { id: 11, name: "Minaret Station", baseSpeed: 2.08, variance: 0.60, number: 11 },
-    { id: 12, name: "Survie", baseSpeed: 2.08, variance: 0.55, number: 12 },
-    { id: 13, name: "Far Bridge", baseSpeed: 2.05, variance: 0.62, number: 13 },
-    { id: 14, name: "Deep Monster", baseSpeed: 2.00, variance: 0.70, number: 14 }
+    { id: 1, name: "Diamond Necklace", number: 1, past: [{ name: "92" }, { name: "95" }, { name: "94" }] },
+    { id: 2, name: "Bay City Roller", number: 2, past: [{ name: "99" }, { name: "82" }, { name: "84" }] },
+    { id: 3, name: "Benvenuto Cellini", number: 3, past: [{ name: "85" }, { name: "105" }, { name: "88" }] },
+    { id: 4, name: "Burnham Square", number: 4, past: [{ name: "88" }, { name: "90" }, { name: "89" }] },
+    { id: 5, name: "Ethical Diamond", number: 5, past: [{ name: "86" }, { name: "88" }, { name: "87" }] },
+    { id: 6, name: "Tiffany", number: 6, past: [{ name: "84" }, { name: "85" }, { name: "86" }] },
+    { id: 7, name: "Johanna Walsh", number: 7, past: [{ name: "83" }, { name: "84" }, { name: "85" }] },
+    { id: 8, name: "Bay Bridge", number: 8, past: [{ name: "82" }, { name: "83" }, { name: "84" }] },
+    { id: 9, name: "El Cordobes", number: 9, past: [{ name: "80" }, { name: "82" }, { name: "81" }] },
+    { id: 10, name: "Hotazhell", number: 10, past: [{ name: "79" }, { name: "80" }, { name: "82" }] },
+    { id: 11, name: "Minaret Station", number: 11, past: [{ name: "78" }, { name: "79" }, { name: "80" }] },
+    { id: 12, name: "Survie", number: 12, past: [{ name: "77" }, { name: "78" }, { name: "79" }] },
+    { id: 13, name: "Far Bridge", number: 13, past: [{ name: "75" }, { name: "77" }, { name: "76" }] },
+    { id: 14, name: "Deep Monster", number: 14, past: [{ name: "72" }, { name: "74" }, { name: "73" }] }
 ];
+
+// Helper to extract numeric rating from past race "name" property
+const getPastRating = (run) => {
+    if (!run) return 0;
+    const val = parseFloat(run.name ?? run.nameAI ?? run.name2AI);
+    return isNaN(val) ? 0 : val;
+};
 
 // Helper to parse odd values (handles decimal, fractions like "7/2", "EVS", etc.)
 const parseOddsToDecimal = (oddStr) => {
@@ -46,6 +57,30 @@ const getLatestOddsInfo = (horse) => {
     return null;
 };
 
+// Compute smooth phase blending weights across race progress tau in [0, 1]
+// Out of gates: Recent rating dominant
+// Midway: Best ever rating dominant
+// Finish: Avg of last 3 runs dominant
+const getPhaseWeights = (tau) => {
+    if (tau <= 0.5) {
+        const t = tau / 0.5; // 0 to 1
+        const smooth = t * t * (3 - 2 * t);
+        return {
+            w1: 1 - smooth,
+            w2: smooth,
+            w3: 0
+        };
+    } else {
+        const t = (tau - 0.5) / 0.5; // 0 to 1
+        const smooth = t * t * (3 - 2 * t);
+        return {
+            w1: 0,
+            w2: 1 - smooth,
+            w3: smooth
+        };
+    }
+};
+
 export default function HorseRaceSimulator({
     race,
     horses,
@@ -59,11 +94,11 @@ export default function HorseRaceSimulator({
     hasNext = false,
     hasPrev = false
 }) {
-    const hudHeight = 50;
     const containerRef = useRef(null);
     const canvasRef = useRef(null);
     const requestRef = useRef(null);
-    const horsesRef = useRef([]); // Uses ref mutable properties to prevent state updates mid-loop
+    const startTimeRef = useRef(0);
+    const horsesRef = useRef([]);
 
     const [raceState, setRaceState] = useState('ready'); // ready, racing, finished
     const [statusMessage, setStatusMessage] = useState('');
@@ -72,18 +107,13 @@ export default function HorseRaceSimulator({
     const place = race?.place || racePlace || '';
     const raceTitle = race?.name || race?.detail || (time && place ? `${time} ${place}` : "Breeders' Cup Turf");
 
-    // Process raw horses into parameterized field
+    // Process raw horses into parameterized field with ratings
     const fieldData = useMemo(() => {
         const rawList = horses || race?.horses;
-        if (!rawList || rawList.length === 0) {
-            return DEFAULT_TURF_FIELD.map((horse, index, arr) => ({
-                ...horse,
-                color: horse.color || `hsl(${(index * 360) / arr.length}, 85%, 55%)`
-            }));
-        }
+        const baseList = (!rawList || rawList.length === 0) ? DEFAULT_TURF_FIELD : rawList;
 
-        // Filter out non-runners
-        const active = rawList.filter((h) => {
+        // 1. Filter out non-runners
+        const active = baseList.filter((h) => {
             if (time && place) {
                 const horseKey = `${h.name}@${time}${place}`;
                 if (rejectedNonRunners?.has?.(horseKey)) return true;
@@ -97,63 +127,92 @@ export default function HorseRaceSimulator({
             return true;
         });
 
-        const runners = active.length > 0 ? active : rawList;
+        const runners = active.length > 0 ? active : baseList;
 
-        // Compute relative strengths based on odds or ratings
-        const strengths = runners.map((h) => {
-            if (typeof h.baseSpeed === 'number') {
-                return { horse: h, strength: h.baseSpeed, explicit: true };
-            }
+        // 2. Extract the 3 key rating metrics for each horse
+        const horseMetrics = runners.map((h, index) => {
+            const runs = h.past || [];
+
+            // Recent: rating of the most recent past race (name property)
+            const recentRating = runs.length > 0 ? getPastRating(runs[0]) : 0;
+
+            // Best Ever: max rating over all past races (name property)
+            const bestEverRating = runs.length > 0 ? Math.max(...runs.map(getPastRating), 0) : 0;
+
+            // Avg 3: average over the last three past runs (name property)
+            const last3 = runs.slice(0, 3);
+            const avg3Rating = last3.length > 0
+                ? last3.reduce((sum, r) => sum + getPastRating(r), 0) / last3.length
+                : 0;
+
             const oddsInfo = getLatestOddsInfo(h);
-            if (oddsInfo && oddsInfo.decimal > 0) {
-                // Lower odds = higher implied probability
-                return { horse: h, strength: 1 / oddsInfo.decimal, oddsInfo, explicit: false };
-            }
-            if (h.past && h.past.length > 0) {
-                const ratings = h.past
-                    .map((p) => parseFloat(p.name2AI || p.nameAI || p.name) || 0)
-                    .filter((r) => r > 0);
-                if (ratings.length > 0) {
-                    const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
-                    return { horse: h, strength: avg, oddsInfo, explicit: false };
-                }
-            }
-            return { horse: h, strength: 1, oddsInfo, explicit: false };
-        });
-
-        const numericStrengths = strengths.map((s) => s.strength);
-        const minStrength = Math.min(...numericStrengths);
-        const maxStrength = Math.max(...numericStrengths);
-        const range = maxStrength - minStrength;
-
-        return strengths.map(({ horse, strength, oddsInfo, explicit }, index) => {
-            let baseSpeed = horse.baseSpeed;
-            let variance = horse.variance;
-
-            if (!explicit || typeof baseSpeed !== 'number') {
-                const t = range > 0 ? (strength - minStrength) / range : 0.5;
-                // Favorites (t -> 1): baseSpeed ~2.30, variance ~0.36
-                // Outsiders (t -> 0): baseSpeed ~2.05, variance ~0.65
-                baseSpeed = +(2.05 + t * 0.25).toFixed(2);
-                variance = +(0.65 - t * 0.29).toFixed(2);
-            }
-
-            const horseColor = horse.color || `hsl(${(index * 360) / runners.length}, 85%, 55%)`;
 
             return {
-                id: horse.id ?? horse.number ?? (index + 1),
-                number: horse.number ?? (index + 1),
-                name: horse.name || `Horse ${index + 1}`,
-                draw: horse.draw,
-                jockey: horse.jockey,
-                trainer: horse.trainer,
+                id: h.id ?? h.number ?? (index + 1),
+                number: h.number ?? (index + 1),
+                name: h.name || `Horse ${index + 1}`,
+                draw: h.draw,
+                jockey: h.jockey,
+                trainer: h.trainer,
                 latestOdds: oddsInfo?.display || null,
-                baseSpeed,
-                variance,
-                color: horseColor
+                color: h.color || `hsl(${(index * 360) / runners.length}, 85%, 55%)`,
+                recentRating,
+                bestEverRating,
+                avg3Rating,
+                rawIndex: index
             };
         });
+
+        // 3. Compute normalized scores in [0.0, 1.0] for each metric
+        // Combines actual rating proportionality with rank order so the top horse is 1.0, lowest is 0.0
+        const normalizeMetric = (list, key, scoreProp) => {
+            const n = list.length;
+            if (n <= 1) {
+                return list.map(item => ({ ...item, [scoreProp]: 1.0 }));
+            }
+
+            const sorted = [...list].sort((a, b) => {
+                const diff = b[key] - a[key];
+                if (Math.abs(diff) > 0.0001) return diff;
+                return a.rawIndex - b.rawIndex;
+            });
+
+            const minVal = sorted[sorted.length - 1][key];
+            const maxVal = sorted[0][key];
+            const range = maxVal - minVal;
+
+            const scoreMap = new Map();
+            sorted.forEach((item, rank) => {
+                const rankRatio = (n - 1 - rank) / (n - 1);
+                const propScore = range > 0 ? (item[key] - minVal) / range : rankRatio;
+                // 70% proportional rating gap + 30% strict rank ratio
+                const score = 0.70 * propScore + 0.30 * rankRatio;
+                scoreMap.set(item.id, score);
+            });
+
+            return list.map(item => ({
+                ...item,
+                [scoreProp]: scoreMap.get(item.id) ?? 0.5
+            }));
+        };
+
+        let processed = normalizeMetric(horseMetrics, 'recentRating', 'recentScore');
+        processed = normalizeMetric(processed, 'bestEverRating', 'bestScore');
+        processed = normalizeMetric(processed, 'avg3Rating', 'avg3Score');
+
+        return processed;
     }, [race, horses, time, place, pendingNonRunners, approvedNonRunners, rejectedNonRunners]);
+
+    // Leaders for dynamic HUD commentary
+    const leaders = useMemo(() => {
+        if (!fieldData || fieldData.length === 0) return { recent: null, best: null, avg3: null };
+        const sortBy = (prop) => [...fieldData].sort((a, b) => b[prop] - a[prop])[0];
+        return {
+            recent: sortBy('recentRating'),
+            best: sortBy('bestEverRating'),
+            avg3: sortBy('avg3Rating')
+        };
+    }, [fieldData]);
 
     // Initialize mutable horse positions array
     const initHorses = (width, height) => {
@@ -168,7 +227,7 @@ export default function HorseRaceSimulator({
         }));
     };
 
-    // Dedicated Render Engine function called inside frame loops
+    // Dedicated Render Engine
     const drawTrackAndField = (ctx, width, height) => {
         ctx.clearRect(0, 0, width, height);
         const count = horsesRef.current.length || 1;
@@ -209,7 +268,7 @@ export default function HorseRaceSimulator({
         ctx.textAlign = "start";
 
         // 3. Draw Horses
-        horsesRef.current.forEach((horse, index) => {
+        horsesRef.current.forEach((horse) => {
             ctx.beginPath();
             ctx.arc(horse.x, horse.y, horse.radius, 0, Math.PI * 2);
             ctx.fillStyle = horse.color;
@@ -218,55 +277,81 @@ export default function HorseRaceSimulator({
             ctx.lineWidth = 1.5;
             ctx.stroke();
 
-            // Number inside circle if large enough
+            // Saddle cloth number inside circle
             if (horse.radius >= 8) {
                 ctx.fillStyle = '#ffffff';
                 ctx.font = `bold ${Math.round(horse.radius * 0.9)}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`${horse.number ?? (index + 1)}`, horse.x, horse.y);
+                ctx.fillText(`${horse.number ?? ''}`, horse.x, horse.y);
                 ctx.textAlign = 'start';
                 ctx.textBaseline = 'alphabetic';
             }
 
-            // Name & Odds text
+            // Name & Ratings label
             ctx.fillStyle = '#ffffff';
             const fontSize = Math.max(9, Math.min(13, laneHeight * 0.38));
             ctx.font = `bold ${fontSize}px Arial`;
-            const oddsSuffix = horse.latestOdds ? ` (${horse.latestOdds})` : '';
-            ctx.fillText(`${horse.name}${oddsSuffix}`, horse.x + horse.radius + 8, horse.y + fontSize * 0.35);
+
+            const oddsStr = horse.latestOdds ? ` (${horse.latestOdds})` : '';
+            ctx.fillText(`${horse.name}${oddsStr}`, horse.x + horse.radius + 8, horse.y + fontSize * 0.35);
         });
     };
 
-    // Main Loop Manager
+    // Physics Loop Manager: Strictly controlled rating speed engine
     const updateRaceFrame = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         const finishLineX = canvas.width - (canvas.width > 600 ? 160 : 110);
+        const startX = 60;
+        const totalDistance = finishLineX - startX;
 
-        let winnerFound = null;
+        const raceDurationMs = 5000; // 6.5s full race
+        const elapsed = performance.now() - startTimeRef.current;
+        const tau = Math.min(1.0, elapsed / raceDurationMs);
 
-        horsesRef.current.forEach((horse) => {
-            const acceleration = (Math.random() - 0.5) * horse.variance;
-            const scaleFactor = canvas.width / 1100;
-            const speedMultiplier = 2; // Higher = faster race (e.g., 2 to 3 seconds total)
-            horse.x += Math.max(0.1, (horse.baseSpeed + acceleration) * scaleFactor * speedMultiplier);
+        // Calculate phase weights:
+        // tau in [0, 0.35]: recent rating leads out of gates
+        // tau in [0.35, 0.7]: best ever rating takes lead midway
+        // tau in [0.7, 1.0]: highest 3-run average powers through to win at finish
+        const { w1, w2, w3 } = getPhaseWeights(tau);
 
-            if (horse.x >= finishLineX && !winnerFound) {
-                winnerFound = horse;
-            }
+        // Dynamic pack spread: starts at 0 and expands naturally
+        const maxSpread = Math.min(110, totalDistance * 0.16);
+        const currentSpread = Math.min(1.0, tau * 3.5) * maxSpread;
+
+        // Base progress such that leader touches finishLineX exactly when tau = 1.0
+        const baseProgress = startX + tau * (totalDistance - currentSpread);
+
+        // Update horse positions strictly according to ratings
+        horsesRef.current.forEach((horse, index) => {
+            const currentScore = w1 * horse.recentScore + w2 * horse.bestScore + w3 * horse.avg3Score;
+            // Subtle stride oscillation that tapers to 0 at finish for exact photo finish
+            const stride = Math.sin((elapsed / 120) + index * 1.5) * 1.5 * (1 - tau);
+            horse.x = baseProgress + (currentScore * currentSpread) + stride;
         });
 
         drawTrackAndField(ctx, canvas.width, canvas.height);
 
-        if (winnerFound) {
+        // Live commentary HUD updates matching the 3 race phases
+        if (tau < 0.35 && leaders.recent) {
+            setStatusMessage(`Gate Open! #${leaders.recent.number} ${leaders.recent.name} leads out with best recent form (${leaders.recent.recentRating.toFixed(1)})`);
+        } else if (tau >= 0.35 && tau < 0.70 && leaders.best) {
+            setStatusMessage(`Midway! #${leaders.best.number} ${leaders.best.name} surges ahead with best ever rating (${leaders.best.bestEverRating.toFixed(1)})`);
+        } else if (tau >= 0.70 && tau < 1.0 && leaders.avg3) {
+            setStatusMessage(`Home Straight! #${leaders.avg3.number} ${leaders.avg3.name} powering on with top 3-run average (${leaders.avg3.avg3Rating.toFixed(1)})`);
+        }
+
+        if (tau >= 1.0) {
             cancelAnimationFrame(requestRef.current);
             setRaceState('finished');
-            const numStr = winnerFound.number ? `#${winnerFound.number} ` : '';
-            const oddsStr = winnerFound.latestOdds ? ` (${winnerFound.latestOdds})` : '';
+            // Winner is strictly the horse with the highest avg3Rating
+            const winner = leaders.avg3 || horsesRef.current[0];
+            const numStr = winner.number ? `#${winner.number} ` : '';
+            const avgStr = winner.avg3Rating ? ` (Avg 3: ${winner.avg3Rating.toFixed(1)})` : '';
             const venueStr = place ? ` AT ${place.toUpperCase()}` : '';
-            setStatusMessage(`🥇 ${numStr}${winnerFound.name.toUpperCase()}${oddsStr} WINS${venueStr}!`);
+            setStatusMessage(`🥇 ${numStr}${winner.name.toUpperCase()} WINS${venueStr}!${avgStr}`);
         } else {
             requestRef.current = requestAnimationFrame(updateRaceFrame);
         }
@@ -284,10 +369,8 @@ export default function HorseRaceSimulator({
         }
 
         const handleResize = () => {
-            // Let Flexbox handle the height, read the exact space available for the canvas
             const width = container.clientWidth || 800;
-            const height = canvas.clientHeight || 400; // Reads the exact rendered box height
-
+            const height = container.clientHeight ? Math.max(container.clientHeight - 50, 300) : 450;
             canvas.width = width;
             canvas.height = height;
 
@@ -302,13 +385,8 @@ export default function HorseRaceSimulator({
             drawTrackAndField(ctx, width, height);
         };
 
-        // Get initial layout container values cleanly
         const initialWidth = container.clientWidth || 800;
-        const initialHeight = container.clientHeight ? Math.max(container.clientHeight - hudHeight, 300) : 400;
-
-        canvas.width = initialWidth;
-        canvas.height = initialHeight;
-
+        const initialHeight = container.clientHeight ? Math.max(container.clientHeight - 50, 300) : 450;
         initHorses(initialWidth, initialHeight);
         handleResize();
         setRaceState('ready');
@@ -317,7 +395,6 @@ export default function HorseRaceSimulator({
         let resizeObserver;
         if (window.ResizeObserver) {
             resizeObserver = new ResizeObserver(() => {
-                // Throttle/De-bounce lookups natively through standard layout boundaries
                 handleResize();
             });
             resizeObserver.observe(container);
@@ -331,7 +408,6 @@ export default function HorseRaceSimulator({
         };
     }, [fieldData, raceTitle]);
 
-
     const handleControlClick = () => {
         if (raceState === 'racing') return;
 
@@ -341,10 +417,10 @@ export default function HorseRaceSimulator({
             initHorses(canvas.width, canvas.height);
             drawTrackAndField(canvas.getContext('2d'), canvas.width, canvas.height);
             setRaceState('ready');
-            setStatusMessage("They are moving into the gates...");
+            setStatusMessage(`${raceTitle} • Ready to Run`);
         } else {
             setRaceState('racing');
-            setStatusMessage(place ? `And they are away at ${place}!` : "And they are away on the turf course!");
+            startTimeRef.current = performance.now();
             requestRef.current = requestAnimationFrame(updateRaceFrame);
         }
     };
@@ -401,7 +477,7 @@ export default function HorseRaceSimulator({
 
                 <div style={{
                     color: '#f1c40f',
-                    fontSize: '14px',
+                    fontSize: '13.5px',
                     fontWeight: 'bold',
                     letterSpacing: '0.6px',
                     textTransform: 'uppercase',
