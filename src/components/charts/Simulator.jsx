@@ -146,6 +146,43 @@ export const parseDraw = (draw) => {
     return isNaN(num) ? null : num;
 };
 
+// Computes responsive layout sizing & positions based on lane height
+// Scales smoothly between tight fields (18-20+ runners, ~22px lanes) and small fields (2-5 runners, up to ~150px lanes)
+export const getSimulatorLayout = (laneHeight) => {
+    // 1. Horse size: fits ~20px in tight 19+ runner fields, scales up to ~74px in spacious 3-runner fields
+    const maxHorseForLane = Math.max(16, Math.round(laneHeight * 0.88));
+    const horseSize = Math.max(18, Math.min(74, Math.min(maxHorseForLane, Math.round(laneHeight * 0.50 + 8))));
+    const horseRadius = horseSize / 2;
+
+    // 2. Silks icon size: 16px up to 48px
+    const maxSilksForLane = Math.max(14, Math.round(laneHeight * 0.72));
+    const silksSize = Math.max(16, Math.min(48, Math.min(maxSilksForLane, Math.round(laneHeight * 0.34 + 9))));
+
+    // 3. Saddle cloth & stall draw font size: 10px up to 22px
+    const numberFontSize = Math.max(10, Math.min(22, Math.round(laneHeight * 0.16 + 7)));
+
+    // 4. Horse name & odds label font size: 10px up to 16px
+    const labelFontSize = Math.max(10, Math.min(16, Math.round(laneHeight * 0.10 + 7.5)));
+
+    // 5. Horizontal offsets (prevent overlaps regardless of scale)
+    const numberX = Math.max(10, Math.min(16, Math.round(numberFontSize * 0.8)));
+    // Width reserved for number + draw string (e.g. "12 (14)")
+    const numDrawWidth = Math.round(numberFontSize * 3.4);
+    const silksX = numberX + Math.max(46, numDrawWidth);
+    const startX = silksX + silksSize + horseRadius + 14;
+
+    return {
+        horseSize,
+        horseRadius,
+        silksSize,
+        numberFontSize,
+        labelFontSize,
+        numberX,
+        silksX,
+        startX
+    };
+};
+
 // Default fallback field if no race/horses are passed
 const DEFAULT_TURF_FIELD = [
     { id: 1, name: "Diamond Necklace", number: 1, breeding: "gelding ch", past: [{ name: "92" }, { name: "95" }, { name: "94" }] },
@@ -478,29 +515,25 @@ export default function HorseRaceSimulator({
         };
     }, [fieldData]);
 
-    // Track horizontal layout offsets (ensures number/draw, silks icon, and running horse never overlap)
-    const NUMBER_START_X = 12;
-    const SILKS_START_X = 72;
-    const HORSE_START_X = 125;
-
     // Initialize mutable horse positions array
     const initHorses = (width, height) => {
         const count = fieldData.length || 1;
         const laneHeight = height / count;
+        const layout = getSimulatorLayout(laneHeight);
 
         horsesRef.current = fieldData.map((data, index) => ({
             ...data,
-            x: HORSE_START_X,
+            x: layout.startX,
             y: index * laneHeight + laneHeight / 2,
-            radius: Math.max(5, Math.min(13, laneHeight * 0.32))
+            horseSize: layout.horseSize
         }));
     };
 
     // Dedicated function to render the horse using public/horse.svg
-    const drawHorse = (ctx, x, y, radius, coat, horse) => {
+    const drawHorse = (ctx, x, y, size, coat, horse) => {
         const cacheKey = horse ? `${horse.id}_${horse.coat?.code || 'b'}_${horse.color}` : null;
         const img = (cacheKey && horseSvgCacheRef.current.get(cacheKey)) || (coat?.code && horseSvgCacheRef.current.get(coat.code)) || defaultHorseImgRef.current;
-        const horseSize = Math.min(34, Math.max(20, radius * 2.3));
+        const horseSize = size || 34;
 
         if (img && img.complete && img.naturalWidth > 0) {
             ctx.save();
@@ -517,6 +550,7 @@ export default function HorseRaceSimulator({
         ctx.clearRect(0, 0, width, height);
         const count = horsesRef.current.length || 1;
         const laneHeight = height / count;
+        const layout = getSimulatorLayout(laneHeight);
         const finishLineX = width - (width > 600 ? 160 : 110);
 
         // 1. Draw lanes
@@ -534,22 +568,21 @@ export default function HorseRaceSimulator({
 
             // Saddle cloth number & stall draw at lane start
             ctx.fillStyle = "#f1c40f";
-            ctx.font = `bold ${Math.max(10, Math.min(14, laneHeight * 0.45))}px Arial`;
+            ctx.font = `bold ${layout.numberFontSize}px Arial`;
             const drawVal = horse.draw != null && horse.draw !== ''
                 ? String(horse.draw).replace(/[()]/g, '').trim()
                 : '';
             const numDrawText = drawVal ? `${horse.number ?? (index + 1)} (${drawVal})` : `${horse.number ?? (index + 1)}`;
-            ctx.fillText(numDrawText, NUMBER_START_X, currentY + laneHeight / 2 + laneHeight * 0.15);
+            ctx.fillText(numDrawText, layout.numberX, currentY + laneHeight / 2 + layout.numberFontSize * 0.35);
 
             // Silks shown next to the number on the simulated race
             const silksImg = horse.silks ? silksImagesRef.current.get(horse.silks) : null;
             if (silksImg) {
-                const silksH = Math.min(24, Math.max(16, laneHeight * 0.65));
+                const silksH = layout.silksSize;
                 const silksW = silksH;
                 const silksY = currentY + (laneHeight - silksH) / 2;
-                ctx.drawImage(silksImg, SILKS_START_X, silksY, silksW, silksH);
+                ctx.drawImage(silksImg, layout.silksX, silksY, silksW, silksH);
             }
-
         });
 
         // 2. Draw Finish Ribbon
@@ -569,15 +602,14 @@ export default function HorseRaceSimulator({
         // 3. Draw Horses
         horsesRef.current.forEach((horse) => {
             // Draw the horse itself in its breeding coat color and jockey with silks color
-            drawHorse(ctx, horse.x, horse.y, horse.radius, horse.coat, horse);
+            drawHorse(ctx, horse.x, horse.y, layout.horseSize, horse.coat, horse);
 
             // Name & Ratings label
             ctx.fillStyle = '#ffffff';
-            const fontSize = Math.max(9, Math.min(13, laneHeight * 0.38));
-            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.font = `bold ${layout.labelFontSize}px Arial`;
 
             const oddsStr = horse.latestOdds ? ` (${horse.latestOdds})` : '';
-            ctx.fillText(`${horse.name}${oddsStr}`, horse.x + 20, horse.y + fontSize * 0.35);
+            ctx.fillText(`${horse.name}${oddsStr}`, horse.x + (layout.horseSize / 2) + 8, horse.y + layout.labelFontSize * 0.35);
         });
     };
 
@@ -586,8 +618,12 @@ export default function HorseRaceSimulator({
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
+        const count = horsesRef.current.length || 1;
+        const laneHeight = canvas.height / count;
+        const layout = getSimulatorLayout(laneHeight);
+
         const finishLineX = canvas.width - (canvas.width > 600 ? 160 : 110);
-        const startX = HORSE_START_X;
+        const startX = layout.startX;
         const totalDistance = finishLineX - startX;
 
         const raceDurationMs = 5000; // 5s full race
@@ -618,12 +654,12 @@ export default function HorseRaceSimulator({
         drawTrackAndField(ctx, canvas.width, canvas.height);
 
         // Live commentary HUD updates matching the 3 race phases
-        if (tau < 0.35 && leaders.recent) {
-            setStatusMessage(`Gate Open! #${leaders.recent.number} ${leaders.recent.name} leads out with best recent form (${leaders.recent.recentRating.toFixed(1)})`);
-        } else if (tau >= 0.35 && tau < 0.70 && leaders.best) {
-            setStatusMessage(`Midway! #${leaders.best.number} ${leaders.best.name} surges ahead with best ever rating (${leaders.best.bestEverRating.toFixed(1)})`);
-        } else if (tau >= 0.70 && tau < 1.0 && leaders.avg3) {
-            setStatusMessage(`Home Straight! #${leaders.avg3.number} ${leaders.avg3.name} powering on with top 3-run average (${leaders.avg3.avg3Rating.toFixed(1)})`);
+        if (tau < 0.40 && leaders.recent) {
+            setStatusMessage(`Gate Open! #${leaders.recent.number} ${leaders.recent.name} leads out best.`);
+        } else if (tau >= 0.40 && tau < 0.80 && leaders.best) {
+            setStatusMessage(`Midway! #${leaders.best.number} ${leaders.best.name} surges ahead midway through.`);
+        } else if (tau >= 0.80 && tau < 1.0 && leaders.avg3) {
+            setStatusMessage(`Home Straight! #${leaders.avg3.number} ${leaders.avg3.name} powering on with to win?`);
         }
 
         if (tau >= 1.0) {
@@ -632,9 +668,8 @@ export default function HorseRaceSimulator({
             // Winner is strictly the horse with the highest avg3Rating
             const winner = leaders.avg3 || horsesRef.current[0];
             const numStr = winner.number ? `#${winner.number} ` : '';
-            const avgStr = winner.avg3Rating ? ` (Avg 3: ${winner.avg3Rating.toFixed(1)})` : '';
             const venueStr = place ? ` AT ${place.toUpperCase()}` : '';
-            setStatusMessage(`🥇 ${numStr}${winner.name.toUpperCase()} WINS${venueStr}!${avgStr}`);
+            setStatusMessage(`🥇 ${numStr}${winner.name.toUpperCase()} WINS${venueStr}`);
         } else {
             requestRef.current = requestAnimationFrame(updateRaceFrame);
         }
@@ -659,10 +694,14 @@ export default function HorseRaceSimulator({
 
             const count = horsesRef.current.length || 1;
             const laneHeight = height / count;
+            const layout = getSimulatorLayout(laneHeight);
 
             horsesRef.current.forEach((horse, index) => {
                 horse.y = index * laneHeight + laneHeight / 2;
-                horse.radius = Math.max(5, Math.min(13, laneHeight * 0.32));
+                horse.horseSize = layout.horseSize;
+                if (raceState === 'ready') {
+                    horse.x = layout.startX;
+                }
             });
 
             drawTrackAndField(ctx, width, height);
