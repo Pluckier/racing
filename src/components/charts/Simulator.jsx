@@ -667,7 +667,7 @@ export default function HorseRaceSimulator({
 
         // Live commentary HUD updates matching the 3 race phases
         if (tau < 0.40 && leaders.recent) {
-            setStatusMessage(`Gate Open! #${leaders.recent.number} ${leaders.recent.name} leads out best.`);
+            setStatusMessage(`Off! #${leaders.recent.number} ${leaders.recent.name} leads out best.`);
         } else if (tau >= 0.40 && tau < 0.80 && leaders.best) {
             setStatusMessage(`Midway! #${leaders.best.number} ${leaders.best.name} surges ahead midway through.`);
         } else if (tau >= 0.80 && tau < 1.0 && leaders.avg3) {
@@ -824,7 +824,7 @@ export default function HorseRaceSimulator({
                             boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                         }}
                     >
-                        {raceState === 'finished' ? 'Reset Gates' : raceState === 'racing' ? 'Racing...' : 'Gate Open'}
+                        {raceState === 'finished' ? 'Reset' : raceState === 'racing' ? 'Racing...' : 'Start'}
                     </button>
 
                     {raceState === 'finished' && !showResultModal && (
