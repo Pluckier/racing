@@ -569,7 +569,6 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '1.2rem',
-                marginRight: '3px',
                 padding: 0,
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
               }}

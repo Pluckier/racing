@@ -139,6 +139,13 @@ export const parseBreedingColor = (breedingStr) => {
     return HORSE_COAT_COLORS.bay;
 };
 
+// Helper to parse numeric draw value (e.g. "3", 3, "(3)")
+export const parseDraw = (draw) => {
+    if (draw === null || draw === undefined || draw === '') return null;
+    const num = parseInt(String(draw).replace(/\D/g, ''), 10);
+    return isNaN(num) ? null : num;
+};
+
 // Default fallback field if no race/horses are passed
 const DEFAULT_TURF_FIELD = [
     { id: 1, name: "Diamond Necklace", number: 1, breeding: "gelding ch", past: [{ name: "92" }, { name: "95" }, { name: "94" }] },
@@ -349,6 +356,23 @@ export default function HorseRaceSimulator({
         processed = normalizeMetric(processed, 'bestEverRating', 'bestScore');
         processed = normalizeMetric(processed, 'avg3Rating', 'avg3Score');
 
+        // Order the simulator rows/lanes by stall draw if draw data exists
+        const hasAnyDraw = processed.some(h => parseDraw(h.draw) !== null);
+        if (hasAnyDraw) {
+            processed.sort((a, b) => {
+                const drawA = parseDraw(a.draw);
+                const drawB = parseDraw(b.draw);
+
+                if (drawA !== null && drawB !== null) {
+                    if (drawA !== drawB) return drawA - drawB;
+                    return a.rawIndex - b.rawIndex;
+                }
+                if (drawA !== null) return -1;
+                if (drawB !== null) return 1;
+                return a.rawIndex - b.rawIndex;
+            });
+        }
+
         return processed;
     }, [race, horses, time, place, pendingNonRunners, approvedNonRunners, rejectedNonRunners]);
 
@@ -440,7 +464,7 @@ export default function HorseRaceSimulator({
                     };
                 });
             })
-            .catch(() => {});
+            .catch(() => { });
     }, [fieldData, raceState]);
 
     // Leaders for dynamic HUD commentary
@@ -506,7 +530,7 @@ export default function HorseRaceSimulator({
             // Saddle cloth number at lane start
             ctx.fillStyle = "#f1c40f";
             ctx.font = `bold ${Math.max(10, Math.min(14, laneHeight * 0.45))}px Arial`;
-            ctx.fillText(`${horse.number ?? (index + 1)}`, 14, currentY + laneHeight / 2 + laneHeight * 0.15);
+            ctx.fillText(`${horse.number ?? (index + 1)} (${horse.draw ?? 'N/A'})`, 14, currentY + laneHeight / 2 + laneHeight * 0.15);
 
             // Silks shown next to the number on the simulated race
             const silksImg = horse.silks ? silksImagesRef.current.get(horse.silks) : null;
@@ -514,8 +538,9 @@ export default function HorseRaceSimulator({
                 const silksH = Math.min(24, Math.max(16, laneHeight * 0.65));
                 const silksW = silksH;
                 const silksY = currentY + (laneHeight - silksH) / 2;
-                ctx.drawImage(silksImg, 32, silksY, silksW, silksH);
+                ctx.drawImage(silksImg, 48, silksY, silksW, silksH);
             }
+
         });
 
         // 2. Draw Finish Ribbon
@@ -542,6 +567,8 @@ export default function HorseRaceSimulator({
             const fontSize = Math.max(9, Math.min(13, laneHeight * 0.38));
             ctx.font = `bold ${fontSize}px Arial`;
 
+            const drawVal = horse.draw ? String(horse.draw).replace(/[()]/g, '').trim() : '';
+            const drawStr = drawVal ? ` (${drawVal})` : '';
             const oddsStr = horse.latestOdds ? ` (${horse.latestOdds})` : '';
             ctx.fillText(`${horse.name}${oddsStr}`, horse.x + 20, horse.y + fontSize * 0.35);
         });
