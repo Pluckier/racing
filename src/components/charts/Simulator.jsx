@@ -1130,7 +1130,7 @@ export default function HorseRaceSimulator({
                                         transition: 'opacity 0.2s ease'
                                     }}
                                 >
-                                    Reset Gates
+                                    Reset
                                 </button>
                             </div>
                         </motion.div>
