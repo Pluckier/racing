@@ -60,6 +60,7 @@ const lightenColor = (hex, percent = 25) => {
 export const extractSilksColors = (img, fallbackColor) => {
     const fallback = fallbackColor || '#4363d8';
     if (!img || !img.complete || img.naturalWidth === 0) {
+        console.log('fallback on silk colours');
         return {
             shirtCol: fallback,
             sleeveCol: lightenColor(fallback, 28),
@@ -77,6 +78,7 @@ export const extractSilksColors = (img, fallbackColor) => {
         }
     } catch {
         // Fall back gracefully if canvas is tainted by CORS or image invalid
+        console.log('fallback on silk colours CATCH');
     }
 
     return {
@@ -160,8 +162,11 @@ export const parseDraw = (draw) => {
 // Scales smoothly between tight fields (18-20+ runners, ~22px lanes) and small fields (2-5 runners, up to ~150px lanes)
 export const getSimulatorLayout = (laneHeight) => {
     // 1. Horse size: fits ~20px in tight 19+ runner fields, scales up to ~74px in spacious 3-runner fields
-    const maxHorseForLane = Math.max(16, Math.round(laneHeight * 0.88));
-    const horseSize = Math.max(18, Math.min(74, Math.min(maxHorseForLane, Math.round(laneHeight * 0.50 + 8))));
+    const maxHorseForLane = Math.max(24, Math.round(laneHeight * 0.95)); // Allows horse to fill almost the entire lane height
+    const targetSize = Math.round(laneHeight * 0.80 + 10);              // Aggressive 80% scaling curve + higher base padding
+
+    // Restrict size between a 24px floor (so tiny fields are readable) and a 150px ceiling
+    const horseSize = Math.max(24, Math.min(150, maxHorseForLane, targetSize));
     const horseRadius = horseSize / 2;
 
     // 2. Silks icon size: 16px up to 48px
