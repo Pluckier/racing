@@ -35,6 +35,16 @@ export const HORSE_COAT_COLORS = {
     }
 };
 
+// Helper to lighten a hex color for jockey sleeve highlight
+const lightenColor = (hex, percent = 25) => {
+    if (!hex || typeof hex !== 'string' || !hex.startsWith('#') || hex.length < 7) return hex;
+    const num = parseInt(hex.slice(1), 16);
+    const r = Math.min(255, Math.floor(((num >> 16) & 255) + (255 - ((num >> 16) & 255)) * (percent / 100)));
+    const g = Math.min(255, Math.floor(((num >> 8) & 255) + (255 - ((num >> 8) & 255)) * (percent / 100)));
+    const b = Math.min(255, Math.floor((num & 255) + (255 - (num & 255)) * (percent / 100)));
+    return `rgb(${r}, ${g}, ${b})`;
+};
+
 // Helper to parse horse coat color from breeding string (e.g. "gelding b", "gelding ch", "filly gr")
 export const parseBreedingColor = (breedingStr) => {
     if (!breedingStr || typeof breedingStr !== 'string') {
@@ -304,7 +314,7 @@ export default function HorseRaceSimulator({
         });
     }, [fieldData, raceState]);
 
-    // Preload horse.svg from public folder and generate coat-tinted variants
+    // Preload horse.svg from public folder and generate coat & jockey-silks tinted variants
     useEffect(() => {
         const svgUrl = `${import.meta.env.BASE_URL}horse.svg`;
 
@@ -318,33 +328,35 @@ export default function HorseRaceSimulator({
             }
         };
 
-        // Fetch raw SVG to generate coat color variants (Bay, Chestnut, Grey, Black, Brown)
+        // Fetch raw SVG to generate coat color + jockey silks color variants for each horse
         fetch(svgUrl)
             .then(res => res.text())
             .then(rawSvg => {
-                const coats = [
-                    { code: 'b', body: '#8B4513', leg: '#6B340D', mane: '#292F33' },
-                    { code: 'ch', body: '#C05A1E', leg: '#A54B10', mane: '#D97724' },
-                    { code: 'gr', body: '#D8D8E0', leg: '#B8B8C2', mane: '#8A8A96' },
-                    { code: 'bl', body: '#242428', leg: '#18181A', mane: '#111113' },
-                    { code: 'br', body: '#4A2E18', leg: '#382110', mane: '#292F33' }
-                ];
+                fieldData.forEach((h) => {
+                    const cacheKey = `${h.id}_${h.coat?.code || 'b'}_${h.color}`;
+                    if (horseSvgCacheRef.current.has(cacheKey)) return;
 
-                coats.forEach(({ code, body, leg, mane }) => {
+                    const coat = h.coat || HORSE_COAT_COLORS.bay;
+                    const silksCol = h.color || '#4363d8';
+                    const sleeveCol = lightenColor(silksCol, 28);
+
                     let tinted = rawSvg
-                        .replace(/fill="#C1694F"/gi, `fill="${body}"`)
-                        .replace(/fill="#8A4B38"/gi, `fill="${leg}"`)
-                        .replace(/fill="#623120"/gi, `fill="${leg}"`);
-                    if (mane) {
-                        tinted = tinted.replace(/fill="#292F33"/gi, `fill="${mane}"`);
-                    }
+                        // 1. Horse coat body, legs, mane
+                        .replace(/fill="#C1694F"/gi, `fill="${coat.body}"`)
+                        .replace(/fill="#8A4B38"/gi, `fill="${coat.leg || coat.body}"`)
+                        .replace(/fill="#623120"/gi, `fill="${coat.leg || coat.body}"`)
+                        .replace(/fill="#292F33"/gi, `fill="${coat.mane}"`)
+                        // 2. Jockey shirt, sleeve highlight, cap, and blinkers with the silks color
+                        .replace(/fill="#5C913B"/gi, `fill="${silksCol}"`)
+                        .replace(/fill="#A6D388"/gi, `fill="${sleeveCol}"`)
+                        .replace(/fill="#9266CC"/gi, `fill="${silksCol}"`);
 
                     const blob = new Blob([tinted], { type: 'image/svg+xml;charset=utf-8' });
                     const url = URL.createObjectURL(blob);
                     const tintedImg = new Image();
                     tintedImg.src = url;
                     tintedImg.onload = () => {
-                        horseSvgCacheRef.current.set(code, tintedImg);
+                        horseSvgCacheRef.current.set(cacheKey, tintedImg);
                         if (canvasRef.current && (raceState === 'ready' || raceState === 'finished')) {
                             const ctx = canvasRef.current.getContext('2d');
                             drawTrackAndField(ctx, canvasRef.current.width, canvasRef.current.height);
@@ -353,7 +365,7 @@ export default function HorseRaceSimulator({
                 });
             })
             .catch(() => {});
-    }, [raceState]);
+    }, [fieldData, raceState]);
 
     // Leaders for dynamic HUD commentary
     const leaders = useMemo(() => {
@@ -380,8 +392,9 @@ export default function HorseRaceSimulator({
     };
 
     // Dedicated function to render the horse using public/horse.svg
-    const drawHorse = (ctx, x, y, radius, coat) => {
-        const img = (coat?.code && horseSvgCacheRef.current.get(coat.code)) || defaultHorseImgRef.current;
+    const drawHorse = (ctx, x, y, radius, coat, horse) => {
+        const cacheKey = horse ? `${horse.id}_${horse.coat?.code || 'b'}_${horse.color}` : null;
+        const img = (cacheKey && horseSvgCacheRef.current.get(cacheKey)) || (coat?.code && horseSvgCacheRef.current.get(coat.code)) || defaultHorseImgRef.current;
         const horseSize = Math.min(34, Math.max(20, radius * 2.3));
 
         if (img && img.complete && img.naturalWidth > 0) {
@@ -445,8 +458,8 @@ export default function HorseRaceSimulator({
 
         // 3. Draw Horses
         horsesRef.current.forEach((horse) => {
-            // Draw the horse itself in its breeding coat color (no circle, no silks on top)
-            drawHorse(ctx, horse.x, horse.y, horse.radius, horse.coat);
+            // Draw the horse itself in its breeding coat color and jockey with silks color
+            drawHorse(ctx, horse.x, horse.y, horse.radius, horse.coat, horse);
 
             // Name & Ratings label
             ctx.fillStyle = '#ffffff';
