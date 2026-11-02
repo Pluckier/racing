@@ -1,26 +1,93 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { LINE_COLORS } from '../../constants/chartConstants';
 
+// Horse coat color palette based on breeding
+export const HORSE_COAT_COLORS = {
+    bay: {
+        body: '#8B4513',      // Saddle / Mahogany Bay
+        mane: '#1A1A1A',      // Black points / mane / tail
+        label: 'Bay',
+        code: 'b'
+    },
+    chestnut: {
+        body: '#C05A1E',      // Rich copper / golden red chestnut
+        mane: '#D97724',      // Flaxen / copper mane
+        label: 'Chestnut',
+        code: 'ch'
+    },
+    grey: {
+        body: '#D8D8E0',      // Silver / light slate grey
+        mane: '#9C9CA8',      // Slate grey mane
+        label: 'Grey',
+        code: 'gr'
+    },
+    black: {
+        body: '#222225',      // Midnight obsidian black
+        mane: '#0D0D0E',      // Jet black mane
+        label: 'Black',
+        code: 'bl'
+    },
+    brown: {
+        body: '#4A2E18',      // Deep chocolate brown
+        mane: '#1C110A',      // Dark espresso brown
+        label: 'Brown',
+        code: 'br'
+    }
+};
+
+// Helper to parse horse coat color from breeding string (e.g. "gelding b", "gelding ch", "filly gr")
+export const parseBreedingColor = (breedingStr) => {
+    if (!breedingStr || typeof breedingStr !== 'string') {
+        return HORSE_COAT_COLORS.bay;
+    }
+    const clean = breedingStr.toLowerCase().trim();
+    const tokens = clean.split(/[\s,/]+/).filter(Boolean);
+
+    // 1. Exact token matching
+    for (const token of tokens) {
+        if (token === 'gr' || token === 'grey' || token === 'gray' || token === 'ro' || token === 'roan' || token === 'g') {
+            return HORSE_COAT_COLORS.grey;
+        }
+        if (token === 'ch' || token === 'chesnut' || token === 'chestnut' || token === 'sorrel') {
+            return HORSE_COAT_COLORS.chestnut;
+        }
+        if (token === 'bl' || token === 'black' || token === 'blk') {
+            return HORSE_COAT_COLORS.black;
+        }
+        if (token === 'br' || token === 'brown') {
+            return HORSE_COAT_COLORS.brown;
+        }
+        if (token === 'b' || token === 'bay') {
+            return HORSE_COAT_COLORS.bay;
+        }
+    }
+
+    // 2. Substring fallback
+    if (/\b(gr|grey|gray|roan)\b/.test(clean)) return HORSE_COAT_COLORS.grey;
+    if (/\b(ch|chestnut|chesnut)\b/.test(clean)) return HORSE_COAT_COLORS.chestnut;
+    if (/\b(bl|black|blk)\b/.test(clean)) return HORSE_COAT_COLORS.black;
+    if (/\b(br|brown)\b/.test(clean)) return HORSE_COAT_COLORS.brown;
+    if (/\b(b|bay)\b/.test(clean)) return HORSE_COAT_COLORS.bay;
+
+    return HORSE_COAT_COLORS.bay;
+};
+
 // Default fallback field if no race/horses are passed
-// Structured so that:
-// - #2 Bay City Roller has highest recent rating (99) -> leads out of gates
-// - #3 Benvenuto Cellini has highest best ever rating (105) -> leads midway
-// - #1 Diamond Necklace has highest 3-run average (93.7) -> wins the race at the line
 const DEFAULT_TURF_FIELD = [
-    { id: 1, name: "Diamond Necklace", number: 1, past: [{ name: "92" }, { name: "95" }, { name: "94" }] },
-    { id: 2, name: "Bay City Roller", number: 2, past: [{ name: "99" }, { name: "82" }, { name: "84" }] },
-    { id: 3, name: "Benvenuto Cellini", number: 3, past: [{ name: "85" }, { name: "105" }, { name: "88" }] },
-    { id: 4, name: "Burnham Square", number: 4, past: [{ name: "88" }, { name: "90" }, { name: "89" }] },
-    { id: 5, name: "Ethical Diamond", number: 5, past: [{ name: "86" }, { name: "88" }, { name: "87" }] },
-    { id: 6, name: "Tiffany", number: 6, past: [{ name: "84" }, { name: "85" }, { name: "86" }] },
-    { id: 7, name: "Johanna Walsh", number: 7, past: [{ name: "83" }, { name: "84" }, { name: "85" }] },
-    { id: 8, name: "Bay Bridge", number: 8, past: [{ name: "82" }, { name: "83" }, { name: "84" }] },
-    { id: 9, name: "El Cordobes", number: 9, past: [{ name: "80" }, { name: "82" }, { name: "81" }] },
-    { id: 10, name: "Hotazhell", number: 10, past: [{ name: "79" }, { name: "80" }, { name: "82" }] },
-    { id: 11, name: "Minaret Station", number: 11, past: [{ name: "78" }, { name: "79" }, { name: "80" }] },
-    { id: 12, name: "Survie", number: 12, past: [{ name: "77" }, { name: "78" }, { name: "79" }] },
-    { id: 13, name: "Far Bridge", number: 13, past: [{ name: "75" }, { name: "77" }, { name: "76" }] },
-    { id: 14, name: "Deep Monster", number: 14, past: [{ name: "72" }, { name: "74" }, { name: "73" }] }
+    { id: 1, name: "Diamond Necklace", number: 1, breeding: "gelding ch", past: [{ name: "92" }, { name: "95" }, { name: "94" }] },
+    { id: 2, name: "Bay City Roller", number: 2, breeding: "gelding b", past: [{ name: "99" }, { name: "82" }, { name: "84" }] },
+    { id: 3, name: "Benvenuto Cellini", number: 3, breeding: "colt gr", past: [{ name: "85" }, { name: "105" }, { name: "88" }] },
+    { id: 4, name: "Burnham Square", number: 4, breeding: "gelding bl", past: [{ name: "88" }, { name: "90" }, { name: "89" }] },
+    { id: 5, name: "Ethical Diamond", number: 5, breeding: "gelding br", past: [{ name: "86" }, { name: "88" }, { name: "87" }] },
+    { id: 6, name: "Tiffany", number: 6, breeding: "filly gr", past: [{ name: "84" }, { name: "85" }, { name: "86" }] },
+    { id: 7, name: "Johanna Walsh", number: 7, breeding: "mare b", past: [{ name: "83" }, { name: "84" }, { name: "85" }] },
+    { id: 8, name: "Bay Bridge", number: 8, breeding: "horse b", past: [{ name: "82" }, { name: "83" }, { name: "84" }] },
+    { id: 9, name: "El Cordobes", number: 9, breeding: "gelding ch", past: [{ name: "80" }, { name: "82" }, { name: "81" }] },
+    { id: 10, name: "Hotazhell", number: 10, breeding: "colt bl", past: [{ name: "79" }, { name: "80" }, { name: "82" }] },
+    { id: 11, name: "Minaret Station", number: 11, breeding: "gelding b", past: [{ name: "78" }, { name: "79" }, { name: "80" }] },
+    { id: 12, name: "Survie", number: 12, breeding: "filly ch", past: [{ name: "77" }, { name: "78" }, { name: "79" }] },
+    { id: 13, name: "Far Bridge", number: 13, breeding: "gelding b", past: [{ name: "75" }, { name: "77" }, { name: "76" }] },
+    { id: 14, name: "Deep Monster", number: 14, breeding: "horse bl", past: [{ name: "72" }, { name: "74" }, { name: "73" }] }
 ];
 
 // Helper to extract numeric rating from past race "name" property
@@ -100,6 +167,9 @@ export default function HorseRaceSimulator({
     const requestRef = useRef(null);
     const startTimeRef = useRef(0);
     const horsesRef = useRef([]);
+    const silksImagesRef = useRef(new Map());
+    const defaultHorseImgRef = useRef(null);
+    const horseSvgCacheRef = useRef(new Map());
 
     const [raceState, setRaceState] = useState('ready'); // ready, racing, finished
     const [statusMessage, setStatusMessage] = useState('');
@@ -130,7 +200,7 @@ export default function HorseRaceSimulator({
 
         const runners = active.length > 0 ? active : baseList;
 
-        // 2. Extract the 3 key rating metrics for each horse
+        // 2. Extract the 3 key rating metrics and breeding coat color for each horse
         const horseMetrics = runners.map((h, index) => {
             const runs = h.past || [];
 
@@ -152,6 +222,9 @@ export default function HorseRaceSimulator({
             const colorIndex = originalIndex >= 0 ? originalIndex : index;
             const horseColor = h.color || LINE_COLORS[colorIndex % LINE_COLORS.length];
 
+            // Horse coat color derived from breeding property
+            const coat = parseBreedingColor(h.breeding);
+
             return {
                 id: h.id ?? h.number ?? (index + 1),
                 number: h.number ?? (index + 1),
@@ -159,6 +232,8 @@ export default function HorseRaceSimulator({
                 draw: h.draw,
                 jockey: h.jockey,
                 trainer: h.trainer,
+                silks: h.silks || null,
+                coat,
                 latestOdds: oddsInfo?.display || null,
                 color: horseColor,
                 recentRating,
@@ -208,6 +283,78 @@ export default function HorseRaceSimulator({
         return processed;
     }, [race, horses, time, place, pendingNonRunners, approvedNonRunners, rejectedNonRunners]);
 
+    // Preload silks images asynchronously and cache them
+    useEffect(() => {
+        fieldData.forEach((h) => {
+            if (h.silks && !silksImagesRef.current.has(h.silks)) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.src = h.silks;
+                img.onload = () => {
+                    silksImagesRef.current.set(h.silks, img);
+                    if (canvasRef.current && (raceState === 'ready' || raceState === 'finished')) {
+                        const ctx = canvasRef.current.getContext('2d');
+                        drawTrackAndField(ctx, canvasRef.current.width, canvasRef.current.height);
+                    }
+                };
+                img.onerror = () => {
+                    silksImagesRef.current.set(h.silks, null);
+                };
+            }
+        });
+    }, [fieldData, raceState]);
+
+    // Preload horse.svg from public folder and generate coat-tinted variants
+    useEffect(() => {
+        const svgUrl = `${import.meta.env.BASE_URL}horse.svg`;
+
+        const img = new Image();
+        img.src = svgUrl;
+        img.onload = () => {
+            defaultHorseImgRef.current = img;
+            if (canvasRef.current && (raceState === 'ready' || raceState === 'finished')) {
+                const ctx = canvasRef.current.getContext('2d');
+                drawTrackAndField(ctx, canvasRef.current.width, canvasRef.current.height);
+            }
+        };
+
+        // Fetch raw SVG to generate coat color variants (Bay, Chestnut, Grey, Black, Brown)
+        fetch(svgUrl)
+            .then(res => res.text())
+            .then(rawSvg => {
+                const coats = [
+                    { code: 'b', body: '#8B4513', leg: '#6B340D', mane: '#292F33' },
+                    { code: 'ch', body: '#C05A1E', leg: '#A54B10', mane: '#D97724' },
+                    { code: 'gr', body: '#D8D8E0', leg: '#B8B8C2', mane: '#8A8A96' },
+                    { code: 'bl', body: '#242428', leg: '#18181A', mane: '#111113' },
+                    { code: 'br', body: '#4A2E18', leg: '#382110', mane: '#292F33' }
+                ];
+
+                coats.forEach(({ code, body, leg, mane }) => {
+                    let tinted = rawSvg
+                        .replace(/fill="#C1694F"/gi, `fill="${body}"`)
+                        .replace(/fill="#8A4B38"/gi, `fill="${leg}"`)
+                        .replace(/fill="#623120"/gi, `fill="${leg}"`);
+                    if (mane) {
+                        tinted = tinted.replace(/fill="#292F33"/gi, `fill="${mane}"`);
+                    }
+
+                    const blob = new Blob([tinted], { type: 'image/svg+xml;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const tintedImg = new Image();
+                    tintedImg.src = url;
+                    tintedImg.onload = () => {
+                        horseSvgCacheRef.current.set(code, tintedImg);
+                        if (canvasRef.current && (raceState === 'ready' || raceState === 'finished')) {
+                            const ctx = canvasRef.current.getContext('2d');
+                            drawTrackAndField(ctx, canvasRef.current.width, canvasRef.current.height);
+                        }
+                    };
+                });
+            })
+            .catch(() => {});
+    }, [raceState]);
+
     // Leaders for dynamic HUD commentary
     const leaders = useMemo(() => {
         if (!fieldData || fieldData.length === 0) return { recent: null, best: null, avg3: null };
@@ -230,6 +377,21 @@ export default function HorseRaceSimulator({
             y: index * laneHeight + laneHeight / 2,
             radius: Math.max(5, Math.min(13, laneHeight * 0.32))
         }));
+    };
+
+    // Dedicated function to render the horse using public/horse.svg
+    const drawHorse = (ctx, x, y, radius, coat) => {
+        const img = (coat?.code && horseSvgCacheRef.current.get(coat.code)) || defaultHorseImgRef.current;
+        const horseSize = Math.min(34, Math.max(20, radius * 2.3));
+
+        if (img && img.complete && img.naturalWidth > 0) {
+            ctx.save();
+            ctx.translate(x, y);
+            // In horse.svg the horse faces left; scale(-1, 1) flips it so it faces right towards the finish line
+            ctx.scale(-1, 1);
+            ctx.drawImage(img, -horseSize / 2, -horseSize / 2, horseSize, horseSize);
+            ctx.restore();
+        }
     };
 
     // Dedicated Render Engine
@@ -255,7 +417,16 @@ export default function HorseRaceSimulator({
             // Saddle cloth number at lane start
             ctx.fillStyle = "#f1c40f";
             ctx.font = `bold ${Math.max(10, Math.min(14, laneHeight * 0.45))}px Arial`;
-            ctx.fillText(`${horse.number ?? (index + 1)}`, 16, currentY + laneHeight / 2 + laneHeight * 0.15);
+            ctx.fillText(`${horse.number ?? (index + 1)}`, 14, currentY + laneHeight / 2 + laneHeight * 0.15);
+
+            // Silks shown next to the number on the simulated race
+            const silksImg = horse.silks ? silksImagesRef.current.get(horse.silks) : null;
+            if (silksImg) {
+                const silksH = Math.min(24, Math.max(16, laneHeight * 0.65));
+                const silksW = silksH;
+                const silksY = currentY + (laneHeight - silksH) / 2;
+                ctx.drawImage(silksImg, 32, silksY, silksW, silksH);
+            }
         });
 
         // 2. Draw Finish Ribbon
@@ -274,24 +445,8 @@ export default function HorseRaceSimulator({
 
         // 3. Draw Horses
         horsesRef.current.forEach((horse) => {
-            ctx.beginPath();
-            ctx.arc(horse.x, horse.y, horse.radius, 0, Math.PI * 2);
-            ctx.fillStyle = horse.color;
-            ctx.fill();
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            // Saddle cloth number inside circle
-            if (horse.radius >= 8) {
-                ctx.fillStyle = '#ffffff';
-                ctx.font = `bold ${Math.round(horse.radius * 0.9)}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(`${horse.number ?? ''}`, horse.x, horse.y);
-                ctx.textAlign = 'start';
-                ctx.textBaseline = 'alphabetic';
-            }
+            // Draw the horse itself in its breeding coat color (no circle, no silks on top)
+            drawHorse(ctx, horse.x, horse.y, horse.radius, horse.coat);
 
             // Name & Ratings label
             ctx.fillStyle = '#ffffff';
@@ -299,7 +454,7 @@ export default function HorseRaceSimulator({
             ctx.font = `bold ${fontSize}px Arial`;
 
             const oddsStr = horse.latestOdds ? ` (${horse.latestOdds})` : '';
-            ctx.fillText(`${horse.name}${oddsStr}`, horse.x + horse.radius + 8, horse.y + fontSize * 0.35);
+            ctx.fillText(`${horse.name}${oddsStr}`, horse.x + 20, horse.y + fontSize * 0.35);
         });
     };
 
