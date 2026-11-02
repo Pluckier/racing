@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getPaletteSync } from 'colorthief';
 import { LINE_COLORS } from '../../constants/chartConstants';
+import { formatRaceResult, getAnnouncedPlacesCount } from '../../utils/racingLogic';
 
 // Horse coat color palette based on breeding
 export const HORSE_COAT_COLORS = {
@@ -35,6 +37,14 @@ export const HORSE_COAT_COLORS = {
         code: 'br'
     }
 };
+
+// Styling configuration for race finish result splash popup
+export const RESULT_POSITION_CONFIG = [
+    { label: '1st', medal: '🥇', bg: 'linear-gradient(135deg, #f1c40f, #d4ac0d)', color: '#000000', border: '#f39c12' },
+    { label: '2nd', medal: '🥈', bg: 'linear-gradient(135deg, #e2e8f0, #cbd5e1)', color: '#0f172a', border: '#94a3b8' },
+    { label: '3rd', medal: '🥉', bg: 'linear-gradient(135deg, #f59e0b, #b45309)', color: '#ffffff', border: '#92400e' },
+    { label: '4th', medal: '🎖️', bg: 'linear-gradient(135deg, #38bdf8, #0284c7)', color: '#ffffff', border: '#0369a1' }
+];
 
 // Helper to lighten a hex color for jockey sleeve highlight
 const lightenColor = (hex, percent = 25) => {
@@ -286,6 +296,8 @@ export default function HorseRaceSimulator({
 
     const [raceState, setRaceState] = useState('ready'); // ready, racing, finished
     const [statusMessage, setStatusMessage] = useState('');
+    const [showResultModal, setShowResultModal] = useState(false);
+    const [resultStandings, setResultStandings] = useState([]);
 
     const time = race?.time || raceTime || '';
     const place = race?.place || racePlace || '';
@@ -665,11 +677,19 @@ export default function HorseRaceSimulator({
         if (tau >= 1.0) {
             cancelAnimationFrame(requestRef.current);
             setRaceState('finished');
-            // Winner is strictly the horse with the highest avg3Rating
-            const winner = leaders.avg3 || horsesRef.current[0];
-            const numStr = winner.number ? `#${winner.number} ` : '';
-            const venueStr = place ? ` AT ${place.toUpperCase()}` : '';
-            setStatusMessage(`🥇 ${numStr}${winner.name.toUpperCase()} WINS${venueStr}`);
+
+            // Sort horses by finish line progress (horse.x), breaking ties by avg3Score and avg3Rating
+            const standings = [...horsesRef.current].sort((a, b) => {
+                if (b.x !== a.x) return b.x - a.x;
+                if (b.avg3Score !== a.avg3Score) return b.avg3Score - a.avg3Score;
+                return (b.avg3Rating || 0) - (a.avg3Rating || 0);
+            });
+
+            const raceDetailText = race?.detail || race?.name || raceTitle || '';
+            const resultMsg = formatRaceResult(standings, raceDetailText);
+            setStatusMessage(resultMsg);
+            setResultStandings(standings);
+            setShowResultModal(true);
         } else {
             requestRef.current = requestAnimationFrame(updateRaceFrame);
         }
@@ -712,6 +732,8 @@ export default function HorseRaceSimulator({
         initHorses(initialWidth, initialHeight);
         handleResize();
         setRaceState('ready');
+        setShowResultModal(false);
+        setResultStandings([]);
         setStatusMessage(`${raceTitle} • ${fieldData.length} Runners Ready`);
 
         let resizeObserver;
@@ -739,13 +761,22 @@ export default function HorseRaceSimulator({
             initHorses(canvas.width, canvas.height);
             drawTrackAndField(canvas.getContext('2d'), canvas.width, canvas.height);
             setRaceState('ready');
+            setShowResultModal(false);
+            setResultStandings([]);
             setStatusMessage(`${raceTitle} • Ready to Run`);
         } else {
+            setShowResultModal(false);
             setRaceState('racing');
             startTimeRef.current = performance.now();
             requestRef.current = requestAnimationFrame(updateRaceFrame);
         }
     };
+
+    const currentDetailText = race?.detail || race?.name || raceTitle || '';
+    const announcedCount = resultStandings.length > 0
+        ? Math.min(getAnnouncedPlacesCount(resultStandings.length, currentDetailText), resultStandings.length)
+        : 0;
+    const placedHorses = resultStandings.slice(0, announcedCount);
 
     return (
         <div
@@ -795,6 +826,30 @@ export default function HorseRaceSimulator({
                     >
                         {raceState === 'finished' ? 'Reset Gates' : raceState === 'racing' ? 'Racing...' : 'Gate Open'}
                     </button>
+
+                    {raceState === 'finished' && !showResultModal && (
+                        <button
+                            onClick={() => setShowResultModal(true)}
+                            style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                textTransform: 'uppercase',
+                                backgroundColor: 'rgba(241, 196, 15, 0.18)',
+                                color: '#f1c40f',
+                                border: '1px solid #f1c40f',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <span>🏆</span>
+                            <span>Result</span>
+                        </button>
+                    )}
                 </div>
 
                 <div style={{
@@ -862,6 +917,226 @@ export default function HorseRaceSimulator({
                     backgroundColor: '#1e8449'
                 }}
             />
+
+            {/* Official Result Splash Popup */}
+            <AnimatePresence>
+                {showResultModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowResultModal(false)}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(4, 15, 8, 0.82)',
+                            backdropFilter: 'blur(5px)',
+                            WebkitBackdropFilter: 'blur(5px)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 40,
+                            padding: '16px'
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.88, y: 25, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.88, y: 25, opacity: 0 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 320 }}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                width: '100%',
+                                maxWidth: '500px',
+                                background: 'linear-gradient(160deg, #0e301d 0%, #06180e 100%)',
+                                border: '2px solid #f1c40f',
+                                borderRadius: '14px',
+                                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(241, 196, 15, 0.25)',
+                                padding: '22px 24px',
+                                color: '#ffffff'
+                            }}
+                        >
+                            {/* Modal Header */}
+                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '24px' }}>🏆</span>
+                                        <h3 style={{
+                                            margin: 0,
+                                            color: '#f1c40f',
+                                            fontSize: '19px',
+                                            fontWeight: '900',
+                                            letterSpacing: '1px',
+                                            textTransform: 'uppercase'
+                                        }}>
+                                            Official Result
+                                        </h3>
+                                    </div>
+                                    <div style={{ color: '#cbd5e1', fontSize: '12.5px', marginTop: '4px', fontWeight: '500' }}>
+                                        {raceTitle}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowResultModal(false)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#94a3b8',
+                                        fontSize: '26px',
+                                        cursor: 'pointer',
+                                        padding: '0 4px',
+                                        lineHeight: 1
+                                    }}
+                                    title="Close"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {/* Placed Horses List */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {placedHorses.map((horse, idx) => {
+                                    const config = RESULT_POSITION_CONFIG[idx] || RESULT_POSITION_CONFIG[3];
+                                    return (
+                                        <div
+                                            key={horse.id ?? idx}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                padding: '10px 14px',
+                                                backgroundColor: idx === 0 ? 'rgba(241, 196, 15, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                                                border: idx === 0 ? '1px solid rgba(241, 196, 15, 0.45)' : '1px solid rgba(255, 255, 255, 0.08)',
+                                                borderRadius: '8px',
+                                                gap: '12px'
+                                            }}
+                                        >
+                                            <div style={{
+                                                background: config.bg,
+                                                color: config.color,
+                                                border: `1px solid ${config.border}`,
+                                                borderRadius: '6px',
+                                                padding: '3px 8px',
+                                                fontWeight: '900',
+                                                fontSize: '12px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                minWidth: '56px',
+                                                justifyContent: 'center',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                            }}>
+                                                <span>{config.medal}</span>
+                                                <span>{config.label}</span>
+                                            </div>
+
+                                            {horse.silks && (
+                                                <img
+                                                    src={horse.silks}
+                                                    alt="silks"
+                                                    style={{ width: '30px', height: '30px', objectFit: 'contain', flexShrink: 0 }}
+                                                />
+                                            )}
+
+                                            <div style={{
+                                                color: '#f1c40f',
+                                                fontWeight: 'bold',
+                                                fontSize: '14px',
+                                                minWidth: '28px',
+                                                textAlign: 'center'
+                                            }}>
+                                                {horse.number}{horse.draw ? <span style={{ fontSize: '11px', color: '#9ca3af', marginLeft: '3px' }}>({horse.draw})</span> : ''}
+                                            </div>
+
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{
+                                                    fontWeight: 'bold',
+                                                    fontSize: '14px',
+                                                    color: '#ffffff',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap'
+                                                }}>
+                                                    {horse.name}
+                                                </div>
+                                                {(horse.jockey || horse.trainer) && (
+                                                    <div style={{
+                                                        fontSize: '11px',
+                                                        color: '#94a3b8',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>
+                                                        {horse.jockey && `J: ${horse.jockey}`}
+                                                        {horse.jockey && horse.trainer && ' • '}
+                                                        {horse.trainer && `T: ${horse.trainer}`}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {horse.latestOdds && (
+                                                <div style={{
+                                                    backgroundColor: 'rgba(241, 196, 15, 0.15)',
+                                                    border: '1px solid rgba(241, 196, 15, 0.4)',
+                                                    color: '#f1c40f',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    flexShrink: 0
+                                                }}>
+                                                    {horse.latestOdds}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Actions Footer */}
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                                <button
+                                    onClick={() => setShowResultModal(false)}
+                                    style={{
+                                        flex: 1,
+                                        padding: '9px 14px',
+                                        fontSize: '13px',
+                                        fontWeight: 'bold',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                        color: '#cbd5e1',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        transition: 'background-color 0.2s ease'
+                                    }}
+                                >
+                                    Inspect Track Photo
+                                </button>
+                                <button
+                                    onClick={handleControlClick}
+                                    style={{
+                                        flex: 1,
+                                        padding: '9px 14px',
+                                        fontSize: '13px',
+                                        fontWeight: 'bold',
+                                        backgroundColor: '#f1c40f',
+                                        color: '#114b29',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                        transition: 'opacity 0.2s ease'
+                                    }}
+                                >
+                                    Reset Gates
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -149,3 +149,49 @@ export const isNiceRace = (race) => {
   return Boolean((isHandicap || isClass1Or2) && hasMinRunners);
 };
 
+
+/**
+ * Determines how many places to announce in the race simulator result:
+ * - 4 runners or less: 1 (winner only)
+ * - Less than 8 runners: 2 (1st and 2nd)
+ * - More than 7 runners: 3 (1st, 2nd, and 3rd)
+ * - More than 15 runners in a Handicap: 4 (1st, 2nd, 3rd, and 4th)
+ *
+ * @param {number} runnerCount
+ * @param {string} detailText
+ * @returns {number}
+ */
+export const getAnnouncedPlacesCount = (runnerCount, detailText = '') => {
+  if (runnerCount <= 4) return 1;
+  if (runnerCount < 8) return 2;
+  const isHandicap = /handicap/i.test(String(detailText || ''));
+  if (runnerCount > 15 && isHandicap) return 4;
+  return 3;
+};
+
+/**
+ * Formats the finish announcement text for the simulator.
+ *
+ * @param {Array} standings - Horses sorted by finish order
+ * @param {string} detailText - Race detail string
+ * @returns {string}
+ */
+export const formatRaceResult = (standings, detailText = '') => {
+  if (!standings || standings.length === 0) return '';
+  const placesCount = Math.min(
+    getAnnouncedPlacesCount(standings.length, detailText),
+    standings.length
+  );
+
+  const ordinals = ['1st', '2nd', '3rd', '4th'];
+  const parts = [];
+
+  for (let i = 0; i < placesCount; i++) {
+    const h = standings[i];
+    const num = h.number ? `#${h.number} ` : '';
+    const odds = h.latestOdds ? ` (${h.latestOdds})` : '';
+    parts.push(`${ordinals[i]} ${num}${h.name}${odds}`);
+  }
+
+  return `RESULT: ${parts.join(' • ')}`;
+};
