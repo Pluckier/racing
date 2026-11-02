@@ -478,6 +478,11 @@ export default function HorseRaceSimulator({
         };
     }, [fieldData]);
 
+    // Track horizontal layout offsets (ensures number/draw, silks icon, and running horse never overlap)
+    const NUMBER_START_X = 12;
+    const SILKS_START_X = 72;
+    const HORSE_START_X = 125;
+
     // Initialize mutable horse positions array
     const initHorses = (width, height) => {
         const count = fieldData.length || 1;
@@ -485,7 +490,7 @@ export default function HorseRaceSimulator({
 
         horsesRef.current = fieldData.map((data, index) => ({
             ...data,
-            x: 60,
+            x: HORSE_START_X,
             y: index * laneHeight + laneHeight / 2,
             radius: Math.max(5, Math.min(13, laneHeight * 0.32))
         }));
@@ -527,10 +532,14 @@ export default function HorseRaceSimulator({
             ctx.lineTo(width, currentY);
             ctx.stroke();
 
-            // Saddle cloth number at lane start
+            // Saddle cloth number & stall draw at lane start
             ctx.fillStyle = "#f1c40f";
             ctx.font = `bold ${Math.max(10, Math.min(14, laneHeight * 0.45))}px Arial`;
-            ctx.fillText(`${horse.number ?? (index + 1)} (${horse.draw ?? 'N/A'})`, 14, currentY + laneHeight / 2 + laneHeight * 0.15);
+            const drawVal = horse.draw != null && horse.draw !== ''
+                ? String(horse.draw).replace(/[()]/g, '').trim()
+                : '';
+            const numDrawText = drawVal ? `${horse.number ?? (index + 1)} (${drawVal})` : `${horse.number ?? (index + 1)}`;
+            ctx.fillText(numDrawText, NUMBER_START_X, currentY + laneHeight / 2 + laneHeight * 0.15);
 
             // Silks shown next to the number on the simulated race
             const silksImg = horse.silks ? silksImagesRef.current.get(horse.silks) : null;
@@ -538,7 +547,7 @@ export default function HorseRaceSimulator({
                 const silksH = Math.min(24, Math.max(16, laneHeight * 0.65));
                 const silksW = silksH;
                 const silksY = currentY + (laneHeight - silksH) / 2;
-                ctx.drawImage(silksImg, 48, silksY, silksW, silksH);
+                ctx.drawImage(silksImg, SILKS_START_X, silksY, silksW, silksH);
             }
 
         });
@@ -567,8 +576,6 @@ export default function HorseRaceSimulator({
             const fontSize = Math.max(9, Math.min(13, laneHeight * 0.38));
             ctx.font = `bold ${fontSize}px Arial`;
 
-            const drawVal = horse.draw ? String(horse.draw).replace(/[()]/g, '').trim() : '';
-            const drawStr = drawVal ? ` (${drawVal})` : '';
             const oddsStr = horse.latestOdds ? ` (${horse.latestOdds})` : '';
             ctx.fillText(`${horse.name}${oddsStr}`, horse.x + 20, horse.y + fontSize * 0.35);
         });
@@ -580,7 +587,7 @@ export default function HorseRaceSimulator({
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         const finishLineX = canvas.width - (canvas.width > 600 ? 160 : 110);
-        const startX = 60;
+        const startX = HORSE_START_X;
         const totalDistance = finishLineX - startX;
 
         const raceDurationMs = 5000; // 5s full race
