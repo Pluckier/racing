@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import HorseRow from './HorseRow';
 import FormChart from '../charts/FormChart';
 import OddsChart from '../charts/OddsChart';
+import HorseRaceSimulator from '../charts/Simulator';
 import Modal from '../common/Modal';
 import '../../css/RaceCard.css';
 import { useStore } from '../../store/store';
@@ -20,6 +21,7 @@ const SORT_LABELS = {
 
 const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, highlightSelects, isAlarmEnabled, onToggleAlarm, viewMode, currentDateStr, pendingNonRunners = new Set(), approvedNonRunners = new Set(), rejectedNonRunners = new Set() }) => {
   const [showChart, setShowChart] = useState(false);
+  const [showSim, setShowSim] = useState(false);
   const [showOdds, setShowOdds] = useState(false);
   const [sortBy, setSortBy] = useState('avg');
   const [activeChartRace, setActiveChartRace] = useState(race);
@@ -446,6 +448,11 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
     }
   };
 
+  const openSim = () => {
+    setActiveChartRace(race); // Reset to this card's race when opening
+    setShowSim(true);
+  };
+
   const openChart = () => {
     setActiveChartRace(race); // Reset to this card's race when opening
     setShowChart(true);
@@ -552,6 +559,28 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
               }}
             >
               🔔
+            </button>
+            <button
+              type="button"
+              onClick={openSim}
+              title="Open Race Simulator"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                marginRight: '3px',
+                padding: 0,
+                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              🏇
             </button>
             <button
               type="button"
@@ -812,6 +841,26 @@ const RaceCard = ({ race, allRaces = [], highlightFiddles, highlightValues, high
       </Modal>
 
       <ThreeSliders wValue={wValue} setW={setW} dValue={dValue} setD={setD} gValue={gValue} setG={setG} />
+
+      <Modal
+        isOpen={showSim}
+        onClose={() => setShowSim(false)}
+        title={`GO: ${activeChartRace.time} ${activeChartRace.place}`}
+      >
+        <HorseRaceSimulator
+          race={activeChartRace}
+          horses={activeChartRace.horses}
+          raceTime={activeChartRace.time}
+          racePlace={activeChartRace.place}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          hasNext={hasNext}
+          hasPrev={hasPrev}
+          pendingNonRunners={pendingNonRunners}
+          approvedNonRunners={approvedNonRunners}
+          rejectedNonRunners={rejectedNonRunners}
+        />
+      </Modal>
 
       <Modal
         isOpen={showOdds}
