@@ -26,30 +26,45 @@ export function useRaces(displayDate) {
         lastDateRef.current = displayDate;
       }
 
-
       const day = String(displayDate.getDate()).padStart(2, '0');
       const month = String(displayDate.getMonth() + 1).padStart(2, '0');
       const year = displayDate.getFullYear();
       const dateString = `${day}-${month}-${year}`;
 
-      try {
-        const response = await fetch(`https://www.pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' });
-        if (!response.ok) throw new Error('Races for this date are not available');
+      let data = null;
 
-        const data = await response.json();
-        setRaces(data);
-        setLastRefreshTime(Date.now());
-      } catch (err) {
-        console.error("Fetch failure:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      // STRATEGY A: Attempt the compressed .json.gz file first
+      try {
+        const response = await fetch(`https://pluckier.co.uk/${dateString}-races.json.gz`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('Gzipped file missing or unreachable');
+
+        const decompressionStream = new DecompressionStream('gzip');
+        const decompressedStream = response.body.pipeThrough(decompressionStream);
+
+        data = await new Response(decompressedStream).json();
+        console.log('Successfully loaded compressed data');
+      } catch (gzipErr) {
+        // STRATEGY B: Fallback to the uncompressed .json file if Gzip fails
+        console.warn('Gzip fetch failed, trying uncompressed JSON fallback...', gzipErr);
+
+        const fallbackResponse = await fetch(`https://pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' });
+        if (!fallbackResponse.ok) throw new Error('Races for this date are not available in any format');
+
+        data = await fallbackResponse.json();
+        console.log('Successfully loaded uncompressed fallback data');
       }
-    } catch (outerError) {
-      console.error("Outer logical failure:", outerError);
+
+      // If either strategy successfully populated the data variable, update state
+      setRaces(data);
+      setLastRefreshTime(Date.now());
+
+    } catch (err) {
+      console.error("Fetch pipeline failure:", err);
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
-  }, [dateKey, displayDate]); // Corrected: Comma separates function and dependency array
+  }, [dateKey, displayDate]);
 
 
   // 3. Effect A: Initial data fetch on mount or when the date changes
