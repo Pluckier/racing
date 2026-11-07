@@ -339,7 +339,13 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
       <div className="horse-main">
         <div className="horse-info-container">
           <div className="horse-silks-wrapper">
-            {horse.silks && <img src={horse.silks} alt="silks" className="horse-silks" />}
+            {horse.silks && (
+              <img
+                src={horse.silks.replace('https://www.attheraces.com', 'https://pluckier-silks.tonykennah.workers.dev')}
+                alt="silks"
+                className="horse-silks"
+              />
+            )}
           </div>
           <div className="horse-primary-data">
             <span

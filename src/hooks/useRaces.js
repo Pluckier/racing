@@ -33,19 +33,26 @@ export function useRaces(displayDate) {
 
       let data = null;
 
+      const MS = 15 * 60 * 1000;
+      const delayToken = Math.floor(Date.now() / MS);
+      const cacheBuster = `?v=${delayToken}`;
+
       // STRATEGY A: Attempt the compressed .json.gz file first
       try {
-        const response = await fetch(`https://pluckier.co.uk/${dateString}-races.json.gz`, { cache: 'no-store' });
-        if (!response.ok) throw new Error('Gzipped file missing or unreachable');
+        const response = await fetch(`https://pluckier-cdn.tonykennah.workers.dev/${dateString}-races.json.gz${cacheBuster}`, { cache: 'no-store' });
 
-        const decompressionStream = new DecompressionStream('gzip');
-        const decompressedStream = response.body.pipeThrough(decompressionStream);
+        if (!response.ok) {
+          // This manually jumps directly down to the catch block
+          throw new Error(`Races for ${dateString} are not available yet in the storage bucket (HTTP ${response.status}).`);
+        }
 
-        data = await new Response(decompressedStream).json();
-        console.log('Successfully loaded compressed data');
-      } catch (gzipErr) {
+        // 2. Clear out manual decompression streams! The browser unzips this automatically 
+        // due to your 'Content-Encoding: gzip' metadata header rules.
+        data = await response.json();
+        console.log('Successfully loaded the auto-decompressed data');
+      } catch (error) {
         // STRATEGY B: Fallback to the uncompressed .json file if Gzip fails
-        console.warn('Gzip fetch failed, trying uncompressed JSON fallback...', gzipErr);
+        console.warn('Fetch failed, trying uncompressed JSON fallback...', error);
 
         const fallbackResponse = await fetch(`https://pluckier.co.uk/${dateString}-races.json`, { cache: 'no-store' });
         if (!fallbackResponse.ok) throw new Error('Races for this date are not available in any format');
