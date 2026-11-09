@@ -341,7 +341,7 @@ const HorseRow = ({ horse, isSoleTrainerRunner = false, isSoleRide = false, sort
           <div className="horse-silks-wrapper">
             {horse.silks && (
               <img
-                src={horse.silks.replace('https://www.attheraces.com', 'https://pluckier-silks.tonykennah.workers.dev')}
+                src={horse.silks.replace('https://www.attheraces.com', 'https://silks.pluckier.co.uk')}
                 alt="silks"
                 className="horse-silks"
               />
