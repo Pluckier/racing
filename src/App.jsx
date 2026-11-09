@@ -393,16 +393,12 @@ function App() {
     );
   };
 
-  return (
-    <AntiSpamWrapper>
-      {!AUTH_ACTIVE ? (
-        content()
-      ) : (
-        <AuthGuard>
-          {() => content()}
-        </AuthGuard>
-      )}
-    </AntiSpamWrapper>
+  return AUTH_ACTIVE ? (
+    <AuthGuard>
+      {() => content()}
+    </AuthGuard>
+  ) : (
+    content()
   );
 }
 
